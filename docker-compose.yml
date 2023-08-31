@@ -1,0 +1,57 @@
+services:
+  postgres:
+    env_file:
+      - .env
+    image: postgres:15-alpine
+    volumes:
+      - postgres-vol:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    restart: always
+    container_name: "postgres"
+  test-db:
+    env_file:
+      - .env
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - postgres-vol:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    container_name: "test-db"
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - postgres
+    ports:
+      - "80:80"
+    env_file: .env
+    container_name: "pgadmin"
+    volumes:
+      - pgadmin-vol:/var/lib/pgadmin
+  redis:
+    image: redis:7.2.0-alpine
+    restart: always
+    command: /bin/sh -c "exec redis-server --requirepass $$REDIS_HOST_PASSWORD"
+    ports:
+      - '6379:6379'
+    env_file: .env
+    container_name: "redis-server"
+    volumes:
+      - redis-data:/data
+  redis-insight:
+    image: redislabs/redisinsight
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - '8001:8001'
+    volumes:
+      - insight-vol:/db
+    container_name: "redis-insight"
+
+volumes:
+  postgres-vol:
+  pgadmin-vol:
+  redis-data:
+  insight-vol:
