@@ -1,0 +1,186 @@
+import { exec } from "child_process";
+import { promises as fs } from "fs";
+import { copyFile } from "fs/promises";
+import {
+  Kysely,
+  Migrator,
+  NO_MIGRATIONS,
+  type Migration,
+  type MigrationProvider,
+  type MigrationResultSet
+} from "kysely";
+import * as path from "path";
+import { fileURLToPath } from "url";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+export class ESMFileMigrationProvider implements MigrationProvider {
+  constructor(private relativePath: string) {}
+
+  async getMigrations(): Promise<Record<string, Migration>> {
+    const migrations: Record<string, Migration> = {};
+    const __dirname = fileURLToPath(new URL(".", import.meta.url));
+    const resolvedPath = path.resolve(__dirname, this.relativePath);
+    const files = await fs.readdir(resolvedPath);
+    for (const fileName of files) {
+      if (!fileName.endsWith(".ts")) {
+        continue;
+      }
+
+      const importPath = path.join(this.relativePath, fileName).replaceAll("\\", "/");
+      const migration = (await import(importPath)) as Migration;
+      const migrationKey = fileName.substring(0, fileName.lastIndexOf("."));
+
+      migrations[migrationKey] = migration;
+    }
+
+    return migrations;
+  }
+}
+
+export type MigrationOptions = "up" | "down" | "migrate" | "to" | "reset";
+export type CompleteOptions = MigrationOptions | "create";
+
+export class MigrationHelper {
+  readonly createOption = "create";
+  readonly migrationOptions: MigrationOptions[] = ["up", "down", "migrate", "to", "reset"];
+  readonly optionsWithArgs = "to" as const;
+  typePath: string;
+  #evalMap = {
+    migrate: this.#migrateToLatest.bind(this),
+    up: this.#migrateUp.bind(this),
+    down: this.#migrateDown.bind(this),
+    to: this.#migrateTo.bind(this),
+    reset: this.#reset.bind(this),
+    create: this.#createMigration.bind(this)
+  };
+  #defaultMethod = this.#migrateToLatest.bind(this);
+
+  constructor(private db: Kysely<unknown>, private migrator: Migrator, typePath: string) {
+    this.typePath = typePath;
+  }
+
+  async handleArgs(argv: string[]): Promise<void> {
+    try {
+      const args = argv.slice(2).map((arg) => arg.replace(/^-{1,2}/, ""));
+      if (args.includes(this.createOption)) {
+        await this.#createMigration(args);
+        return;
+      }
+      await this.#handleMigration(args);
+      await this.updateSchema();
+      await this.closeConnection();
+    } catch (err) {
+      console.warn(err instanceof Error ? err.message : err);
+      await this.closeConnection();
+    }
+  }
+
+  async updateSchema(): Promise<void> {
+    const { stderr, stdout } = await execAsync(
+      `npx kysely-codegen --camel-case --print true --dialect postgres --out-file ${this.typePath}`
+    );
+    if (stderr) {
+      console.error(stderr);
+    }
+    if (stdout) {
+      console.log(stdout);
+    }
+  }
+
+  async closeConnection(): Promise<void> {
+    await this.db.destroy();
+  }
+
+  #resultHandler({ results, error }: MigrationResultSet): void {
+    results?.forEach((result) => {
+      if (result.status === "Success") {
+        console.log(`migration "${result.migrationName}" was executed successfully`);
+      }
+      if (result.status === "Error") {
+        console.error(`failed to execute migration "${result.migrationName}"`);
+      }
+    });
+
+    if (error) {
+      console.error("failed to migrate");
+      console.error(error);
+    }
+  }
+
+  async #handleMigration(args: string[]): Promise<void> {
+    if (!args.length) {
+      this.#resultHandler(await this.#defaultMethod());
+      return;
+    }
+    const chosenOptions = this.migrationOptions.filter((option) => args.includes(option));
+    if (!chosenOptions.length) {
+      throw new Error(
+        `Invalid options supplied! Expected one of the following: ${[
+          ...this.migrationOptions,
+          this.createOption
+        ].join(", ")}.`
+      );
+    }
+    if (chosenOptions.length > 1) {
+      throw new Error("Only one migration option allowed at a time!");
+    }
+    const action = chosenOptions[0];
+
+    if (action !== this.optionsWithArgs) {
+      this.#resultHandler(await this.#evalMap[action]());
+      return;
+    }
+    // If migration requires arguments, check that we have them.
+    if (args.length !== 2) {
+      throw new Error("A migration name needs to be provided!");
+    }
+
+    const migrationName = args.filter((arg) => arg !== action)[0];
+    this.#resultHandler(await this.#evalMap[action](migrationName));
+  }
+
+  async #migrateToLatest(): Promise<MigrationResultSet> {
+    return await this.migrator.migrateToLatest();
+  }
+
+  async #migrateTo(migrationName: string): Promise<MigrationResultSet> {
+    return await this.migrator.migrateTo(migrationName);
+  }
+  async #migrateUp(): Promise<MigrationResultSet> {
+    return await this.migrator.migrateUp();
+  }
+  async #migrateDown(): Promise<MigrationResultSet> {
+    return await this.migrator.migrateDown();
+  }
+  async #reset(): Promise<MigrationResultSet> {
+    return await this.migrator.migrateTo(NO_MIGRATIONS);
+  }
+
+  async #createMigration(args: string[]): Promise<void> {
+    try {
+      const migrationArg = args.find((arg) => arg !== this.createOption);
+      if (!migrationArg) throw new Error("No migration name supplied!");
+      if (Number(migrationArg)) throw new Error("Please supply a string!");
+
+      const datePrefix = Date.now();
+      const migrationName = `${datePrefix}-${migrationArg}`;
+      const CURRENT_DIR = import.meta.url;
+      const template = new URL("./migration-template.ts", CURRENT_DIR);
+      const path = new URL(`../migrations/${migrationName}.ts`, CURRENT_DIR);
+
+      await copyFile(template, path);
+
+      console.log("Written migration file", path.pathname);
+      process.exit(0);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.log("ERROR", err.message);
+        return;
+      }
+      console.log("Error", err);
+      return;
+    }
+  }
+}
