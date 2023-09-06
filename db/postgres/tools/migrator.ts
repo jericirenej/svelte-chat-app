@@ -1,4 +1,3 @@
-import { exec } from "child_process";
 import { promises as fs } from "fs";
 import { copyFile } from "fs/promises";
 import {
@@ -9,11 +8,9 @@ import {
   type MigrationProvider,
   type MigrationResultSet
 } from "kysely";
-import * as path from "path";
+import { join, resolve } from "path";
 import { fileURLToPath } from "url";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
+import { asyncExec } from "./utils.js";
 
 export class ESMFileMigrationProvider implements MigrationProvider {
   constructor(private relativePath: string) {}
@@ -21,14 +18,14 @@ export class ESMFileMigrationProvider implements MigrationProvider {
   async getMigrations(): Promise<Record<string, Migration>> {
     const migrations: Record<string, Migration> = {};
     const __dirname = fileURLToPath(new URL(".", import.meta.url));
-    const resolvedPath = path.resolve(__dirname, this.relativePath);
+    const resolvedPath = resolve(__dirname, this.relativePath);
     const files = await fs.readdir(resolvedPath);
     for (const fileName of files) {
       if (!fileName.endsWith(".ts")) {
         continue;
       }
 
-      const importPath = path.join(this.relativePath, fileName).replaceAll("\\", "/");
+      const importPath = join(this.relativePath, fileName).replaceAll("\\", "/");
       const migration = (await import(importPath)) as Migration;
       const migrationKey = fileName.substring(0, fileName.lastIndexOf("."));
 
@@ -46,6 +43,10 @@ export class MigrationHelper {
   readonly createOption = "create";
   readonly migrationOptions: MigrationOptions[] = ["up", "down", "migrate", "to", "reset"];
   readonly optionsWithArgs = "to" as const;
+  readonly noOptionsError = `Invalid options supplied! Expected one of the following: ${[
+    ...this.migrationOptions,
+    this.createOption
+  ].join(", ")}.`;
   typePath: string;
   #evalMap = {
     migrate: this.#migrateToLatest.bind(this),
@@ -53,9 +54,8 @@ export class MigrationHelper {
     down: this.#migrateDown.bind(this),
     to: this.#migrateTo.bind(this),
     reset: this.#reset.bind(this),
-    create: this.#createMigration.bind(this)
+    create: this.createMigration.bind(this)
   };
-  #defaultMethod = this.#migrateToLatest.bind(this);
 
   constructor(private db: Kysely<unknown>, private migrator: Migrator, typePath: string) {
     this.typePath = typePath;
@@ -64,8 +64,11 @@ export class MigrationHelper {
   async handleArgs(argv: string[]): Promise<void> {
     try {
       const args = argv.slice(2).map((arg) => arg.replace(/^-{1,2}/, ""));
+      if (!args.length) {
+        throw new Error(this.noOptionsError);
+      }
       if (args.includes(this.createOption)) {
-        await this.#createMigration(args);
+        await this.createMigration(args);
         return;
       }
       await this.#handleMigration(args);
@@ -78,7 +81,7 @@ export class MigrationHelper {
   }
 
   async updateSchema(): Promise<void> {
-    const { stderr, stdout } = await execAsync(
+    const { stderr, stdout } = await asyncExec(
       `npx kysely-codegen --camel-case --print true --dialect postgres --out-file ${this.typePath}`
     );
     if (stderr) {
@@ -110,18 +113,9 @@ export class MigrationHelper {
   }
 
   async #handleMigration(args: string[]): Promise<void> {
-    if (!args.length) {
-      this.#resultHandler(await this.#defaultMethod());
-      return;
-    }
     const chosenOptions = this.migrationOptions.filter((option) => args.includes(option));
     if (!chosenOptions.length) {
-      throw new Error(
-        `Invalid options supplied! Expected one of the following: ${[
-          ...this.migrationOptions,
-          this.createOption
-        ].join(", ")}.`
-      );
+      throw new Error(this.noOptionsError);
     }
     if (chosenOptions.length > 1) {
       throw new Error("Only one migration option allowed at a time!");
@@ -158,7 +152,7 @@ export class MigrationHelper {
     return await this.migrator.migrateTo(NO_MIGRATIONS);
   }
 
-  async #createMigration(args: string[]): Promise<void> {
+  async createMigration(args: string[]): Promise<void> {
     try {
       const migrationArg = args.find((arg) => arg !== this.createOption);
       if (!migrationArg) throw new Error("No migration name supplied!");
@@ -173,13 +167,12 @@ export class MigrationHelper {
       await copyFile(template, path);
 
       console.log("Written migration file", path.pathname);
-      process.exit(0);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        console.log("ERROR", err.message);
+        console.warn("ERROR", err.message);
         return;
       }
-      console.log("Error", err);
+      console.warn("Error", err);
       return;
     }
   }
