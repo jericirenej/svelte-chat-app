@@ -48,7 +48,6 @@ describe("verifyUser", () => {
     id = "id";
   const { hash, salt } = genPassword(password);
   const mockDbService = {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getCredentials(username: string): Promise<CredentialsResult> {
       return Promise.resolve(null);
     }

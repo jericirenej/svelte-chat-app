@@ -28,6 +28,12 @@ module.exports = {
       parserOptions: {
         parser: "@typescript-eslint/parser"
       }
+    },
+    {
+      files: ["*.spec.ts"],
+      rules: {
+        "@typescript-eslint/no-unused-vars": 0
+      }
     }
   ]
 };
