@@ -18,6 +18,7 @@
     "migrator": "ts-node db/postgres/tools/migrator-cli.ts"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.0.2",
     "@playwright/test": "^1.28.1",
     "@storybook/addon-essentials": "^7.4.0",
     "@storybook/addon-interactions": "^7.4.0",
