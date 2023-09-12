@@ -39,6 +39,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     )
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addUniqueConstraint("unique_user_name_and_contact", ["userId", "contactId"])
     .execute();
 
   await db.schema.createType("userRoles").asEnum(["admin", "user"]).execute();
@@ -56,7 +57,6 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .createTable("chat")
     .addColumn("id", "uuid", (col) => col.primaryKey())
     .addColumn("name", "varchar(100)", (col) => col.notNull())
-    .addColumn("public", "boolean", (col) => col.notNull().defaultTo(true))
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();

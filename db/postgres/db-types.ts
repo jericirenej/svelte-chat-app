@@ -19,7 +19,6 @@ export interface Auth {
 export interface Chat {
   id: string;
   name: string;
-  public: Generated<boolean>;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }
