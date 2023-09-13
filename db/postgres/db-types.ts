@@ -17,7 +17,7 @@ export interface Auth {
 }
 
 export interface Chat {
-  id: string;
+  id: Generated<string>;
   name: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
@@ -32,15 +32,16 @@ export interface Contact {
 }
 
 export interface Message {
-  id: string;
+  id: Generated<string>;
   userId: string;
   chatId: string;
+  message: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }
 
 export interface Participant {
-  id: string;
+  id: Generated<string>;
   chatId: string;
   userId: string;
   createdAt: Generated<Timestamp>;
