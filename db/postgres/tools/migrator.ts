@@ -36,12 +36,12 @@ export class ESMFileMigrationProvider implements MigrationProvider {
   }
 }
 
-export type MigrationOptions = "up" | "down" | "migrate" | "to" | "reset";
+export type MigrationOptions = "up" | "down" | "migrate" | "to" | "clear" | "reset";
 export type CompleteOptions = MigrationOptions | "create";
 
 export class MigrationHelper {
   readonly createOption = "create";
-  readonly migrationOptions: MigrationOptions[] = ["up", "down", "migrate", "to", "reset"];
+  readonly migrationOptions: MigrationOptions[] = ["up", "down", "migrate", "to", "reset", "clear"];
   readonly optionsWithArgs = "to" as const;
   readonly noOptionsError = `Invalid options supplied! Expected one of the following: ${[
     ...this.migrationOptions,
@@ -53,8 +53,9 @@ export class MigrationHelper {
     up: this.#migrateUp.bind(this),
     down: this.#migrateDown.bind(this),
     to: this.#migrateTo.bind(this),
-    reset: this.#reset.bind(this),
-    create: this.createMigration.bind(this)
+    clear: this.#clear.bind(this),
+    create: this.createMigration.bind(this),
+    reset: this.#reset.bind(this)
   };
 
   constructor(private db: Kysely<unknown>, private migrator: Migrator, typePath: string) {
@@ -148,8 +149,13 @@ export class MigrationHelper {
   async #migrateDown(): Promise<MigrationResultSet> {
     return await this.migrator.migrateDown();
   }
-  async #reset(): Promise<MigrationResultSet> {
+  async #clear(): Promise<MigrationResultSet> {
     return await this.migrator.migrateTo(NO_MIGRATIONS);
+  }
+
+  async #reset(): Promise<MigrationResultSet> {
+    await this.#clear();
+    return await this.#migrateToLatest();
   }
 
   async createMigration(args: string[]): Promise<void> {

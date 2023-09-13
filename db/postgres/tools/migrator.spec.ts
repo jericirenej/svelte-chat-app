@@ -106,30 +106,26 @@ describe("MigrationHelper", () => {
       ["migrateTo", vi.spyOn(mockMigrator, "migrateTo")],
       ["migrateToLatest", vi.spyOn(mockMigrator, "migrateToLatest")]
     ]);
-    const testCases: { args: string[]; targetMethod: keyof Migrator | null }[] = [
-      { args: ["migrate"], targetMethod: "migrateToLatest" },
-      { args: ["up"], targetMethod: "migrateUp" },
-      { args: ["down"], targetMethod: "migrateDown" },
-      { args: ["reset"], targetMethod: "migrateTo" },
-      { args: ["to"], targetMethod: null },
-      { args: ["to", migrationName], targetMethod: "migrateTo" },
-      { args: [], targetMethod: null }
+    const testCases: { args: string[]; targetMethod: (keyof Migrator)[] }[] = [
+      { args: ["migrate"], targetMethod: ["migrateToLatest"] },
+      { args: ["up"], targetMethod: ["migrateUp"] },
+      { args: ["down"], targetMethod: ["migrateDown"] },
+      { args: ["clear"], targetMethod: ["migrateTo"] },
+      { args: ["reset"], targetMethod: ["migrateTo", "migrateToLatest"] },
+      { args: ["to"], targetMethod: [] },
+      { args: ["to", migrationName], targetMethod: ["migrateTo"] },
+      { args: [], targetMethod: [] }
     ];
 
     for (const { args, targetMethod } of testCases) {
       spies.forEach((spy) => spy.mockClear());
       await migrator.handleArgs(["command", "script", ...args]);
-      if (targetMethod === null) {
-        spies.forEach((spy) => {
-          expect(spy).not.toHaveBeenCalled();
-        });
-        continue;
-      }
-      expect(spies.get(targetMethod)).toHaveBeenCalledOnce();
-      spies.forEach((spy, key) => {
-        if (key !== targetMethod) {
-          expect(spy).not.toHaveBeenCalled();
-        }
+      const nonCalled = [...spies.keys()].filter((key) => !targetMethod.includes(key));
+      nonCalled.forEach((method) => {
+        expect(spies.get(method)).not.toHaveBeenCalled();
+      });
+      targetMethod.forEach((method) => {
+        expect(spies.get(method)).toHaveBeenCalled();
       });
     }
   });
