@@ -61,7 +61,7 @@ export interface User {
   name: string | null;
   surname: string | null;
   username: string;
-  avatar: string;
+  avatar: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }

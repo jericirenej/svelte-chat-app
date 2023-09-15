@@ -12,7 +12,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .addColumn("name", "varchar(100)")
     .addColumn("surname", "varchar(100)")
     .addColumn("username", "varchar(100)", (col) => col.notNull().unique())
-    .addColumn("avatar", "varchar(100)", (col) => col.notNull())
+    .addColumn("avatar", "varchar")
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
