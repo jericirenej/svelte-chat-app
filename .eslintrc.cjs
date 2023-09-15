@@ -32,7 +32,8 @@ module.exports = {
     {
       files: ["*.spec.ts"],
       rules: {
-        "@typescript-eslint/no-unused-vars": 0
+        "@typescript-eslint/no-unused-vars": 0,
+        "@typescript-eslint/no-dynamic-delete": 0
       }
     }
   ]
