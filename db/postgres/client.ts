@@ -16,4 +16,7 @@ export const dialect = new PostgresDialect({
   })
 });
 
-export const db = new Kysely<DB>({ dialect, log: ["query"], plugins: [new CamelCasePlugin()] });
+export const db = new Kysely<DB>({
+  dialect,
+  plugins: [new CamelCasePlugin()]
+});
