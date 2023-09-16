@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { db } from "./client.js";
 import { DatabaseService } from "./db-service.js";
@@ -22,18 +23,25 @@ describe("DatabaseService", () => {
       hash: "password-hash",
       salt: "password-salt"
     };
+    const otherUser = {
+      ...userToCreate,
+      email: "other.user@nowhere",
+      username: "other_user_123",
+      hash: "other-password-hash",
+      salt: "other-password-salt"
+    };
+
     const userProps = ["username", "avatar", "email", "name", "surname"] satisfies (keyof Omit<
       UserDto,
       BaseTableColumns
     >)[];
     const authProps = ["hash", "salt"] satisfies (keyof Omit<AuthDto, BaseTableColumns>)[];
-    beforeEach(async () => {
+    beforeEach(() => {
       vi.useFakeTimers();
-
-      await db.deleteFrom("user").execute();
       dbService = new DatabaseService(db);
     });
-    afterEach(() => {
+    afterEach(async () => {
+      await db.deleteFrom("user").execute();
       vi.useRealTimers();
     });
     it("User create should create and return user entry", async () => {
@@ -76,6 +84,50 @@ describe("DatabaseService", () => {
       const updated = await dbService.updateUser(id, update);
       expectTypeOf(updated).toMatchTypeOf<UserDto>();
       expect(updated.updatedAt.getTime()).toBe(date.getTime());
+    });
+    it("Updating an inexistent user should throw", async () => {
+      await dbService.createUser(userToCreate);
+      await expect(
+        dbService.updateUser(randomUUID(), { username: "other-user" })
+      ).rejects.toThrowError();
+    });
+    it("Should create admin user", async () => {
+      const user = await dbService.createAdminUser(userToCreate);
+      expectTypeOf(user).toMatchTypeOf<UserDto>();
+      const adminEntry = await db
+        .selectFrom("admin")
+        .select("id")
+        .where("id", "=", user.id)
+        .execute();
+      expect(adminEntry.length).toBe(1);
+    });
+    it("Should reject admin creation if admin already exists", async () => {
+      await dbService.createAdminUser(userToCreate);
+      await expect(dbService.createAdminUser(otherUser)).rejects.toThrowError();
+    });
+    it("Should allow addAdmin if grantor is admin and grantee exists", async () => {
+      const admin = await dbService.createAdminUser(userToCreate);
+      const adminToBe = await dbService.createUser(otherUser);
+      await dbService.addAdmin(admin.id, adminToBe.id);
+      const isAdminToBeAdmin = await db
+        .selectFrom("admin")
+        .select("id")
+        .where("id", "=", adminToBe.id)
+        .executeTakeFirst();
+      expect(isAdminToBeAdmin).not.toBeUndefined();
+    });
+    it("Should reject addAdmin if grantor does not exist", async () => {
+      const adminToBe = await dbService.createUser(otherUser);
+      await expect(dbService.addAdmin(randomUUID(), adminToBe.id)).rejects.toThrowError();
+    });
+    it("Should reject addAdmin if grantor is not admin", async () => {
+      const nonAdmin = await dbService.createUser(userToCreate);
+      const adminToBe = await dbService.createUser(otherUser);
+      await expect(dbService.addAdmin(nonAdmin.id, adminToBe.id)).rejects.toThrowError();
+    });
+    it("Should reject addAdmin if grantee does not exist", async () => {
+      const admin = await dbService.createAdminUser(userToCreate);
+      await expect(dbService.addAdmin(admin.id, randomUUID())).rejects.toThrowError();
     });
     it("Update credentials", async () => {
       const { id } = await dbService.createUser(userToCreate);
