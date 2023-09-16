@@ -31,6 +31,7 @@ export interface Contact {
   id: Generated<string>;
   userId: string;
   contactId: string;
+  confirmed: Generated<boolean>;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }

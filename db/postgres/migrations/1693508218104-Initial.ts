@@ -37,6 +37,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .addColumn("contactId", "uuid", (col) =>
       col.notNull().references("user.id").onUpdate("cascade").onDelete("cascade")
     )
+    .addColumn("confirmed", "boolean", (col) => col.notNull().defaultTo(false))
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addUniqueConstraint("unique_user_name_and_contact", ["userId", "contactId"])
@@ -105,10 +106,9 @@ export const down = async (db: Kysely<any>): Promise<void> => {
     "chat",
     "contact",
     "auth",
-    "role",
+    "admin",
     "user"
   ] as const) {
-    await db.schema.dropTable(table).execute();
+    await db.schema.dropTable(table).cascade().execute();
   }
-  await db.schema.dropType("userRoles").execute();
 };
