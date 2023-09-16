@@ -6,7 +6,11 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export type UserRoles = "admin" | "user";
+export interface Admin {
+  id: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Generated<Timestamp>;
+}
 
 export interface Auth {
   id: string;
@@ -48,13 +52,6 @@ export interface Participant {
   updatedAt: Generated<Timestamp>;
 }
 
-export interface Role {
-  id: string;
-  role: UserRoles;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Generated<Timestamp>;
-}
-
 export interface User {
   id: Generated<string>;
   email: string;
@@ -67,11 +64,11 @@ export interface User {
 }
 
 export interface DB {
+  admin: Admin;
   auth: Auth;
   chat: Chat;
   contact: Contact;
   message: Message;
   participant: Participant;
-  role: Role;
   user: User;
 }

@@ -4,12 +4,11 @@ import { add } from "date-fns";
 import { Kysely, Selectable, sql } from "kysely";
 import { genPassword } from "../../../src/utils/password-utils.js";
 import { db } from "../client.js";
-import type { Auth, Chat, Contact, DB, Message, Participant, Role, User } from "../db-types.js";
+import type { Auth, Chat, Contact, DB, Message, Participant, User } from "../db-types.js";
 import type { BaseDateColumns, BaseTableColumns } from "../types.js";
 
 type BaseUser = Omit<User, BaseTableColumns>;
 type BaseCredentials = Omit<Auth, BaseDateColumns>;
-type BaseRole = Omit<Role, BaseDateColumns>;
 type BaseContact = Omit<Contact, BaseTableColumns>;
 type BaseChat = Omit<Chat, BaseTableColumns> & Record<BaseDateColumns, Date>;
 type ChatSelect = Selectable<Chat>;
@@ -56,10 +55,6 @@ const generateCredentials = ({
 }): BaseCredentials => {
   const { hash, salt } = genPassword(`${username}-password`);
   return { id, hash, salt };
-};
-
-const generateRole = (id: string, admin = false): BaseRole => {
-  return { id, role: admin ? "admin" : "user" };
 };
 
 const generateContacts = (
@@ -185,9 +180,8 @@ const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<voi
   const baseCredentials = createdUsers.map((u) => generateCredentials(u));
   await db.insertInto("auth").values(baseCredentials).execute();
 
-  const targetAdmin = createdUsers[Math.floor(Math.random() * arr.length)].id;
-  const baseRoles = createdUsers.map(({ id }) => generateRole(id, id === targetAdmin));
-  await db.insertInto("role").values(baseRoles).execute();
+  const adminId = createdUsers[Math.floor(Math.random() * arr.length)].id;
+  await db.insertInto("admin").values({ id: adminId }).execute();
 
   const allUserIds = createdUsers.map(({ id }) => id);
   const baseContacts = allUserIds.map((id) => generateContacts(id, allUserIds)).flat();
