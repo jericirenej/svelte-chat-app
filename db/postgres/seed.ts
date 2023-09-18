@@ -2,14 +2,14 @@ import { faker } from "@faker-js/faker";
 import chalk from "chalk";
 import { add } from "date-fns";
 import { Kysely, Selectable, sql } from "kysely";
-import { genPassword } from "../../../src/utils/password-utils.js";
-import { db } from "../client.js";
-import type { Auth, Chat, Contact, DB, Message, Participant, User } from "../db-types.js";
-import type { BaseDateColumns, BaseTableColumns } from "../types.js";
+import { genPassword } from "../../src/utils/password-utils.js";
+import { db } from "./client.js";
+import type { Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
+import { randomPick } from "./tools/utils.js";
+import type { BaseDateColumns, BaseTableColumns } from "./types.js";
 
 type BaseUser = Omit<User, BaseTableColumns>;
 type BaseCredentials = Omit<Auth, BaseDateColumns>;
-type BaseContact = Omit<Contact, BaseTableColumns>;
 type BaseChat = Omit<Chat, BaseTableColumns> & Record<BaseDateColumns, Date>;
 type ChatSelect = Selectable<Chat>;
 type BaseParticipant = Omit<Participant, BaseTableColumns>;
@@ -31,8 +31,13 @@ const randomizeArray = <T>(arr: T[]): T[] => {
   return randomized;
 };
 
-const randomSliceArray = <T>(arr: T[]): T[] =>
-  randomizeArray(arr).slice(0, Math.floor(Math.random() * arr.length - 3) + 3);
+const randomSliceArray = <T>(arr: T[], minMembers = 3): T[] => {
+  const lowerLimit = minMembers <= arr.length ? minMembers : arr.length;
+  return randomizeArray(arr).slice(
+    0,
+    Math.floor(Math.random() * arr.length - lowerLimit) + lowerLimit
+  );
+};
 
 // USER GENERATION
 const createUser = (): BaseUser => {
@@ -57,7 +62,7 @@ const generateCredentials = ({
   return { id, hash, salt };
 };
 
-const generateContacts = (
+/* const generateContacts = (
   userId: string,
   existingUsers: string[],
   randomize = true,
@@ -78,10 +83,10 @@ const generateContacts = (
   }
   return contacts;
 };
-
+ */
 /** Return confirmed contacts of a user, suitable for participating in the same chat.
  * Confirmed users are those contacts of a user that have their user among their own contacts as well. */
-const eligibleParticipants = async (userId: string, db: Kysely<DB>): Promise<string[]> => {
+/* const eligibleParticipants = async (userId: string, db: Kysely<DB>): Promise<string[]> => {
   const confirmedContacts = await db
     .selectFrom("contact as c")
     .select("c.contactId")
@@ -97,7 +102,7 @@ const eligibleParticipants = async (userId: string, db: Kysely<DB>): Promise<str
     )
     .execute();
   return [userId, ...confirmedContacts.map(({ contactId }) => contactId)];
-};
+}; */
 
 const createParticipants = (participants: string[], chatId: string): BaseParticipant[] => {
   return participants.map((userId) => ({ chatId, userId }));
@@ -114,8 +119,9 @@ const createMessages = (
     numberOfMessages ?? Math.floor(Math.random() * MAX_MESSAGE - MIN_MESSAGE + MIN_MESSAGE);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return new Array(determinedNumber).fill(0).map((_, index) => {
-    const userId = participants[Math.floor(Math.random() * participants.length)];
-    const message = faker.hacker.phrase();
+    const userId = randomPick(participants);
+    const message = randomPick([faker.hacker.phrase(), faker.hacker.ingverb()]);
+
     const creationDate = add(createdAt, {
       seconds: Math.floor(Math.random() * 10 + 5)
     });
@@ -154,7 +160,6 @@ const createChats = async (
 
 const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<void> => {
   // Ensure unique usernames and emails
-  const arr = new Array(numberOfUsers).fill(0);
   const userNames = new Set<string>(),
     emails = new Set<string>(),
     uniqueUsers: BaseUser[] = [];
@@ -180,12 +185,10 @@ const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<voi
   const baseCredentials = createdUsers.map((u) => generateCredentials(u));
   await db.insertInto("auth").values(baseCredentials).execute();
 
-  const adminId = createdUsers[Math.floor(Math.random() * arr.length)].id;
+  const adminId = randomPick(createdUsers).id;
   await db.insertInto("admin").values({ id: adminId }).execute();
 
   const allUserIds = createdUsers.map(({ id }) => id);
-  const baseContacts = allUserIds.map((id) => generateContacts(id, allUserIds)).flat();
-  await db.insertInto("contact").values(baseContacts).execute();
 
   // Create chats
   const usersThatShouldHaveChats = randomSliceArray(allUserIds);
@@ -194,12 +197,13 @@ const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<voi
   const messages: BaseMessage[] = [];
 
   for (const userId of [...userChatMap.keys()]) {
-    const eligible = await eligibleParticipants(userId, db);
+    const randomParticipants = randomSliceArray(allUserIds, 2);
+    const finalParticipants = [...new Set([...randomParticipants, userId])];
     const targetChats = userChatMap.get(userId);
     if (!targetChats) continue;
     targetChats.forEach((chat) => {
-      participants.push(...createParticipants(eligible, chat.id)),
-        messages.push(...createMessages(eligible, chat));
+      participants.push(...createParticipants(finalParticipants, chat.id)),
+        messages.push(...createMessages(finalParticipants, chat));
     });
   }
 
@@ -207,9 +211,10 @@ const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<voi
   await db.insertInto("message").values(messages).execute();
 };
 
-const seed = async (numberOfUsers = 100): Promise<void> => {
+const seed = async (numberOfUsers = 5): Promise<void> => {
   await db.transaction().execute(async (trx) => {
-    await sql`DELETE FROM public.user`.execute(trx);
+    await sql`DELETE FROM public.user;`.execute(trx);
+    await sql`DELETE FROM public.chat;`.execute(trx);
     await userGenerator(numberOfUsers, trx);
   });
 };

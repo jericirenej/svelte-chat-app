@@ -27,15 +27,6 @@ export interface Chat {
   updatedAt: Generated<Timestamp>;
 }
 
-export interface Contact {
-  id: Generated<string>;
-  userId: string;
-  contactId: string;
-  confirmed: Generated<boolean>;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Generated<Timestamp>;
-}
-
 export interface Message {
   id: Generated<string>;
   userId: string;
@@ -68,7 +59,6 @@ export interface DB {
   admin: Admin;
   auth: Auth;
   chat: Chat;
-  contact: Contact;
   message: Message;
   participant: Participant;
   user: User;

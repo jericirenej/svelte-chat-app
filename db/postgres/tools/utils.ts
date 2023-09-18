@@ -9,3 +9,7 @@ export const asyncExec = async (
 }> => {
   return await promisify(exec)(command);
 };
+
+export const typedJsonClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj)) as T;
+
+export const randomPick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];

@@ -29,21 +29,6 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .execute();
 
   await db.schema
-    .createTable("contact")
-    .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
-    .addColumn("userId", "uuid", (col) =>
-      col.notNull().references("user.id").onUpdate("cascade").onDelete("cascade")
-    )
-    .addColumn("contactId", "uuid", (col) =>
-      col.notNull().references("user.id").onUpdate("cascade").onDelete("cascade")
-    )
-    .addColumn("confirmed", "boolean", (col) => col.notNull().defaultTo(false))
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addUniqueConstraint("unique_user_name_and_contact", ["userId", "contactId"])
-    .execute();
-
-  await db.schema
     .createTable("admin")
     .addColumn("id", "uuid", (col) =>
       col.primaryKey().references("user.id").onDelete("cascade").onUpdate("cascade")
@@ -100,15 +85,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
 };
 
 export const down = async (db: Kysely<any>): Promise<void> => {
-  for (const table of [
-    "message",
-    "participant",
-    "chat",
-    "contact",
-    "auth",
-    "admin",
-    "user"
-  ] as const) {
+  for (const table of ["message", "participant", "chat", "auth", "admin", "user"] as const) {
     await db.schema.dropTable(table).cascade().execute();
   }
 };
