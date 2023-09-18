@@ -8,6 +8,7 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Admin {
   id: string;
+  superAdmin: Generated<boolean>;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }

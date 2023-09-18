@@ -33,6 +33,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .addColumn("id", "uuid", (col) =>
       col.primaryKey().references("user.id").onDelete("cascade").onUpdate("cascade")
     )
+    .addColumn("superAdmin", "boolean", (col) => col.notNull().defaultTo(false))
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();

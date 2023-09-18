@@ -186,7 +186,7 @@ const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<voi
   await db.insertInto("auth").values(baseCredentials).execute();
 
   const adminId = randomPick(createdUsers).id;
-  await db.insertInto("admin").values({ id: adminId }).execute();
+  await db.insertInto("admin").values({ id: adminId, superAdmin: true }).execute();
 
   const allUserIds = createdUsers.map(({ id }) => id);
 

@@ -8,6 +8,7 @@ export type BaseTableColumns = BaseDateColumns | "id";
 export type UserDto = Selectable<User>;
 export type CreateUserDto = Omit<Insertable<User> & Insertable<Auth>, BaseTableColumns>;
 export type UpdateUserDto = UpdateType<User>;
+export type SingleUserSearch = { property: "id" | "username" | "email"; value: string };
 export type AuthDto = Selectable<Auth>;
 export type UpdateAuthDto = Required<UpdateType<Auth>>;
 export type AdminDto = Selectable<Admin>;
