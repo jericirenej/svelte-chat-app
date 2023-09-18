@@ -1,11 +1,32 @@
 import { Kysely } from "kysely";
 import { DB } from "./db-types.js";
-import { BaseTableColumns, CreateUserDto, UpdateAuthDto, UpdateUserDto, UserDto } from "./types.js";
+import {
+  AdminDto,
+  BaseTableColumns,
+  CreateUserDto,
+  SingleUserSearch,
+  UpdateAuthDto,
+  UpdateUserDto,
+  UserDto
+} from "./types.js";
 
 export class DatabaseService {
   constructor(protected db: Kysely<DB>) {}
 
   // GET ENTITIES
+
+  /** Search for user by their unique property. Full match required. */
+  async getUser({ property, value }: SingleUserSearch): Promise<UserDto | undefined> {
+    return await this.db
+      .selectFrom("user")
+      .selectAll()
+      .where(property, "=", value)
+      .executeTakeFirst();
+  }
+
+  async getAdmin(id: string): Promise<AdminDto | undefined> {
+    return this.db.selectFrom("admin").selectAll().where("id", "=", id).executeTakeFirst();
+  }
 
   // CREATE ENTITIES
 
@@ -24,8 +45,12 @@ export class DatabaseService {
     return newUser;
   }
 
-  /** Create new user, along with their passed credentials. */
-  async createUser(createUserDto: CreateUserDto): Promise<UserDto> {
+  /** Create new user, along with their passed credentials. Initial user created as superadmin. */
+  async addUser(createUserDto: CreateUserDto): Promise<UserDto> {
+    const noUsers = await this.#usersExist();
+    if (noUsers) {
+      return await this.createSuperAdmin(createUserDto);
+    }
     const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
       return await this.#createNewUserInserts(trx, createUserDto);
     });
@@ -33,21 +58,23 @@ export class DatabaseService {
     return user;
   }
 
-  /** Create initial admin user, along with their passed credentials.
-   * Can only be used if no admin user exists */
-  async createAdminUser(createUserArgs: CreateUserDto): Promise<UserDto> {
+  /** Create initial superAdmin user, along with their passed credentials.
+   * Can only be used if no users exist. */
+  async createSuperAdmin(createUserArgs: CreateUserDto): Promise<UserDto> {
+    // Safeguard against standalone calls
     const { adminCount } = await this.db
       .selectFrom("admin")
       .select((eb) => eb.fn.countAll().as("adminCount"))
+      .where("superAdmin", "=", true)
       .executeTakeFirstOrThrow();
 
     if (BigInt(adminCount) !== 0n) {
-      throw new Error("User with admin privileges has already been created!");
+      throw new Error("Super administrator already exists!");
     }
 
     const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
       const newUser = await this.#createNewUserInserts(trx, createUserArgs);
-      await trx.insertInto("admin").values({ id: newUser.id }).execute();
+      await trx.insertInto("admin").values({ id: newUser.id, superAdmin: true }).execute();
       return newUser;
     });
     if (!user) throw new Error("Error creating user");
@@ -55,11 +82,10 @@ export class DatabaseService {
   }
 
   async addAdmin(grantorId: string, granteeId: string): Promise<true> {
-    const grantorExists = await this.#entryExists("user", grantorId);
-    const isGrantorAdmin = await this.#entryExists("admin", grantorId);
+    const isSuperAdmin = await this.#isSuperAdmin(grantorId);
 
-    if (!grantorExists || !isGrantorAdmin) {
-      throw new Error("Grantor does not exist or is not an administrator!");
+    if (!isSuperAdmin) {
+      throw new Error("User is not super administrator!");
     }
 
     const granteeExists = await this.#entryExists("user", granteeId);
@@ -100,6 +126,47 @@ export class DatabaseService {
 
   // DELETE ENTITIES
 
+  async removeUser(executorId: string, id: string): Promise<true> {
+    const deleteUser = async (id: string) => {
+      await this.db.deleteFrom("user").where("id", "=", id).execute();
+    };
+
+    if (executorId === id) {
+      await deleteUser(id);
+      return true;
+    }
+    const executorAdmin = await this.getAdmin(executorId);
+    if (!executorAdmin) {
+      throw new Error("Only administrators can delete accounts of other users!");
+    }
+    const isOtherUserAdmin = await this.#adminExists(id);
+    if (isOtherUserAdmin && !executorAdmin.superAdmin) {
+      throw new Error("Only super administrators can delete other administrators!");
+    }
+
+    await deleteUser(id);
+    return true;
+  }
+
+  async removeAdmin(executorId: string, toBeRemovedId: string): Promise<true> {
+    const isSuperAdmin = await this.#isSuperAdmin(executorId);
+
+    if (!isSuperAdmin) {
+      throw new Error("Super administrator does not exist!");
+    }
+
+    if (executorId === toBeRemovedId) {
+      throw new Error("Super administrator cannot remove themselves!");
+    }
+    const targetAdminExists = await this.#adminExists(toBeRemovedId);
+
+    if (!targetAdminExists) {
+      throw new Error("Target admin does not exist!");
+    }
+    await this.db.deleteFrom("admin").where("id", "=", toBeRemovedId).execute();
+    return true;
+  }
+
   // UTILITY METHODS
 
   /** Prevent external modification of base table columns, such as `id`, `createdDate`, `updatedDate` */
@@ -117,6 +184,38 @@ export class DatabaseService {
       .where(`${table}.id`, "=", id)
       .executeTakeFirst();
     return !!entry;
+  }
+
+  async #adminExists(adminId: string): Promise<boolean> {
+    const entry = await this.db
+      .selectFrom("user as u")
+      .select("u.id")
+      .where((eb) =>
+        eb.and([
+          eb("u.id", "in", eb.selectFrom("admin as a").select("a.id")),
+          eb("u.id", "=", adminId)
+        ])
+      )
+      .executeTakeFirst();
+    return !!entry;
+  }
+
+  async #isSuperAdmin(adminId: string): Promise<boolean> {
+    const findSuperAdmin = await this.db
+      .selectFrom("admin")
+      .select("id")
+      .where((eb) => eb.and([eb("id", "=", adminId), eb("superAdmin", "=", true)]))
+      .executeTakeFirst();
+    return !!findSuperAdmin;
+  }
+
+  async #usersExist(): Promise<boolean> {
+    const { userCount } = await this.db
+      .selectFrom("user")
+      .select((eb) => eb.fn.countAll().as("userCount"))
+      .executeTakeFirstOrThrow();
+
+    return BigInt(userCount) === 0n;
   }
 
   /* async getUserByUsername(username: string):Promise<UserDto> {
