@@ -34,19 +34,20 @@ describe("MigrationHelper", () => {
   let migrator: MigrationHelper,
     spyOnLog: SpyInstance,
     spyOnWarn: SpyInstance,
-    spyOnUpdate: SpyInstance;
+    spyOnAsyncExec: SpyInstance;
   const mockMigrator = new MockMigrator() as unknown as Migrator,
     typePath = "path/to/type.ts",
     db = { destroy: () => Promise.resolve() } as Kysely<unknown>,
     time = 123456789,
     migrationName = "MigrationName",
     expectedMigration = `migrations/${time}-${migrationName}.ts`;
+
   vi.useFakeTimers();
   vi.setSystemTime(time);
 
   beforeEach(() => {
     migrator = new MigrationHelper(db, mockMigrator, typePath);
-    spyOnUpdate = vi
+    spyOnAsyncExec = vi
       .spyOn(utils, "asyncExec")
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       .mockImplementation((message: string) => Promise.resolve({ stderr: null, stdout: null }));
@@ -55,7 +56,7 @@ describe("MigrationHelper", () => {
     );
   });
   afterEach(() => {
-    [spyOnLog, spyOnWarn, spyOnUpdate].forEach((spy) => {
+    [spyOnLog, spyOnWarn, spyOnAsyncExec].forEach((spy) => {
       spy.mockRestore();
     });
   });
@@ -66,10 +67,10 @@ describe("MigrationHelper", () => {
     expect(migrator).toBeTruthy();
   });
   it("Update schema should call kysely-codegen with appropriate arguments", async () => {
-    const expected = `npx kysely-codegen --camel-case --print true --dialect postgres --out-file ${typePath}`;
+    const codeGenExec = `npx kysely-codegen --camel-case --print true --dialect postgres --out-file ${typePath}`;
     await migrator.updateSchema();
-    expect(spyOnUpdate).toHaveBeenLastCalledWith(expected);
-    spyOnUpdate.mockRestore();
+    expect(spyOnAsyncExec).toHaveBeenLastCalledWith(codeGenExec);
+    spyOnAsyncExec.mockRestore();
   });
   it("closeConnection should call db.destroy", async () => {
     const spyOnDestroy = vi.spyOn(db, "destroy");
@@ -128,5 +129,23 @@ describe("MigrationHelper", () => {
         expect(spies.get(method)).toHaveBeenCalled();
       });
     }
+  });
+  it("Migration should call updateSchema, except if skipTypeUpdateOption is supplied", async () => {
+    const spyOnUpdateMethod = vi.spyOn(migrator, "updateSchema");
+    const testCases: { args: string[]; expected: boolean }[] = [
+      { args: ["migrate"], expected: true },
+      { args: ["migrate", migrator.skipTypeUpdateOption], expected: false }
+    ];
+
+    for (const { args, expected } of testCases) {
+      spyOnUpdateMethod.mockClear();
+      await migrator.handleArgs(["command", "script", ...args]);
+      if (expected) {
+        expect(spyOnUpdateMethod).toHaveBeenCalledTimes(1);
+      } else {
+        expect(spyOnUpdateMethod).not.toHaveBeenCalled();
+      }
+    }
+    spyOnUpdateMethod.mockRestore();
   });
 });

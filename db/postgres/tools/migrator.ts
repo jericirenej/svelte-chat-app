@@ -43,6 +43,7 @@ export class MigrationHelper {
   readonly createOption = "create";
   readonly migrationOptions: MigrationOptions[] = ["up", "down", "migrate", "to", "reset", "clear"];
   readonly optionsWithArgs = "to" as const;
+  readonly skipTypeUpdateOption = "no-codegen";
   readonly noOptionsError = `Invalid options supplied! Expected one of the following: ${[
     ...this.migrationOptions,
     this.createOption
@@ -73,7 +74,9 @@ export class MigrationHelper {
         return;
       }
       await this.#handleMigration(args);
-      await this.updateSchema();
+      if (!args.includes(this.skipTypeUpdateOption)) {
+        await this.updateSchema();
+      }
       await this.closeConnection();
     } catch (err) {
       console.warn(err instanceof Error ? err.message : err);
