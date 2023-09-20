@@ -50,10 +50,10 @@ export class MigrationHelper {
   ].join(", ")}.`;
   typePath: string;
   #evalMap = {
-    migrate: this.#migrateToLatest.bind(this),
-    up: this.#migrateUp.bind(this),
-    down: this.#migrateDown.bind(this),
-    to: this.#migrateTo.bind(this),
+    migrate: this.migrateToLatest.bind(this),
+    up: this.migrateUp.bind(this),
+    down: this.migrateDown.bind(this),
+    to: this.migrateTo.bind(this),
     clear: this.#clear.bind(this),
     create: this.createMigration.bind(this),
     reset: this.#reset.bind(this)
@@ -139,17 +139,17 @@ export class MigrationHelper {
     this.#resultHandler(await this.#evalMap[action](migrationName));
   }
 
-  async #migrateToLatest(): Promise<MigrationResultSet> {
+  async migrateToLatest(): Promise<MigrationResultSet> {
     return await this.migrator.migrateToLatest();
   }
 
-  async #migrateTo(migrationName: string): Promise<MigrationResultSet> {
+  async migrateTo(migrationName: string): Promise<MigrationResultSet> {
     return await this.migrator.migrateTo(migrationName);
   }
-  async #migrateUp(): Promise<MigrationResultSet> {
+  async migrateUp(): Promise<MigrationResultSet> {
     return await this.migrator.migrateUp();
   }
-  async #migrateDown(): Promise<MigrationResultSet> {
+  async migrateDown(): Promise<MigrationResultSet> {
     return await this.migrator.migrateDown();
   }
   async #clear(): Promise<MigrationResultSet> {
@@ -158,7 +158,7 @@ export class MigrationHelper {
 
   async #reset(): Promise<MigrationResultSet> {
     await this.#clear();
-    return await this.#migrateToLatest();
+    return await this.migrateToLatest();
   }
 
   async createMigration(args: string[]): Promise<void> {
