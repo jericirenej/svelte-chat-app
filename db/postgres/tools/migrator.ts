@@ -8,30 +8,29 @@ import {
   type MigrationProvider,
   type MigrationResultSet
 } from "kysely";
-import { join, resolve } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
+import { pathToFileURL } from "url";
 import { asyncExec } from "./utils.js";
 
 export class ESMFileMigrationProvider implements MigrationProvider {
-  constructor(private relativePath: string) {}
+  constructor(private url: URL) {}
 
   async getMigrations(): Promise<Record<string, Migration>> {
     const migrations: Record<string, Migration> = {};
-    const __dirname = fileURLToPath(new URL(".", import.meta.url));
-    const resolvedPath = resolve(__dirname, this.relativePath);
+
+    const resolvedPath = this.url.pathname.substring(1);
     const files = await fs.readdir(resolvedPath);
     for (const fileName of files) {
       if (!fileName.endsWith(".ts")) {
         continue;
       }
 
-      const importPath = join(this.relativePath, fileName).replaceAll("\\", "/");
-      const migration = (await import(importPath)) as Migration;
+      const importPath = pathToFileURL(join(resolvedPath, fileName).replaceAll("\\", "/"));
+      const migration = (await import(importPath.pathname)) as Migration;
       const migrationKey = fileName.substring(0, fileName.lastIndexOf("."));
 
       migrations[migrationKey] = migration;
     }
-
     return migrations;
   }
 }
@@ -73,7 +72,7 @@ export class MigrationHelper {
         await this.createMigration(args);
         return;
       }
-      await this.#handleMigration(args);
+      await this.handleMigration(args);
       if (!args.includes(this.skipTypeUpdateOption)) {
         await this.updateSchema();
       }
@@ -116,7 +115,7 @@ export class MigrationHelper {
     }
   }
 
-  async #handleMigration(args: string[]): Promise<void> {
+  async handleMigration(args: string[]): Promise<void> {
     const chosenOptions = this.migrationOptions.filter((option) => args.includes(option));
     if (!chosenOptions.length) {
       throw new Error(this.noOptionsError);
