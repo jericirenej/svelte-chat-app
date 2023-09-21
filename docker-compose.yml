@@ -9,16 +9,6 @@ services:
       - '5432:5432'
     restart: always
     container_name: "postgres"
-  test-db:
-    env_file:
-      - .env
-    image: postgres:15-alpine
-    restart: always
-    volumes:
-      - postgres-vol:/var/lib/postgresql/data
-    ports:
-      - '5433:5432'
-    container_name: "test-db"
   pgadmin:
     image: dpage/pgadmin4
     depends_on:
