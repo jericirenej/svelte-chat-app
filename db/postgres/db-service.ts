@@ -1,5 +1,5 @@
 import { Kysely } from "kysely";
-import { DB } from "./db-types.js";
+import { DB, User } from "./db-types.js";
 import {
   AdminDto,
   BaseTableColumns,
@@ -9,6 +9,14 @@ import {
   UpdateUserDto,
   UserDto
 } from "./types.js";
+
+type PrivilegeType = "user" | "admin" | "superAdmin";
+type EntityCheckObj = {
+  executorId: string;
+  executorType?: PrivilegeType;
+  targetId: string;
+  targetType?: PrivilegeType;
+};
 
 export class DatabaseService {
   constructor(protected db: Kysely<DB>) {}
@@ -22,6 +30,17 @@ export class DatabaseService {
       .selectAll()
       .where(property, "=", value)
       .executeTakeFirst();
+  }
+
+  async searchForUsers(search: string): Promise<UserDto[]> {
+    const props = ["name", "surname", "username"] satisfies (keyof User)[];
+    const query = this.db
+      .selectFrom("user")
+      .selectAll()
+      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(prop), "ilike", `%${search}%`))));
+
+    console.log(query.compile());
+    return await query.execute();
   }
 
   async getAdmin(id: string): Promise<AdminDto | undefined> {
@@ -81,18 +100,27 @@ export class DatabaseService {
     return user;
   }
 
-  async addAdmin(grantorId: string, granteeId: string): Promise<true> {
-    const isSuperAdmin = await this.#isSuperAdmin(grantorId);
+  async transferSuperAdmin(executorId: string, targetId: string): Promise<boolean> {
+    await this.#executorAndTargetCheck({ executorId, executorType: "superAdmin", targetId });
+    return await this.db.transaction().execute(async (trx) => {
+      try {
+        await trx.deleteFrom("admin").where("id", "=", executorId).execute();
+        await trx.insertInto("admin").values({ id: targetId, superAdmin: true }).execute();
+        return true;
+      } catch (err) {
+        console.warn(
+          "Transferring of super administrator role failed:",
+          err instanceof Error ? err.message : err
+        );
+        return false;
+      }
+    });
+  }
 
-    if (!isSuperAdmin) {
-      throw new Error("User is not super administrator!");
-    }
+  async addAdmin(executorId: string, targetId: string): Promise<true> {
+    await this.#executorAndTargetCheck({ executorId, executorType: "superAdmin", targetId });
 
-    const granteeExists = await this.#entryExists("user", granteeId);
-    if (!granteeExists) {
-      throw new Error("Cannot add inexistent user as administrator!");
-    }
-    await this.db.insertInto("admin").values({ id: granteeId }).execute();
+    await this.db.insertInto("admin").values({ id: targetId }).execute();
     return true;
   }
 
@@ -126,25 +154,9 @@ export class DatabaseService {
 
   // DELETE ENTITIES
 
-  async removeUser(executorId: string, id: string): Promise<true> {
-    const deleteUser = async (id: string) => {
-      await this.db.deleteFrom("user").where("id", "=", id).execute();
-    };
-
-    if (executorId === id) {
-      await deleteUser(id);
-      return true;
-    }
-    const executorAdmin = await this.getAdmin(executorId);
-    if (!executorAdmin) {
-      throw new Error("Only administrators can delete accounts of other users!");
-    }
-    const isOtherUserAdmin = await this.#adminExists(id);
-    if (isOtherUserAdmin && !executorAdmin.superAdmin) {
-      throw new Error("Only super administrators can delete other administrators!");
-    }
-
-    await deleteUser(id);
+  async removeUser(executorId: string, targetId: string): Promise<true> {
+    await this.canUserDeleteUser(executorId, targetId);
+    await this.db.deleteFrom("user").where("id", "=", targetId).execute();
     return true;
   }
 
@@ -158,7 +170,7 @@ export class DatabaseService {
     if (executorId === toBeRemovedId) {
       throw new Error("Super administrator cannot remove themselves!");
     }
-    const targetAdminExists = await this.#adminExists(toBeRemovedId);
+    const targetAdminExists = await this.#isAdmin(toBeRemovedId);
 
     if (!targetAdminExists) {
       throw new Error("Target admin does not exist!");
@@ -167,6 +179,30 @@ export class DatabaseService {
     return true;
   }
 
+  // AUTHORIZATION GUARDS
+  // Assert user is authorized to delete users.
+  async canUserDeleteUser(executorId: string, targetId: string): Promise<void> {
+    if (executorId === targetId) {
+      const isUserSuperAdmin = await this.#isSuperAdmin(executorId);
+      if (isUserSuperAdmin) {
+        throw new Error(
+          "Super administrators cannot delete their own account without privilege transfer!"
+        );
+      }
+      return;
+    }
+    const isUserAdmin = await this.getAdmin(executorId);
+    if (!isUserAdmin) {
+      throw new Error("Only administrators can delete accounts of other users!");
+    }
+    const isOtherUserAdmin = await this.#isAdmin(targetId);
+    if (isOtherUserAdmin && !isUserAdmin.superAdmin) {
+      throw new Error("Only super administrators can delete other administrators!");
+    }
+    return;
+  }
+
+  // canRemoveAdmins
   // UTILITY METHODS
 
   /** Prevent external modification of base table columns, such as `id`, `createdDate`, `updatedDate` */
@@ -186,7 +222,7 @@ export class DatabaseService {
     return !!entry;
   }
 
-  async #adminExists(adminId: string): Promise<boolean> {
+  async #isAdmin(adminId: string): Promise<boolean> {
     const entry = await this.db
       .selectFrom("user as u")
       .select("u.id")
@@ -209,6 +245,10 @@ export class DatabaseService {
     return !!findSuperAdmin;
   }
 
+  async #isUser(userId: string): Promise<boolean> {
+    return await this.#entryExists("user", userId);
+  }
+
   async #usersExist(): Promise<boolean> {
     const { userCount } = await this.db
       .selectFrom("user")
@@ -216,6 +256,34 @@ export class DatabaseService {
       .executeTakeFirstOrThrow();
 
     return BigInt(userCount) === 0n;
+  }
+
+  async #executorAndTargetCheck({
+    executorId,
+    targetId,
+    executorType = "user",
+    targetType = "user"
+  }: EntityCheckObj): Promise<void> {
+    const methodPick: Record<PrivilegeType, (id: string) => Promise<boolean>> = {
+      user: this.#isUser.bind(this),
+      admin: this.#isAdmin.bind(this),
+      superAdmin: this.#isSuperAdmin.bind(this)
+    };
+    const executorMethod = methodPick[executorType],
+      targetMethod = methodPick[targetType];
+    const executorAllowed = await executorMethod(executorId);
+    if (!executorAllowed) {
+      throw new Error(
+        "User does not exist or does not have permissions to perform the requested action!"
+      );
+    }
+
+    const targetAllowed = await targetMethod(targetId);
+    if (!targetAllowed) {
+      throw new Error(
+        "Target user does not exist or does not have the appropriate privilege type!"
+      );
+    }
   }
 
   /* async getUserByUsername(username: string):Promise<UserDto> {
