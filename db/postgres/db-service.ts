@@ -1,9 +1,13 @@
 import { Kysely } from "kysely";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { DB, User } from "./db-types.js";
 import {
   AdminDto,
   BaseTableColumns,
+  ChatWithParticipantsDto,
+  CreateChatDto,
   CreateUserDto,
+  ParticipantDto,
   SingleUserSearch,
   UpdateAuthDto,
   UpdateUserDto,
@@ -21,50 +25,8 @@ type EntityCheckObj = {
 export class DatabaseService {
   constructor(protected db: Kysely<DB>) {}
 
-  // GET ENTITIES
+  /* ----- USER AND CREDENTIALS ----- */
 
-  /** Search for user by their unique property. Full match required. */
-  async getUser({ property, value }: SingleUserSearch): Promise<UserDto | undefined> {
-    return await this.db
-      .selectFrom("user")
-      .selectAll()
-      .where(property, "=", value)
-      .executeTakeFirst();
-  }
-
-  async searchForUsers(search: string): Promise<UserDto[]> {
-    const props = ["name", "surname", "username"] satisfies (keyof User)[];
-    const query = this.db
-      .selectFrom("user")
-      .selectAll()
-      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(prop), "ilike", `%${search}%`))));
-
-    console.log(query.compile());
-    return await query.execute();
-  }
-
-  async getAdmin(id: string): Promise<AdminDto | undefined> {
-    return this.db.selectFrom("admin").selectAll().where("id", "=", id).executeTakeFirst();
-  }
-
-  // CREATE ENTITIES
-
-  /** Queries needed for creating the user and corresponding credentials entries
-   * Should be called within a transaction. */
-  async #createNewUserInserts(
-    db: Kysely<DB>,
-    { username, name, surname, email, avatar, hash, salt }: CreateUserDto
-  ): Promise<UserDto> {
-    const newUser = await db
-      .insertInto("user")
-      .values({ username, name, surname, email, avatar })
-      .returningAll()
-      .executeTakeFirstOrThrow();
-    await db.insertInto("auth").values({ id: newUser.id, hash, salt }).execute();
-    return newUser;
-  }
-
-  /** Create new user, along with their passed credentials. Initial user created as superadmin. */
   async addUser(createUserDto: CreateUserDto): Promise<UserDto> {
     const noUsers = await this.#usersExist();
     if (noUsers) {
@@ -77,54 +39,24 @@ export class DatabaseService {
     return user;
   }
 
-  /** Create initial superAdmin user, along with their passed credentials.
-   * Can only be used if no users exist. */
-  async createSuperAdmin(createUserArgs: CreateUserDto): Promise<UserDto> {
-    // Safeguard against standalone calls
-    const { adminCount } = await this.db
-      .selectFrom("admin")
-      .select((eb) => eb.fn.countAll().as("adminCount"))
-      .where("superAdmin", "=", true)
-      .executeTakeFirstOrThrow();
-
-    if (BigInt(adminCount) !== 0n) {
-      throw new Error("Super administrator already exists!");
-    }
-
-    const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
-      const newUser = await this.#createNewUserInserts(trx, createUserArgs);
-      await trx.insertInto("admin").values({ id: newUser.id, superAdmin: true }).execute();
-      return newUser;
-    });
-    if (!user) throw new Error("Error creating user");
-    return user;
+  /** Create new user, along with their passed credentials. Initial user created as superadmin. */
+  /** Search for user by their unique property. Full match required. */
+  async getUser({ property, value }: SingleUserSearch): Promise<UserDto | undefined> {
+    return await this.db
+      .selectFrom("user")
+      .selectAll()
+      .where(property, "=", value)
+      .executeTakeFirst();
   }
 
-  async transferSuperAdmin(executorId: string, targetId: string): Promise<boolean> {
-    await this.#executorAndTargetCheck({ executorId, executorType: "superAdmin", targetId });
-    return await this.db.transaction().execute(async (trx) => {
-      try {
-        await trx.deleteFrom("admin").where("id", "=", executorId).execute();
-        await trx.insertInto("admin").values({ id: targetId, superAdmin: true }).execute();
-        return true;
-      } catch (err) {
-        console.warn(
-          "Transferring of super administrator role failed:",
-          err instanceof Error ? err.message : err
-        );
-        return false;
-      }
-    });
+  async searchForUsers(search: string): Promise<UserDto[]> {
+    const props = ["name", "surname", "username"] satisfies (keyof User)[];
+    return await this.db
+      .selectFrom("user")
+      .selectAll()
+      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(prop), "ilike", `%${search}%`))))
+      .execute();
   }
-
-  async addAdmin(executorId: string, targetId: string): Promise<true> {
-    await this.#executorAndTargetCheck({ executorId, executorType: "superAdmin", targetId });
-
-    await this.db.insertInto("admin").values({ id: targetId }).execute();
-    return true;
-  }
-
-  // UPDATE ENTITIES
 
   /** Update user properties. Overriding id's is forbidden.*/
   async updateUser(id: string, arg: UpdateUserDto): Promise<UserDto> {
@@ -152,12 +84,81 @@ export class DatabaseService {
     return true;
   }
 
-  // DELETE ENTITIES
-
   async removeUser(executorId: string, targetId: string): Promise<true> {
     await this.canUserDeleteUser(executorId, targetId);
     await this.db.deleteFrom("user").where("id", "=", targetId).execute();
     return true;
+  }
+
+  /** Queries needed for creating the user and corresponding credentials entries
+   * Should be called within a transaction. */
+  async #createNewUserInserts(
+    db: Kysely<DB>,
+    { username, name, surname, email, avatar, hash, salt }: CreateUserDto
+  ): Promise<UserDto> {
+    const newUser = await db
+      .insertInto("user")
+      .values({ username, name, surname, email, avatar })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    await db.insertInto("auth").values({ id: newUser.id, hash, salt }).execute();
+    return newUser;
+  }
+
+  /* ----- ADMINS ----- */
+
+  /** Create initial superAdmin user, along with their passed credentials.
+   * Can only be used if no users exist. */
+  async createSuperAdmin(createUserArgs: CreateUserDto): Promise<UserDto> {
+    // Safeguard against standalone calls
+    const { adminCount } = await this.db
+      .selectFrom("admin")
+      .select((eb) => eb.fn.countAll().as("adminCount"))
+      .where("superAdmin", "=", true)
+      .executeTakeFirstOrThrow();
+
+    if (BigInt(adminCount) !== 0n) {
+      throw new Error("Super administrator already exists!");
+    }
+
+    const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
+      const newUser = await this.#createNewUserInserts(trx, createUserArgs);
+      await trx.insertInto("admin").values({ id: newUser.id, superAdmin: true }).execute();
+      return newUser;
+    });
+    if (!user) throw new Error("Error creating user");
+    return user;
+  }
+
+  /** Add administrator to admin table */
+  async addAdmin(executorId: string, targetId: string): Promise<true> {
+    await this.#executorAndTargetCheck({ executorId, executorType: "superAdmin", targetId });
+
+    await this.db.insertInto("admin").values({ id: targetId }).execute();
+    return true;
+  }
+
+  /** Query administrator from table */
+  async getAdmin(id: string): Promise<AdminDto | undefined> {
+    return this.db.selectFrom("admin").selectAll().where("id", "=", id).executeTakeFirst();
+  }
+
+  /** Transfer super administrator status from one user to another. */
+  async transferSuperAdmin(executorId: string, targetId: string): Promise<boolean> {
+    await this.#executorAndTargetCheck({ executorId, executorType: "superAdmin", targetId });
+    return await this.db.transaction().execute(async (trx) => {
+      try {
+        await trx.deleteFrom("admin").where("id", "=", executorId).execute();
+        await trx.insertInto("admin").values({ id: targetId, superAdmin: true }).execute();
+        return true;
+      } catch (err) {
+        console.warn(
+          "Transferring of super administrator role failed:",
+          err instanceof Error ? err.message : err
+        );
+        return false;
+      }
+    });
   }
 
   async removeAdmin(executorId: string, toBeRemovedId: string): Promise<true> {
@@ -179,7 +180,7 @@ export class DatabaseService {
     return true;
   }
 
-  // AUTHORIZATION GUARDS
+  /* ----- GUARDS ------ */
   // Assert user is authorized to delete users.
   async canUserDeleteUser(executorId: string, targetId: string): Promise<void> {
     if (executorId === targetId) {
@@ -202,8 +203,124 @@ export class DatabaseService {
     return;
   }
 
-  // canRemoveAdmins
-  // UTILITY METHODS
+  async #executorAndTargetCheck({
+    executorId,
+    targetId,
+    executorType = "user",
+    targetType = "user"
+  }: EntityCheckObj): Promise<void> {
+    const methodPick: Record<PrivilegeType, (id: string) => Promise<boolean>> = {
+      user: this.#isUser.bind(this),
+      admin: this.#isAdmin.bind(this),
+      superAdmin: this.#isSuperAdmin.bind(this)
+    };
+    const executorMethod = methodPick[executorType],
+      targetMethod = methodPick[targetType];
+    const executorAllowed = await executorMethod(executorId);
+    if (!executorAllowed) {
+      throw new Error(
+        "User does not exist or does not have permissions to perform the requested action!"
+      );
+    }
+
+    const targetAllowed = await targetMethod(targetId);
+    if (!targetAllowed) {
+      throw new Error(
+        "Target user does not exist or does not have the appropriate privilege type!"
+      );
+    }
+  }
+
+  /* ----- CHATS AND PARTICIPANTS ----- */
+  async createChat({ name, participants }: CreateChatDto): Promise<ChatWithParticipantsDto> {
+    // When starting, a minimum of 2 participants required.
+    // However, a chat can exist, until it has at least one participant.
+    if (participants.length < 2) {
+      throw new Error("At least two participants are required when creating a chat!");
+    }
+    const chat = await this.db.transaction().execute(async (trx) => {
+      const createdChat = await trx
+        .insertInto("chat")
+        .values({ name })
+        .returningAll()
+        .executeTakeFirst();
+      if (!createdChat) {
+        throw new Error("Error creating new chat!");
+      }
+
+      const participantIds = await trx
+        .insertInto("participant")
+        .values(participants.map((id) => ({ chatId: createdChat.id, userId: id })))
+        .returning("participant.userId")
+        .execute();
+
+      return { ...createdChat, participants: participantIds.map(({ userId }) => userId) };
+    });
+    return chat;
+  }
+
+  async #baseChatGet(chatIds: string | string[]): Promise<ChatWithParticipantsDto[]> {
+    const ids = Array.isArray(chatIds) ? [...chatIds] : [chatIds];
+    const chats = await this.db
+      .selectFrom("chat as c")
+      .selectAll("c")
+      .select((eb) => [
+        jsonArrayFrom(
+          eb.selectFrom("participant as p").select("p.userId").whereRef("p.chatId", "=", "c.id")
+        ).as("participants")
+      ])
+      .where("c.id", "in", ids)
+      .execute();
+
+    return chats.map((chat) => ({
+      ...chat,
+      participants: chat.participants.map(({ userId }) => userId)
+    }));
+  }
+
+  async getChat(chatId: string): Promise<ChatWithParticipantsDto | undefined> {
+    return (await this.#baseChatGet(chatId))[0];
+  }
+
+  // Chats cannot be updated, only their participants can. They are also only deleted when last
+  // their participants is deleted as well.
+
+  async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
+    await Promise.all([this.#entryExists("chat", chatId), this.#entryExists("user", userId)]);
+    const participant = await this.db
+      .insertInto("participant")
+      .values({ chatId, userId })
+      .returningAll()
+      .executeTakeFirst();
+    if (!participant) {
+      throw new Error("Error while adding participant to chat!");
+    }
+    return participant;
+  }
+
+  async removeParticipantFromChat(chatId: string, userId: string): Promise<boolean> {
+    await this.#entryExists("chat", chatId);
+    const participantsQuery = await this.db
+      .selectFrom("participant")
+      .select("userId")
+      .where("chatId", "=", chatId)
+      .execute();
+
+    const participants = participantsQuery.map(({ userId }) => userId);
+    if (!participants.find((id) => id === userId)) {
+      throw new Error("User is not a participant of the target chat!");
+    }
+    // If only a single participant is left in chat, remove the
+    // chat itself which will remove the participant as well.
+    if (participants.length === 1) {
+      await this.db.deleteFrom("chat").where("id", "=", chatId).execute();
+    } else {
+      await this.db.deleteFrom("participant").where("userId", "=", userId).execute();
+    }
+    return true;
+  }
+
+  /* ----- UTILITY METHODS ----- */
 
   /** Prevent external modification of base table columns, such as `id`, `createdDate`, `updatedDate` */
   #forbidBaseColumns<T extends Record<string, unknown>>(arg: T): void {
@@ -257,36 +374,4 @@ export class DatabaseService {
 
     return BigInt(userCount) === 0n;
   }
-
-  async #executorAndTargetCheck({
-    executorId,
-    targetId,
-    executorType = "user",
-    targetType = "user"
-  }: EntityCheckObj): Promise<void> {
-    const methodPick: Record<PrivilegeType, (id: string) => Promise<boolean>> = {
-      user: this.#isUser.bind(this),
-      admin: this.#isAdmin.bind(this),
-      superAdmin: this.#isSuperAdmin.bind(this)
-    };
-    const executorMethod = methodPick[executorType],
-      targetMethod = methodPick[targetType];
-    const executorAllowed = await executorMethod(executorId);
-    if (!executorAllowed) {
-      throw new Error(
-        "User does not exist or does not have permissions to perform the requested action!"
-      );
-    }
-
-    const targetAllowed = await targetMethod(targetId);
-    if (!targetAllowed) {
-      throw new Error(
-        "Target user does not exist or does not have the appropriate privilege type!"
-      );
-    }
-  }
-
-  /* async getUserByUsername(username: string):Promise<UserDto> {
-    await this.db.selectFrom("user").select
-  } */
 }
