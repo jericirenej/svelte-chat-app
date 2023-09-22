@@ -77,7 +77,9 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     )
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addUniqueConstraint("unique_participant_chat", ["userId", "chatId"])
     .execute();
+
   await db.schema
     .createIndex("participant_chat_and_user")
     .on("participant")
