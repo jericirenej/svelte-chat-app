@@ -17,8 +17,11 @@ import {
 import { DatabaseService } from "./db-service.js";
 import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
+import { uniqueUUID } from "./tools/utils.js";
 import {
+  CreateMessageDto,
   GetChatDto,
+  MessageDto,
   ParticipantDto,
   type AuthDto,
   type BaseTableColumns,
@@ -402,7 +405,8 @@ describe("DatabaseService", () => {
     let firstCreated: UserDto,
       secondCreated: UserDto,
       thirdCreated: UserDto,
-      participants: string[];
+      participants: string[],
+      allUserIds: string[];
     const chatName = "chatName";
 
     beforeAll(async () => {
@@ -410,6 +414,7 @@ describe("DatabaseService", () => {
       secondCreated = await service.addUser(secondUser);
       thirdCreated = await service.addUser(thirdUser);
       participants = [firstCreated.id, secondCreated.id];
+      allUserIds = [firstCreated.id, secondCreated.id, thirdCreated.id];
     });
     afterEach(async () => {
       await db.deleteFrom("chat").execute();
@@ -439,6 +444,12 @@ describe("DatabaseService", () => {
         .execute();
       expect(participantsQuery.length).toBe(participants.length);
     });
+    it("Should reject chat creation if some participants do not exist", async () => {
+      const inexistent = uniqueUUID(allUserIds);
+      await expect(
+        service.createChat({ participants: [...participants, inexistent] })
+      ).rejects.toThrowError();
+    });
     it("Should reject chat creation with less than two participants", async () => {
       await expect(
         service.createChat({ name: chatName, participants: participants.slice(0, 1) })
@@ -450,16 +461,11 @@ describe("DatabaseService", () => {
       expect(participant).not.toBeUndefined();
       expectTypeOf(participant).toMatchTypeOf<ParticipantDto>();
     });
-    it("Should reject if chat or user does not exist or is already added", async () => {
+    it("Should reject participant add if chat or user does not exist or already added", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
-      let nonExistingParticipant = "",
-        nonExistingChat = "";
-      while (!nonExistingChat || nonExistingChat === id) {
-        nonExistingChat = randomUUID();
-      }
-      while (!nonExistingParticipant || participants.find((id) => nonExistingParticipant === id)) {
-        nonExistingParticipant = randomUUID();
-      }
+      const nonExistingParticipant = uniqueUUID(participants);
+      const nonExistingChat = uniqueUUID([id]);
+
       const testCases: { chatId: string; userId: string }[] = [
         { chatId: id, userId: nonExistingParticipant },
         { chatId: nonExistingChat, userId: thirdCreated.id },
@@ -613,14 +619,9 @@ describe("DatabaseService", () => {
     });
     it("Should reject participant remove if chat does not exist or participant is not a member", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
-      let nonExistingParticipant = "",
-        nonExistingChat = "";
-      while (!nonExistingChat || nonExistingChat === id) {
-        nonExistingChat = randomUUID();
-      }
-      while (!nonExistingParticipant || participants.find((id) => nonExistingParticipant === id)) {
-        nonExistingParticipant = randomUUID();
-      }
+      const nonExistingParticipant = uniqueUUID(participants),
+        nonExistingChat = uniqueUUID([id]);
+
       const testCases: { chatId: string; participant: string }[] = [
         { chatId: nonExistingChat, participant: participants[0] },
         { chatId: id, participant: nonExistingParticipant }
@@ -629,6 +630,59 @@ describe("DatabaseService", () => {
       for (const { chatId, participant } of testCases) {
         await expect(service.removeParticipantFromChat(chatId, participant)).rejects.toThrowError();
       }
+    });
+    it("Should add message to existing chat", async () => {
+      const { id } = await service.createChat({ participants });
+      const createMessage: CreateMessageDto = {
+        chatId: id,
+        message: "message",
+        userId: participants[0]
+      };
+      const message = await service.createMessage(createMessage);
+      expect(message).not.toBeUndefined();
+      expectTypeOf(message).toMatchTypeOf<MessageDto>();
+
+      const newMessage = {
+        chatId: createMessage.chatId,
+        message: createMessage.message,
+        userId: createMessage.userId
+      };
+      expect(newMessage).toEqual(createMessage);
+    });
+    it("Should reject if user is not participant and autoAdd is false", async () => {
+      const { id } = await service.createChat({ participants });
+      const createMessage: CreateMessageDto = {
+        chatId: id,
+        message: "message",
+        userId: thirdCreated.id
+      };
+      await expect(service.createMessage(createMessage, false)).rejects.toThrowError();
+    });
+    it("Should allow posting messages from non-participants if autoAdd is true", async () => {
+      const { id } = await service.createChat({ participants });
+      const createMessage: CreateMessageDto = {
+        chatId: id,
+        message: "message",
+        userId: thirdCreated.id
+      };
+      const createdMessage = await service.createMessage(createMessage, true);
+      expect(createdMessage).not.toBeUndefined();
+      expectTypeOf(createdMessage).toMatchTypeOf<MessageDto>();
+    });
+    it("Should reject if chat or user do not exist", async () => {
+      const { id } = await service.createChat({ participants });
+      const inexistentUser = uniqueUUID(allUserIds);
+      const inexistentChat = uniqueUUID([id]);
+      await expect(
+        service.createMessage({ chatId: id, message: "message", userId: inexistentUser })
+      ).rejects.toThrowError();
+      await expect(
+        service.createMessage({
+          chatId: inexistentChat,
+          message: "message",
+          userId: participants[0]
+        })
+      ).rejects.toThrowError();
     });
   });
 });

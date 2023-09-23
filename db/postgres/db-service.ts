@@ -6,9 +6,11 @@ import {
   BaseTableColumns,
   ChatOrderProperties,
   CreateChatDto,
+  CreateMessageDto,
   CreateUserDto,
   GetChatDto,
   GetChatsDto,
+  MessageDto,
   ParticipantDto,
   SingleUserSearch,
   UpdateAuthDto,
@@ -237,6 +239,11 @@ export class DatabaseService {
     Chats cannot be updated, only their participants can. They are also only deleted when last
     their participants is deleted as well. */
   async createChat({ name, participants }: CreateChatDto): Promise<GetChatDto> {
+    const participantsExist = await Promise.all(participants.map((userId) => this.#isUser(userId)));
+    if (!participantsExist.every((check) => check)) {
+      throw new Error("Not all participants exist as users!");
+    }
+
     // When starting, a minimum of 2 participants required.
     // However, a chat can exist, until it has at least one participant.
     if (participants.length < 2) {
@@ -359,7 +366,10 @@ export class DatabaseService {
   }
 
   async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
-    await Promise.all([this.#entryExists("chat", chatId), this.#entryExists("user", userId)]);
+    const checks = await Promise.all([this.#entryExists("chat", chatId), this.#isUser(userId)]);
+    if (!checks.every((check) => check)) {
+      throw new Error("Chat or user do not exist");
+    }
     const participant = await this.db
       .insertInto("participant")
       .values({ chatId, userId })
@@ -391,6 +401,32 @@ export class DatabaseService {
       await this.db.deleteFrom("participant").where("userId", "=", userId).execute();
     }
     return true;
+  }
+
+  /* ----- MESSAGES ----- */
+  /** Create a message in the existing chat.
+   * If autoAdd is true, users that are not participants of the current chat
+   * will be auto-added. Defaults to `false` */
+  async createMessage(
+    { chatId, message, userId }: CreateMessageDto,
+    autoAdd = false
+  ): Promise<MessageDto> {
+    const isParticipant = await this.#isParticipant(chatId, userId);
+    if (!autoAdd && !isParticipant) {
+      throw new Error("User is not participant of the target chat!");
+    }
+    if (autoAdd && !isParticipant) {
+      await this.addParticipantToChat(chatId, userId);
+    }
+    const createdMessage = await this.db
+      .insertInto("message")
+      .values({ chatId, message, userId })
+      .returningAll()
+      .executeTakeFirst();
+    if (!createdMessage) {
+      throw new Error("Error creating new chat message!");
+    }
+    return createdMessage;
   }
 
   /* ----- UTILITY METHODS ----- */
@@ -437,6 +473,14 @@ export class DatabaseService {
 
   async #isUser(userId: string): Promise<boolean> {
     return await this.#entryExists("user", userId);
+  }
+
+  async #isParticipant(chatId: string, userId: string): Promise<boolean> {
+    const chat = await this.getChat(chatId);
+    if (!chat) {
+      throw new Error("Target chat does not exist!");
+    }
+    return chat.participants.includes(userId);
   }
 
   async #usersExist(): Promise<boolean> {
