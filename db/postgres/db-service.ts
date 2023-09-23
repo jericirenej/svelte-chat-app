@@ -242,10 +242,12 @@ export class DatabaseService {
     if (participants.length < 2) {
       throw new Error("At least two participants are required when creating a chat!");
     }
+    // Need explicit setting, or insert will throw.
+    const nameVal = name ? name : null;
     const chat = await this.db.transaction().execute(async (trx) => {
       const createdChat = await trx
         .insertInto("chat")
-        .values({ name })
+        .values({ name: nameVal })
         .returningAll()
         .executeTakeFirst();
       if (!createdChat) {
@@ -279,6 +281,9 @@ export class DatabaseService {
   }
 
   async getChats({ chatIds, direction, property }: GetChatsDto): Promise<GetChatDto[]> {
+    if (!chatIds || !chatIds.length) {
+      throw new Error("At least one chat id must be supplied!");
+    }
     const ids = Array.isArray(chatIds) ? chatIds : [chatIds];
     const query = this.baseGetChatQuery().where("c.id", "in", ids);
     const chats = await this.#chatOrderByQuery(query, { direction, property }).execute();
@@ -287,8 +292,20 @@ export class DatabaseService {
       participants: chat.participants.map(({ userId }) => userId)
     }));
   }
-  /* 
-  async getChatsForUser(userId: string):Promise<GetChatDto[]>{} */
+
+  async getChatsForUser(
+    userId: string,
+    orderBy: Partial<ChatOrderProperties> = {}
+  ): Promise<GetChatDto[]> {
+    const chatIdsQuery = await this.db
+      .selectFrom("participant")
+      .select("chatId")
+      .where("userId", "=", userId)
+      .execute();
+    if (!chatIdsQuery.length) return [];
+
+    return await this.getChats({ chatIds: chatIdsQuery.map(({ chatId }) => chatId), ...orderBy });
+  }
 
   private baseGetChatQuery() {
     return this.db

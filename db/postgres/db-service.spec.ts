@@ -475,7 +475,6 @@ describe("DatabaseService", () => {
       const { id } = await service.createChat({ name: chatName, participants: allParticipants });
       const returnedChat = await service.getChat(id);
       expect(returnedChat).not.toBeUndefined();
-      expectTypeOf(returnedChat).toMatchTypeOf<GetChatDto>();
       expect(returnedChat?.name).toBe(chatName);
       expect(returnedChat?.participants).toEqual(allParticipants);
     });
@@ -495,18 +494,85 @@ describe("DatabaseService", () => {
       expectTypeOf(result).toMatchTypeOf<GetChatDto[]>();
       expect(result.length).toBe(2);
     });
+    it("Should get chats for user", async () => {
+      const { id: firstUserChat1 } = await service.createChat({
+        participants: [firstCreated.id, secondCreated.id]
+      });
+      const { id: firstUserChat2 } = await service.createChat({
+        participants: [firstCreated.id, thirdCreated.id]
+      });
+      await service.createChat({
+        participants: [secondCreated.id, thirdCreated.id]
+      });
+
+      const firstUserChats = [firstUserChat1, firstUserChat2];
+      const results = await service.getChatsForUser(firstCreated.id);
+      expect(results.length).toBe(2);
+      const chatIds = results.map(({ id }) => id);
+      expect(chatIds.every((id) => firstUserChats.includes(id))).toBe(true);
+    });
+    it("Should pass order by property", async () => {
+      const { id } = await service.createChat({
+        participants: [firstCreated.id, secondCreated.id]
+      });
+      const spyOnGetChats = vi.spyOn(service, "getChats");
+      const orderObj = { direction: "desc", property: "name" } as const;
+      await service.getChatsForUser(firstCreated.id, orderObj);
+      expect(spyOnGetChats).toHaveBeenLastCalledWith({ chatIds: [id], ...orderObj });
+      spyOnGetChats.mockRestore();
+    });
+    // TODO: Add tests for message sorts
     it("Should order by participants", async () => {
-      const otherChat = "otherChat";
-      const { id: firstChatId } = await service.createChat({ name: chatName, participants });
+      const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({
-        name: otherChat,
         participants: [...participants, thirdCreated.id]
       });
       const chatIds = [firstChatId, secondChatId];
-      const asc = await service.getChats({ chatIds, property: "participants", direction: "asc" });
-      expect(asc.map(({ id }) => id)).toEqual(chatIds);
-      const desc = await service.getChats({ chatIds, property: "participants", direction: "desc" });
-      expect(desc.map(({ id }) => id)).toEqual([...chatIds].reverse());
+      for (const [direction, expected] of [
+        ["asc", chatIds],
+        ["desc", [...chatIds].reverse()]
+      ] as const) {
+        const result = await service.getChats({ chatIds, property: "participants", direction });
+        expect(result.map(({ id }) => id)).toEqual(expected);
+      }
+    });
+    it("Should order by created date", async () => {
+      const { id: firstChatId } = await service.createChat({ participants });
+      const { id: secondChatId, createdAt } = await service.createChat({ participants });
+      // Set second chat to have been created before first
+      const beforeDate = new Date(createdAt.getTime() - 10e8);
+      await db
+        .updateTable("chat")
+        .set({ createdAt: beforeDate, updatedAt: beforeDate })
+        .where("id", "=", secondChatId)
+        .execute();
+
+      const chatIds = [firstChatId, secondChatId];
+      for (const [direction, expected] of [
+        ["asc", [...chatIds].reverse()],
+        ["desc", chatIds]
+      ] as const) {
+        const result = await service.getChats({ chatIds, property: "createdAt", direction });
+        expect(result.map(({ id }) => id)).toEqual(expected);
+      }
+    });
+    it("Should sort by names with null values last", async () => {
+      const { id: zNameId } = await service.createChat({ name: "ZZZ", participants });
+      const { id: nullNameId } = await service.createChat({ participants });
+      const { id: aNameId } = await service.createChat({ name: "AAA", participants });
+      const ascendingIds = [aNameId, zNameId, nullNameId];
+      const descendingIds = [zNameId, aNameId, nullNameId];
+      for (const [direction, expected] of [
+        ["asc", ascendingIds],
+        ["desc", descendingIds]
+      ] as const) {
+        const result = await service.getChats({
+          chatIds: ascendingIds,
+          property: "name",
+          direction
+        });
+        expect(result.map(({ id }) => id)).toEqual(expected);
+      }
     });
     it("Should remove participant from chat", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
