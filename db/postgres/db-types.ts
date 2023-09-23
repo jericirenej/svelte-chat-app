@@ -23,7 +23,7 @@ export interface Auth {
 
 export interface Chat {
   id: Generated<string>;
-  name: string;
+  name: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }

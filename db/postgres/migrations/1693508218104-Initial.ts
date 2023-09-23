@@ -41,7 +41,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
   await db.schema
     .createTable("chat")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
-    .addColumn("name", "varchar(100)", (col) => col.notNull())
+    .addColumn("name", "varchar(100)")
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
