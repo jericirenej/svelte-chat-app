@@ -18,7 +18,7 @@ import { DatabaseService } from "./db-service.js";
 import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
 import {
-  ChatWithParticipantsDto,
+  GetChatDto,
   ParticipantDto,
   type AuthDto,
   type BaseTableColumns,
@@ -47,6 +47,7 @@ const MIGRATIONS_PATH = new URL("./migrations", import.meta.url),
 // Create test database before creating a connection to it
 const postgresClient = new Client(postgresConnection);
 await postgresClient.connect();
+await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
 await postgresClient.query(`CREATE DATABASE "${TEST_DB_NAME}"`);
 
 // Create connection to test database
@@ -397,7 +398,7 @@ describe("DatabaseService", () => {
     });
   });
 
-  describe.only("Chats constellation CRUD", () => {
+  describe("Chats constellation CRUD", () => {
     let firstCreated: UserDto,
       secondCreated: UserDto,
       thirdCreated: UserDto,
@@ -474,7 +475,7 @@ describe("DatabaseService", () => {
       const { id } = await service.createChat({ name: chatName, participants: allParticipants });
       const returnedChat = await service.getChat(id);
       expect(returnedChat).not.toBeUndefined();
-      expectTypeOf(returnedChat).toMatchTypeOf<ChatWithParticipantsDto>();
+      expectTypeOf(returnedChat).toMatchTypeOf<GetChatDto>();
       expect(returnedChat?.name).toBe(chatName);
       expect(returnedChat?.participants).toEqual(allParticipants);
     });
@@ -482,6 +483,30 @@ describe("DatabaseService", () => {
       const { id } = await service.createChat({ name: chatName, participants });
       await db.deleteFrom("chat").execute();
       expect(await service.getChat(id)).toBeUndefined();
+    });
+    it("Should get chats", async () => {
+      const otherChat = "otherChat";
+      const { id: firstChatId } = await service.createChat({ name: chatName, participants });
+      const { id: secondChatId } = await service.createChat({
+        name: otherChat,
+        participants: [...participants, thirdCreated.id]
+      });
+      const result = await service.getChats({ chatIds: [firstChatId, secondChatId] });
+      expectTypeOf(result).toMatchTypeOf<GetChatDto[]>();
+      expect(result.length).toBe(2);
+    });
+    it("Should order by participants", async () => {
+      const otherChat = "otherChat";
+      const { id: firstChatId } = await service.createChat({ name: chatName, participants });
+      const { id: secondChatId } = await service.createChat({
+        name: otherChat,
+        participants: [...participants, thirdCreated.id]
+      });
+      const chatIds = [firstChatId, secondChatId];
+      const asc = await service.getChats({ chatIds, property: "participants", direction: "asc" });
+      expect(asc.map(({ id }) => id)).toEqual(chatIds);
+      const desc = await service.getChats({ chatIds, property: "participants", direction: "desc" });
+      expect(desc.map(({ id }) => id)).toEqual([...chatIds].reverse());
     });
     it("Should remove participant from chat", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
@@ -520,7 +545,7 @@ describe("DatabaseService", () => {
         .execute();
       expect(noParticipants.length).toBe(0);
     });
-    it("Should reject if chat does not exist or participant is not a member", async () => {
+    it("Should reject participant remove if chat does not exist or participant is not a member", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
       let nonExistingParticipant = "",
         nonExistingChat = "";

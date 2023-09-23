@@ -1,12 +1,14 @@
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { DB, User } from "./db-types.js";
 import {
   AdminDto,
   BaseTableColumns,
-  ChatWithParticipantsDto,
+  ChatOrderProperties,
   CreateChatDto,
   CreateUserDto,
+  GetChatDto,
+  GetChatsDto,
   ParticipantDto,
   SingleUserSearch,
   UpdateAuthDto,
@@ -21,8 +23,8 @@ type EntityCheckObj = {
   targetId: string;
   targetType?: PrivilegeType;
 };
-
 export class DatabaseService {
+  readonly BASE_PREVIEW_LIMIT = 2;
   constructor(protected db: Kysely<DB>) {}
 
   /* ----- USER AND CREDENTIALS ----- */
@@ -231,8 +233,10 @@ export class DatabaseService {
     }
   }
 
-  /* ----- CHATS AND PARTICIPANTS ----- */
-  async createChat({ name, participants }: CreateChatDto): Promise<ChatWithParticipantsDto> {
+  /* ----- CHATS AND PARTICIPANTS ----- 
+    Chats cannot be updated, only their participants can. They are also only deleted when last
+    their participants is deleted as well. */
+  async createChat({ name, participants }: CreateChatDto): Promise<GetChatDto> {
     // When starting, a minimum of 2 participants required.
     // However, a chat can exist, until it has at least one participant.
     if (participants.length < 2) {
@@ -254,36 +258,88 @@ export class DatabaseService {
         .returning("participant.userId")
         .execute();
 
-      return { ...createdChat, participants: participantIds.map(({ userId }) => userId) };
+      return {
+        ...createdChat,
+        participants: participantIds.map(({ userId }) => userId),
+        messages: []
+      };
     });
     return chat;
   }
 
-  async #baseChatGet(chatIds: string | string[]): Promise<ChatWithParticipantsDto[]> {
-    const ids = Array.isArray(chatIds) ? [...chatIds] : [chatIds];
-    const chats = await this.db
-      .selectFrom("chat as c")
-      .selectAll("c")
-      .select((eb) => [
-        jsonArrayFrom(
-          eb.selectFrom("participant as p").select("p.userId").whereRef("p.chatId", "=", "c.id")
-        ).as("participants")
-      ])
-      .where("c.id", "in", ids)
-      .execute();
+  /** Get a chat by their id */
+  async getChat(chatId: string): Promise<GetChatDto | undefined> {
+    const chat = await this.baseGetChatQuery().where("c.id", "=", chatId).executeTakeFirst();
 
+    if (!chat) return chat;
+    return {
+      ...chat,
+      participants: chat.participants.map(({ userId }) => userId)
+    };
+  }
+
+  async getChats({ chatIds, direction, property }: GetChatsDto): Promise<GetChatDto[]> {
+    const ids = Array.isArray(chatIds) ? chatIds : [chatIds];
+    const query = this.baseGetChatQuery().where("c.id", "in", ids);
+    const chats = await this.#chatOrderByQuery(query, { direction, property }).execute();
     return chats.map((chat) => ({
       ...chat,
       participants: chat.participants.map(({ userId }) => userId)
     }));
   }
+  /* 
+  async getChatsForUser(userId: string):Promise<GetChatDto[]>{} */
 
-  async getChat(chatId: string): Promise<ChatWithParticipantsDto | undefined> {
-    return (await this.#baseChatGet(chatId))[0];
+  private baseGetChatQuery() {
+    return this.db
+      .selectFrom("chat as c")
+      .selectAll("c")
+      .select((eb) => [
+        jsonArrayFrom(
+          eb.selectFrom("participant as p").select("p.userId").whereRef("p.chatId", "=", "c.id")
+        ).as("participants"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("message as m")
+            .selectAll()
+            .whereRef("m.chatId", "=", "c.id")
+            .limit(this.BASE_PREVIEW_LIMIT)
+        ).as("messages")
+      ]);
   }
 
-  // Chats cannot be updated, only their participants can. They are also only deleted when last
-  // their participants is deleted as well.
+  #chatOrderByQuery(
+    query: ReturnType<typeof this.baseGetChatQuery>,
+    orderObj: Partial<ChatOrderProperties>
+  ) {
+    const directionArr = ["desc", "asc"] satisfies ChatOrderProperties["direction"][];
+    const property = orderObj.property ?? "createdAt";
+    // Ensure value complies with allowed input
+    const ordering = directionArr.find((dir) => orderObj.direction === dir) ?? "desc";
+
+    if (property === "createdAt" || property === "name") {
+      return query.orderBy(`c.${property}`, sql.raw(`${ordering} NULLS LAST`));
+    }
+    if (property === "participants") {
+      return query.orderBy(
+        (eb) =>
+          eb
+            .selectFrom("participant as p2")
+            .select((eb) => eb.fn.countAll().as("pCount"))
+            .whereRef("p2.chatId", "=", "c.id"),
+        ordering
+      );
+    }
+
+    return query.orderBy(
+      (eb) =>
+        eb
+          .selectFrom("message as m2")
+          .select((eb) => eb.fn.countAll().as("mCount"))
+          .whereRef("m2.chatId", "=", "c.id"),
+      ordering
+    );
+  }
 
   async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
     await Promise.all([this.#entryExists("chat", chatId), this.#entryExists("user", userId)]);
