@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import * as dotenv from "dotenv";
 
+import { faker } from "@faker-js/faker";
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect } from "kysely";
 import pg from "pg";
 import {
@@ -17,7 +18,7 @@ import {
 import { DatabaseService } from "./db-service.js";
 import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
-import { uniqueUUID } from "./tools/utils.js";
+import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
   CreateMessageDto,
   GetChatDto,
@@ -408,6 +409,19 @@ describe("DatabaseService", () => {
       participants: string[],
       allUserIds: string[];
     const chatName = "chatName";
+    const genMessage = () => faker.lorem.words({ min: 1, max: 10 });
+    const insertMsgs = async (
+      chatId: string,
+      userPool: string[],
+      num: number
+    ): Promise<MessageDto[]> =>
+      await Promise.all(
+        new Array(num)
+          .fill(0)
+          .map(() =>
+            service.createMessage({ chatId, userId: randomPick(userPool), message: genMessage() })
+          )
+      );
 
     beforeAll(async () => {
       firstCreated = await service.addUser(firstUser);
@@ -517,7 +531,7 @@ describe("DatabaseService", () => {
       const chatIds = results.map(({ id }) => id);
       expect(chatIds.every((id) => firstUserChats.includes(id))).toBe(true);
     });
-    it("Should pass order by property", async () => {
+    it("Get chats for users should respect order by property", async () => {
       const { id } = await service.createChat({
         participants: [firstCreated.id, secondCreated.id]
       });
@@ -527,7 +541,6 @@ describe("DatabaseService", () => {
       expect(spyOnGetChats).toHaveBeenLastCalledWith({ chatIds: [id], ...orderObj });
       spyOnGetChats.mockRestore();
     });
-    // TODO: Add tests for message sorts
     it("Should order by participants", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({
@@ -539,6 +552,22 @@ describe("DatabaseService", () => {
         ["desc", [...chatIds].reverse()]
       ] as const) {
         const result = await service.getChats({ chatIds, property: "participants", direction });
+        expect(result.map(({ id }) => id)).toEqual(expected);
+      }
+    });
+    it("Should order by message count", async () => {
+      const { id: firstChatId } = await service.createChat({ participants });
+      const { id: secondChatId } = await service.createChat({ participants });
+      const { id: thirdChatId } = await service.createChat({ participants });
+      await insertMsgs(firstChatId, participants, 3);
+      await insertMsgs(secondChatId, participants, 5);
+
+      const ascIds = [thirdChatId, firstChatId, secondChatId];
+      for (const [direction, expected] of [
+        ["asc", ascIds],
+        ["desc", [...ascIds].reverse()]
+      ] as const) {
+        const result = await service.getChats({ chatIds: ascIds, direction, property: "message" });
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
     });
@@ -579,6 +608,67 @@ describe("DatabaseService", () => {
         });
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
+    });
+    it("Should allow admins to directly delete a single chat", async () => {
+      const { id: firstChatId } = await service.createChat({ participants });
+      const { id: secondChatId } = await service.createChat({ participants });
+      await insertMsgs(firstChatId, participants, 3);
+      await insertMsgs(secondChatId, participants, 3);
+
+      const adminId = (await db.selectFrom("admin").select("id").executeTakeFirstOrThrow()).id;
+      await service.deleteChats(adminId, firstChatId);
+      const deletedChat = await db
+        .selectFrom("chat")
+        .selectAll()
+        .where("id", "=", firstChatId)
+        .execute();
+      const deletedParticipants = await db
+        .selectFrom("participant")
+        .selectAll()
+        .where("chatId", "=", firstChatId)
+        .execute();
+      const deletedMessages = await db
+        .selectFrom("message")
+        .selectAll()
+        .where("chatId", "=", firstChatId)
+        .execute();
+      expect([deletedChat, deletedParticipants, deletedMessages].flat().length).toBe(0);
+
+      const otherChat = await db
+        .selectFrom("chat")
+        .selectAll()
+        .where("id", "=", secondChatId)
+        .execute();
+      expect(otherChat.length).toBe(1);
+    });
+    it("Should allow admins to delete multiple chats", async () => {
+      const { id: firstChatId } = await service.createChat({ participants });
+      const { id: secondChatId } = await service.createChat({ participants });
+      const adminId = (await db.selectFrom("admin").select("id").executeTakeFirstOrThrow()).id;
+      await service.deleteChats(adminId, [firstChatId, secondChatId]);
+      const deletedChats = await db
+        .selectFrom("chat")
+        .selectAll()
+        .where("id", "in", [firstChatId, secondChatId])
+        .execute();
+      expect(deletedChats.length).toBe(0);
+    });
+    it("Should reject chat deletion for non-admin users or non existent chats", async () => {
+      const { id: firstChatId } = await service.createChat({ participants });
+      const adminId = (await db.selectFrom("admin").select("id").executeTakeFirstOrThrow()).id;
+      const nonAdminId = (
+        await db
+          .selectFrom("user as u")
+          .leftJoin("admin as a", "a.id", "u.id")
+          .select("u.id")
+          .where("a.id", "is", null)
+          .executeTakeFirstOrThrow()
+      ).id;
+      const nonExistent = uniqueUUID([firstChatId]);
+      await expect(service.deleteChats(nonAdminId, firstChatId)).rejects.toThrowError();
+      await expect(service.deleteChats(adminId, nonExistent)).rejects.toThrowError();
+      await expect(service.deleteChats(adminId, [firstChatId, nonExistent])).rejects.toThrowError();
+      expect(await service.getChat(firstChatId)).not.toBeUndefined();
     });
     it("Should remove participant from chat", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
@@ -648,6 +738,7 @@ describe("DatabaseService", () => {
         userId: createMessage.userId
       };
       expect(newMessage).toEqual(createMessage);
+      expect(message.deleted).toBe(false);
     });
     it("Should reject if user is not participant and autoAdd is false", async () => {
       const { id } = await service.createChat({ participants });
@@ -669,7 +760,7 @@ describe("DatabaseService", () => {
       expect(createdMessage).not.toBeUndefined();
       expectTypeOf(createdMessage).toMatchTypeOf<MessageDto>();
     });
-    it("Should reject if chat or user do not exist", async () => {
+    it("Should reject posting messages if chat or user do not exist", async () => {
       const { id } = await service.createChat({ participants });
       const inexistentUser = uniqueUUID(allUserIds);
       const inexistentChat = uniqueUUID([id]);
@@ -683,6 +774,83 @@ describe("DatabaseService", () => {
           userId: participants[0]
         })
       ).rejects.toThrowError();
+    });
+    it("Should return ordered slice of chat messages", async () => {
+      const { id } = await service.createChat({ participants });
+      const messages = await insertMsgs(id, participants, 20);
+      const dateOffsets = messages.map(({ id, createdAt, updatedAt }, index) => {
+        const newCreated = new Date(createdAt.getTime() + index * 10e5);
+        return { id, createdAt: newCreated, updatedAt: newCreated };
+      });
+      const updatedMessages = await Promise.all(
+        dateOffsets.map(({ id, ...rest }) =>
+          db
+            .updateTable("message")
+            .set(rest)
+            .where("id", "=", id)
+            .returningAll()
+            .executeTakeFirstOrThrow()
+        )
+      );
+      // Promise.all preserves order and dates were set to be increasing.
+      const updatedIdsAsc = updatedMessages.map(({ id }) => id);
+      const updatedIdsDesc = [...updatedIdsAsc].reverse();
+      const testCases: {
+        options: { take?: number; skip?: number; direction?: "desc" | "asc" };
+        expected: string[];
+      }[] = [
+        { options: {}, expected: updatedIdsDesc },
+        { options: { direction: "asc" }, expected: updatedIdsAsc },
+        { options: { take: 5 }, expected: updatedIdsDesc.slice(0, 5) },
+        { options: { take: 5, skip: 5 }, expected: updatedIdsDesc.slice(5, 10) },
+        { options: { take: 5, skip: 5, direction: "asc" }, expected: updatedIdsAsc.slice(5, 10) },
+        { options: { take: 10, skip: 15, direction: "asc" }, expected: updatedIdsAsc.slice(15) }
+      ];
+
+      for (const { options, expected } of testCases) {
+        const result = await service.getMessagesForChat(id, options);
+        expect(result.map(({ id }) => id)).toEqual(expected);
+      }
+    });
+    it("Should throw when requesting messages for non existing chats", async () => {
+      await expect(service.getMessagesForChat(randomUUID())).rejects.toThrowError();
+    });
+    it("Should allow message delete status toggle", async () => {
+      const { id: chatId } = await service.createChat({ participants });
+      const userId = participants[0];
+      const { id: messageId, deleted } = await service.createMessage({
+        chatId,
+        userId,
+        message: "message"
+      });
+      expect(deleted).toBe(false);
+      const deletedMessage = await service.toggleMessageDelete(userId, messageId);
+      expect(deletedMessage.deleted).toBe(true);
+      const restoredMessage = await service.toggleMessageDelete(userId, messageId);
+      expect(restoredMessage.deleted).toBe(false);
+    });
+    it("Should reject message delete toggle for non-authors", async () => {
+      // First user is already an admin, so let's put non admins as participants
+      const { id: chatId } = await service.createChat({
+        participants: [secondCreated.id, thirdCreated.id]
+      });
+      const userId = secondCreated.id;
+      const { id: messageId } = await service.createMessage({
+        chatId,
+        userId,
+        message: "message"
+      });
+      const adminId = (
+        await db
+          .selectFrom("user as u")
+          .leftJoin("admin as a", "a.id", "u.id")
+          .select("u.id")
+          .where("a.id", "is not", null)
+          .executeTakeFirstOrThrow()
+      ).id;
+
+      await expect(service.toggleMessageDelete(adminId, messageId)).rejects.toThrowError();
+      await expect(service.toggleMessageDelete(thirdCreated.id, messageId)).rejects.toThrowError();
     });
   });
 });

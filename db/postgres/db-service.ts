@@ -236,8 +236,10 @@ export class DatabaseService {
   }
 
   /* ----- CHATS AND PARTICIPANTS ----- 
-    Chats cannot be updated, only their participants can. They are also only deleted when last
-    their participants is deleted as well. */
+    Chats cannot be updated, only their participants can. 
+    Normal users also cannot deleted them directly. They are removed, when
+    the last of their participants is deleted as well. Only admins can delete
+    chats directly. */
   async createChat({ name, participants }: CreateChatDto): Promise<GetChatDto> {
     const participantsExist = await Promise.all(participants.map((userId) => this.#isUser(userId)));
     if (!participantsExist.every((check) => check)) {
@@ -365,6 +367,25 @@ export class DatabaseService {
     );
   }
 
+  async deleteChats(adminId: string, chatIds: string | string[]): Promise<boolean> {
+    const ids = Array.isArray(chatIds) ? chatIds : [chatIds];
+    if (!ids.length) {
+      throw new Error("Chat ids must be supplied!");
+    }
+    const isAdmin = await this.#isAdmin(adminId);
+    if (!isAdmin) {
+      throw new Error("Only administrators can delete chats directly!");
+    }
+    const chatsExist = await this.#entriesExist("chat", ids);
+    if (!chatsExist) {
+      throw new Error(
+        ids.length === 1 ? "Target chat does not exist!" : "Some or all target chats do not exist!"
+      );
+    }
+    await this.db.deleteFrom("chat").where("id", "in", ids).execute();
+    return true;
+  }
+
   async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
     const checks = await Promise.all([this.#entryExists("chat", chatId), this.#isUser(userId)]);
     if (!checks.every((check) => check)) {
@@ -404,6 +425,9 @@ export class DatabaseService {
   }
 
   /* ----- MESSAGES ----- */
+
+  /* Currently  no updating (editing) of messages. Allow for soft deletions. */
+
   /** Create a message in the existing chat.
    * If autoAdd is true, users that are not participants of the current chat
    * will be auto-added. Defaults to `false` */
@@ -429,6 +453,51 @@ export class DatabaseService {
     return createdMessage;
   }
 
+  async getMessagesForChat(
+    chatId: string,
+    options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
+  ): Promise<MessageDto[]> {
+    if (!chatId) return [];
+    const chatExists = await this.#entryExists("chat", chatId);
+    if (!chatExists) {
+      throw new Error("Target chat does not exist!");
+    }
+    let baseQuery = this.db
+      .selectFrom("message")
+      .selectAll()
+      .where("chatId", "=", chatId)
+      .orderBy("createdAt", options.direction ?? "desc");
+
+    if (options.take) {
+      baseQuery = baseQuery.offset(options.skip ?? 0).limit(options.take);
+    }
+    return await baseQuery.execute();
+  }
+
+  /** Message authors can toggle their message deletion status */
+  async toggleMessageDelete(userId: string, messageId: string): Promise<MessageDto> {
+    const messageExists = await this.db
+      .selectFrom("message")
+      .select(["id", "deleted"])
+      .where("userId", "=", userId)
+      .executeTakeFirst();
+    if (!messageExists) {
+      throw new Error("User is not the author of target message!");
+    }
+
+    const message = await this.db
+      .updateTable("message")
+      .set({ deleted: !messageExists.deleted })
+      .where("id", "=", messageId)
+      .returningAll()
+      .executeTakeFirst();
+    if (!message) {
+      throw new Error("Error toggling delete status of message!");
+    }
+
+    return message;
+  }
+
   /* ----- UTILITY METHODS ----- */
 
   /** Prevent external modification of base table columns, such as `id`, `createdDate`, `updatedDate` */
@@ -446,6 +515,15 @@ export class DatabaseService {
       .where(`${table}.id`, "=", id)
       .executeTakeFirst();
     return !!entry;
+  }
+
+  async #entriesExist(table: keyof DB, ids: string[]): Promise<boolean> {
+    const entries = await this.db
+      .selectFrom(table)
+      .select("id")
+      .where(`${table}.id`, "in", ids)
+      .execute();
+    return entries.length === ids.length;
   }
 
   async #isAdmin(adminId: string): Promise<boolean> {
