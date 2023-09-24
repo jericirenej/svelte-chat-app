@@ -56,6 +56,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
       col.notNull().references("chat.id").onUpdate("cascade").onDelete("cascade")
     )
     .addColumn("message", "varchar", (col) => col.notNull())
+    .addColumn("deleted", "boolean", (col) => col.notNull().defaultTo(false))
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();

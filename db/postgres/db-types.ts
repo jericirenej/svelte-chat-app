@@ -33,6 +33,7 @@ export interface Message {
   userId: string;
   chatId: string;
   message: string;
+  deleted: Generated<boolean>;
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }
