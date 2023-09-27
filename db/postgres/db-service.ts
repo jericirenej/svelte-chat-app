@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-throw-literal */
+import { error } from "@sveltejs/kit";
 import { Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { DB, User } from "./db-types.js";
@@ -25,6 +27,10 @@ type EntityCheckObj = {
   targetId: string;
   targetType?: PrivilegeType;
 };
+/** Throw an HTTP error code that SvelteKit can catch */
+const throwHttpError = (code: number, message: string) => {
+  throw error(code, { message });
+};
 export class DatabaseService {
   readonly BASE_PREVIEW_LIMIT = 2;
   constructor(protected db: Kysely<DB>) {}
@@ -39,7 +45,7 @@ export class DatabaseService {
     const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
       return await this.#createNewUserInserts(trx, createUserDto);
     });
-    if (!user) throw new Error("Error creating user");
+    if (!user) return throwHttpError(500, "Error creating user");
     return user;
   }
 
@@ -73,7 +79,7 @@ export class DatabaseService {
       .executeTakeFirst();
 
     if (!updated) {
-      throw new Error(`Error while updating user with id: ${id}`);
+      return throwHttpError(500, `Error while updating user with id: ${id}`);
     }
     return updated;
   }
@@ -122,7 +128,7 @@ export class DatabaseService {
       .executeTakeFirstOrThrow();
 
     if (BigInt(adminCount) !== 0n) {
-      throw new Error("Super administrator already exists!");
+      return throwHttpError(400, "Super administrator already exists!");
     }
 
     const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
@@ -130,7 +136,9 @@ export class DatabaseService {
       await trx.insertInto("admin").values({ id: newUser.id, superAdmin: true }).execute();
       return newUser;
     });
-    if (!user) throw new Error("Error creating user");
+    if (!user) {
+      return throwHttpError(500, "Error creating user");
+    }
     return user;
   }
 
@@ -169,16 +177,16 @@ export class DatabaseService {
     const isSuperAdmin = await this.#isSuperAdmin(executorId);
 
     if (!isSuperAdmin) {
-      throw new Error("Super administrator does not exist!");
+      return throwHttpError(404, "Super administrator does not exist!");
     }
 
     if (executorId === toBeRemovedId) {
-      throw new Error("Super administrator cannot remove themselves!");
+      return throwHttpError(409, "Super administrators cannot remove themselves!");
     }
     const targetAdminExists = await this.#isAdmin(toBeRemovedId);
 
     if (!targetAdminExists) {
-      throw new Error("Target admin does not exist!");
+      return throwHttpError(404, "Target admin does not exist!");
     }
     await this.db.deleteFrom("admin").where("id", "=", toBeRemovedId).execute();
     return true;
@@ -190,7 +198,8 @@ export class DatabaseService {
     if (executorId === targetId) {
       const isUserSuperAdmin = await this.#isSuperAdmin(executorId);
       if (isUserSuperAdmin) {
-        throw new Error(
+        return throwHttpError(
+          400,
           "Super administrators cannot delete their own account without privilege transfer!"
         );
       }
@@ -198,11 +207,11 @@ export class DatabaseService {
     }
     const isUserAdmin = await this.getAdmin(executorId);
     if (!isUserAdmin) {
-      throw new Error("Only administrators can delete accounts of other users!");
+      return throwHttpError(403, "Only administrators can delete accounts of other users!");
     }
     const isOtherUserAdmin = await this.#isAdmin(targetId);
     if (isOtherUserAdmin && !isUserAdmin.superAdmin) {
-      throw new Error("Only super administrators can delete other administrators!");
+      return throwHttpError(403, "Only super administrators can delete other administrators!");
     }
     return;
   }
@@ -222,14 +231,16 @@ export class DatabaseService {
       targetMethod = methodPick[targetType];
     const executorAllowed = await executorMethod(executorId);
     if (!executorAllowed) {
-      throw new Error(
+      return throwHttpError(
+        403,
         "User does not exist or does not have permissions to perform the requested action!"
       );
     }
 
     const targetAllowed = await targetMethod(targetId);
     if (!targetAllowed) {
-      throw new Error(
+      return throwHttpError(
+        403,
         "Target user does not exist or does not have the appropriate privilege type!"
       );
     }
@@ -243,13 +254,13 @@ export class DatabaseService {
   async createChat({ name, participants }: CreateChatDto): Promise<GetChatDto> {
     const participantsExist = await Promise.all(participants.map((userId) => this.#isUser(userId)));
     if (!participantsExist.every((check) => check)) {
-      throw new Error("Not all participants exist as users!");
+      return throwHttpError(400, "Not all participants exist as users!");
     }
 
     // When starting, a minimum of 2 participants required.
     // However, a chat can exist, until it has at least one participant.
     if (participants.length < 2) {
-      throw new Error("At least two participants are required when creating a chat!");
+      return throwHttpError(400, "At least two participants are required when creating a chat!");
     }
     // Need explicit setting, or insert will throw.
     const nameVal = name ? name : null;
@@ -260,7 +271,7 @@ export class DatabaseService {
         .returningAll()
         .executeTakeFirst();
       if (!createdChat) {
-        throw new Error("Error creating new chat!");
+        return throwHttpError(500, "Error creating new chat!");
       }
 
       const participantIds = await trx
@@ -291,7 +302,7 @@ export class DatabaseService {
 
   async getChats({ chatIds, direction, property }: GetChatsDto): Promise<GetChatDto[]> {
     if (!chatIds || !chatIds.length) {
-      throw new Error("At least one chat id must be supplied!");
+      return throwHttpError(400, "At least one chat id must be supplied!");
     }
     const ids = Array.isArray(chatIds) ? chatIds : [chatIds];
     const query = this.baseGetChatQuery().where("c.id", "in", ids);
@@ -370,15 +381,16 @@ export class DatabaseService {
   async deleteChats(adminId: string, chatIds: string | string[]): Promise<boolean> {
     const ids = Array.isArray(chatIds) ? chatIds : [chatIds];
     if (!ids.length) {
-      throw new Error("Chat ids must be supplied!");
+      return throwHttpError(400, "Chat ids must be supplied!");
     }
     const isAdmin = await this.#isAdmin(adminId);
     if (!isAdmin) {
-      throw new Error("Only administrators can delete chats directly!");
+      return throwHttpError(403, "Only administrators can delete chats directly!");
     }
     const chatsExist = await this.#entriesExist("chat", ids);
     if (!chatsExist) {
-      throw new Error(
+      return throwHttpError(
+        404,
         ids.length === 1 ? "Target chat does not exist!" : "Some or all target chats do not exist!"
       );
     }
@@ -389,7 +401,7 @@ export class DatabaseService {
   async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
     const checks = await Promise.all([this.#entryExists("chat", chatId), this.#isUser(userId)]);
     if (!checks.every((check) => check)) {
-      throw new Error("Chat or user do not exist");
+      return throwHttpError(404, "Chat or user do not exist");
     }
     const participant = await this.db
       .insertInto("participant")
@@ -397,7 +409,7 @@ export class DatabaseService {
       .returningAll()
       .executeTakeFirst();
     if (!participant) {
-      throw new Error("Error while adding participant to chat!");
+      return throwHttpError(500, "Error while adding participant to chat!");
     }
     return participant;
   }
@@ -412,7 +424,7 @@ export class DatabaseService {
 
     const participants = participantsQuery.map(({ userId }) => userId);
     if (!participants.find((id) => id === userId)) {
-      throw new Error("User is not a participant of the target chat!");
+      return throwHttpError(400, "User is not a participant of the target chat!");
     }
     // If only a single participant is left in chat, remove the
     // chat itself which will remove the participant as well.
@@ -437,7 +449,7 @@ export class DatabaseService {
   ): Promise<MessageDto> {
     const isParticipant = await this.#isParticipant(chatId, userId);
     if (!autoAdd && !isParticipant) {
-      throw new Error("User is not participant of the target chat!");
+      return throwHttpError(400, "User is not participant of the target chat!");
     }
     if (autoAdd && !isParticipant) {
       await this.addParticipantToChat(chatId, userId);
@@ -448,7 +460,7 @@ export class DatabaseService {
       .returningAll()
       .executeTakeFirst();
     if (!createdMessage) {
-      throw new Error("Error creating new chat message!");
+      return throwHttpError(500, "Error creating new chat message!");
     }
     return createdMessage;
   }
@@ -460,7 +472,7 @@ export class DatabaseService {
     if (!chatId) return [];
     const chatExists = await this.#entryExists("chat", chatId);
     if (!chatExists) {
-      throw new Error("Target chat does not exist!");
+      return throwHttpError(404, "Target chat does not exist!");
     }
     let baseQuery = this.db
       .selectFrom("message")
@@ -482,7 +494,7 @@ export class DatabaseService {
       .where("userId", "=", userId)
       .executeTakeFirst();
     if (!messageExists) {
-      throw new Error("User is not the author of target message!");
+      return throwHttpError(403, "User is not the author of target message!");
     }
 
     const message = await this.db
@@ -492,7 +504,7 @@ export class DatabaseService {
       .returningAll()
       .executeTakeFirst();
     if (!message) {
-      throw new Error("Error toggling delete status of message!");
+      return throwHttpError(500, "Error toggling delete status of message!");
     }
 
     return message;
@@ -504,7 +516,10 @@ export class DatabaseService {
   #forbidBaseColumns<T extends Record<string, unknown>>(arg: T): void {
     const baseColumns: BaseTableColumns[] = ["createdAt", "id", "updatedAt"];
     if (baseColumns.some((col) => col in arg)) {
-      throw new Error(`The following base columns are not allowed: ${baseColumns.join(", ")}.`);
+      return throwHttpError(
+        400,
+        `The following base columns are not allowed: ${baseColumns.join(", ")}.`
+      );
     }
   }
 
@@ -556,7 +571,7 @@ export class DatabaseService {
   async #isParticipant(chatId: string, userId: string): Promise<boolean> {
     const chat = await this.getChat(chatId);
     if (!chat) {
-      throw new Error("Target chat does not exist!");
+      return throwHttpError(404, "Target chat does not exist!");
     }
     return chat.participants.includes(userId);
   }
