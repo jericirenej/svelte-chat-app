@@ -17,6 +17,7 @@ export type UpdateAuthDto = Required<UpdateType<Auth>>;
 export type AdminDto = Selectable<Admin>;
 
 export type MessageDto = Selectable<Message>;
+export type CreateMessageDto = Omit<Insertable<Message>, BaseTableColumns>;
 export type ParticipantDto = Selectable<Participant>;
 
 export type ChatDto = Selectable<Chat>;
