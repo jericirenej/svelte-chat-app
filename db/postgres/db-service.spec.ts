@@ -130,6 +130,13 @@ describe("DatabaseService", () => {
           createVal && expect(user[key]).toEqual(firstUser[key]);
         });
       });
+      it("Should create user with just required proeprties", async () => {
+        const { email, username, hash, salt } = firstUser;
+        const minimal: CreateUserDto = { email, username, hash, salt };
+        const user = await service.addUser(minimal);
+        expect(user).not.toBeNull();
+        expectTypeOf(user).toMatchTypeOf<UserDto>();
+      });
       it("Initial user should be created as super admin", async () => {
         const { id } = await service.addUser(firstUser);
         expect(
