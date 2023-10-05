@@ -5,8 +5,10 @@ type UpdateType<T = DB[keyof DB]> = Omit<Updateable<T>, BaseTableColumns>;
 
 export type BaseDateColumns = "createdAt" | "updatedAt";
 export type BaseTableColumns = BaseDateColumns | "id";
+export type UserRole = "superAdmin" | "admin" | "user";
 
 export type UserDto = Selectable<User>;
+export type CompleteUserDto = UserDto & { role: UserRole };
 export type CreateUserDto = Omit<Insertable<User> & Insertable<Auth>, BaseTableColumns>;
 export type UpdateUserDto = UpdateType<User>;
 export type SingleUserSearch = { property: "id" | "username" | "email"; value: string };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { randomUUID } from "crypto";
 import * as dotenv from "dotenv";
 
@@ -20,6 +21,7 @@ import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
+  CompleteUserDto,
   CreateMessageDto,
   GetChatDto,
   MessageDto,
@@ -123,19 +125,19 @@ describe("DatabaseService", () => {
       it("User create should create and return user entry", async () => {
         const user = await service.addUser(firstUser);
         expect(user).not.toBeUndefined();
-        expectTypeOf(user).toMatchTypeOf<UserDto>();
+        expectTypeOf(user).toMatchTypeOf<CompleteUserDto>();
         userProps.forEach((key) => {
           const createVal = firstUser[key];
 
           createVal && expect(user[key]).toEqual(firstUser[key]);
         });
       });
-      it("Should create user with just required proeprties", async () => {
+      it("Should create user with just required properties", async () => {
         const { email, username, hash, salt } = firstUser;
         const minimal: CreateUserDto = { email, username, hash, salt };
         const user = await service.addUser(minimal);
         expect(user).not.toBeNull();
-        expectTypeOf(user).toMatchTypeOf<UserDto>();
+        expectTypeOf(user).toMatchTypeOf<CompleteUserDto>();
       });
       it("Initial user should be created as super admin", async () => {
         const { id } = await service.addUser(firstUser);
@@ -368,7 +370,9 @@ describe("DatabaseService", () => {
           username: "mystery_person_123",
           email: "mystery.person@nowhere.com"
         };
-      let firstCreated: UserDto, secondCreated: UserDto, thirdCreated: UserDto;
+      let firstCreated: CompleteUserDto,
+        secondCreated: CompleteUserDto,
+        thirdCreated: CompleteUserDto;
       beforeEach(async () => {
         firstCreated = await service.addUser(firstToCreate);
         secondCreated = await service.addUser(secondToCreate);
@@ -377,17 +381,36 @@ describe("DatabaseService", () => {
       afterEach(async () => {
         await db.deleteFrom("user").execute();
       });
+      it("Should include proper role specification", async () => {
+        const superAdmin = await service.getUser({ property: "id", value: firstCreated.id });
+        expect(superAdmin?.role).toBe("superAdmin");
+        await service.addAdmin(firstCreated.id, secondCreated.id);
+        const admin = await service.getUser({ property: "id", value: secondCreated.id });
+        expect(admin?.role).toBe("admin");
+        await service.removeAdmin(firstCreated.id, secondCreated.id);
+        const nonAdmin = await service.getUser({ property: "id", value: secondCreated.id });
+        expect(nonAdmin?.role).toBe("user");
+        await service.transferSuperAdmin(firstCreated.id, secondCreated.id);
+        const newSuper = await service.getUser({ property: "id", value: secondCreated.id });
+        expect(newSuper?.role).toBe("superAdmin");
+      });
       it("Should get user by unique column value", async () => {
         await db.deleteFrom("user").where("id", "=", thirdCreated.id).execute();
-        const testCases: { search: SingleUserSearch; expected: UserDto | undefined }[] = [
-          { search: { property: "id", value: firstCreated.id }, expected: firstCreated },
+        const testCases: { search: SingleUserSearch; expected: CompleteUserDto | undefined }[] = [
+          {
+            search: { property: "id", value: firstCreated.id },
+            expected: { ...firstCreated, role: "superAdmin" }
+          },
           { search: { property: "id", value: thirdCreated.id }, expected: undefined },
           {
             search: { property: "username", value: secondCreated.username },
-            expected: secondCreated
+            expected: { ...secondCreated, role: "user" }
           },
           { search: { property: "username", value: "inexistent" }, expected: undefined },
-          { search: { property: "email", value: secondCreated.email }, expected: secondCreated },
+          {
+            search: { property: "email", value: secondCreated.email },
+            expected: { ...secondCreated, role: "user" }
+          },
           { search: { property: "email", value: "inexistent" }, expected: undefined }
         ];
 
@@ -403,16 +426,17 @@ describe("DatabaseService", () => {
           { search: "person", expected: 1 }
         ];
         for (const { search, expected } of testCases) {
-          expect((await service.searchForUsers(search)).length).toBe(expected);
+          const searchResult = await service.searchForUsers(search);
+          expect(searchResult.length).toBe(expected);
         }
       });
     });
   });
 
   describe("Chats constellation CRUD", () => {
-    let firstCreated: UserDto,
-      secondCreated: UserDto,
-      thirdCreated: UserDto,
+    let firstCreated: CompleteUserDto,
+      secondCreated: CompleteUserDto,
+      thirdCreated: CompleteUserDto,
       participants: string[],
       allUserIds: string[];
     const chatName = "chatName";

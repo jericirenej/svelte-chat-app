@@ -7,6 +7,7 @@ import {
   AdminDto,
   BaseTableColumns,
   ChatOrderProperties,
+  CompleteUserDto,
   CreateChatDto,
   CreateMessageDto,
   CreateUserDto,
@@ -17,7 +18,8 @@ import {
   SingleUserSearch,
   UpdateAuthDto,
   UpdateUserDto,
-  UserDto
+  UserDto,
+  UserRole
 } from "./types.js";
 
 type PrivilegeType = "user" | "admin" | "superAdmin";
@@ -37,7 +39,8 @@ export class DatabaseService {
 
   /* ----- USER AND CREDENTIALS ----- */
 
-  async addUser(createUserDto: CreateUserDto): Promise<UserDto> {
+  /** Create new user, along with their passed credentials. Initial user created as superadmin. */
+  async addUser(createUserDto: CreateUserDto): Promise<CompleteUserDto> {
     const noUsers = await this.#usersExist();
     if (noUsers) {
       return await this.createSuperAdmin(createUserDto);
@@ -46,30 +49,48 @@ export class DatabaseService {
       return await this.#createNewUserInserts(trx, createUserDto);
     });
     if (!user) return throwHttpError(500, "Error creating user");
-    return user;
+    const role = await this.#getRole(user.id);
+    return { ...user, role };
   }
 
-  /** Create new user, along with their passed credentials. Initial user created as superadmin. */
-  /** Search for user by their unique property. Full match required. */
-  async getUser({ property, value }: SingleUserSearch): Promise<UserDto | undefined> {
-    return await this.db
+  /** Search for user by their unique property. Full match required.
+   * In addition to user details, also returns the admin status. */
+  async getUser({ property, value }: SingleUserSearch): Promise<CompleteUserDto | undefined> {
+    const user = await this.db
       .selectFrom("user")
+
       .selectAll()
+
       .where(property, "=", value)
       .executeTakeFirst();
+    if (!user) return user;
+    const role = await this.#getRole(user.id);
+    return { ...user, role };
   }
 
-  async searchForUsers(search: string): Promise<UserDto[]> {
+  async searchForUsers(search: string): Promise<CompleteUserDto[]> {
     const props = ["name", "surname", "username"] satisfies (keyof User)[];
     return await this.db
       .selectFrom("user")
-      .selectAll()
-      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(prop), "ilike", `%${search}%`))))
+      .leftJoin("admin", "admin.id", "user.id")
+      .selectAll("user")
+      .select((eb) =>
+        eb
+          .case()
+          .when("admin.superAdmin", "is not", null)
+          .then<"superAdmin">("superAdmin")
+          .when("admin.id", "is not", null)
+          .then<"admin">("admin")
+          .else<"user">("user")
+          .end()
+          .as("role")
+      )
+      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(`user.${prop}`), "ilike", `%${search}%`))))
       .execute();
   }
 
   /** Update user properties. Overriding id's is forbidden.*/
-  async updateUser(id: string, arg: UpdateUserDto): Promise<UserDto> {
+  async updateUser(id: string, arg: UpdateUserDto): Promise<CompleteUserDto> {
     this.#forbidBaseColumns(arg);
     const updated = await this.db
       .updateTable("user")
@@ -81,7 +102,8 @@ export class DatabaseService {
     if (!updated) {
       return throwHttpError(500, `Error while updating user with id: ${id}`);
     }
-    return updated;
+    const role = await this.#getRole(id);
+    return { ...updated, role };
   }
 
   async updateCredentials(id: string, arg: UpdateAuthDto): Promise<true> {
@@ -119,7 +141,7 @@ export class DatabaseService {
 
   /** Create initial superAdmin user, along with their passed credentials.
    * Can only be used if no users exist. */
-  async createSuperAdmin(createUserArgs: CreateUserDto): Promise<UserDto> {
+  async createSuperAdmin(createUserArgs: CreateUserDto): Promise<CompleteUserDto> {
     // Safeguard against standalone calls
     const { adminCount } = await this.db
       .selectFrom("admin")
@@ -131,10 +153,10 @@ export class DatabaseService {
       return throwHttpError(400, "Super administrator already exists!");
     }
 
-    const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
+    const user = await this.db.transaction().execute<CompleteUserDto | undefined>(async (trx) => {
       const newUser = await this.#createNewUserInserts(trx, createUserArgs);
       await trx.insertInto("admin").values({ id: newUser.id, superAdmin: true }).execute();
-      return newUser;
+      return { ...newUser, role: "superAdmin" };
     });
     if (!user) {
       return throwHttpError(500, "Error creating user");
@@ -539,6 +561,17 @@ export class DatabaseService {
       .where(`${table}.id`, "in", ids)
       .execute();
     return entries.length === ids.length;
+  }
+
+  async #getRole(userId: string): Promise<UserRole> {
+    const adminEntry = await this.db
+      .selectFrom("admin")
+      .selectAll()
+      .where("id", "=", userId)
+      .executeTakeFirst();
+    if (!adminEntry) return "user";
+    if (adminEntry.superAdmin) return "superAdmin";
+    return "admin";
   }
 
   async #isAdmin(adminId: string): Promise<boolean> {
