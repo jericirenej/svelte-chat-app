@@ -10,6 +10,6 @@ export default defineConfig({
       ["src/lib/*.ts", "node"]
     ],
     include: ["src/**/*.spec.ts", "db/**/*.spec.ts"],
-    includeSource: ["src/**/*.ts"]
+    includeSource: ["src/**/*.ts", "db/redis/*.ts"]
   }
 });

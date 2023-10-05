@@ -18,7 +18,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["vitest/importMeta"]
   },
   "include": ["./postgres/**/*.ts", "./redis/**/*.ts"]
 }
