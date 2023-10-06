@@ -22,8 +22,6 @@ export class RedisService {
 
   async addSession(sessionId: string, user: CompleteUserDto): Promise<CompleteUserDto> {
     const key = this.#generateSessionKey(sessionId);
-    const put = JSON.stringify(user, jsonReplacer);
-    console.log("WILL SAVE", put);
     await this.client.set(key, JSON.stringify(user, jsonReplacer));
     await this.client.expire(key, this.ttl);
     return user;
@@ -99,7 +97,6 @@ if (import.meta.vitest) {
       expect(exists).not.toBeNull();
       if (exists) {
         expect(JSON.parse(exists, jsonReviver)).toEqual(user);
-        /* expect(JSON.parse(exists)).toEqual(user); */
       }
     });
   });
