@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { randomUUID } from "crypto";
-import * as dotenv from "dotenv";
 
 import { faker } from "@faker-js/faker";
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect } from "kysely";
@@ -16,6 +15,7 @@ import {
   it,
   vi
 } from "vitest";
+import env from "../helpers/get-env.js";
 import { DatabaseService } from "./db-service.js";
 import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
@@ -37,15 +37,13 @@ import {
 } from "./types.js";
 const { Pool, Client } = pg;
 
-dotenv.configDotenv({ path: new URL("../../.env", import.meta.url).pathname.substring(1) });
-
 const TEST_DB_NAME = "test_db";
 const postgresConnection = {
-  database: process.env["POSTGRES_POSTGRES_DB"],
-  host: process.env["POSTGRES_HOST"],
-  user: process.env["POSTGRES_USER"],
-  password: process.env["POSTGRES_PASSWORD"],
-  port: Number(process.env["POSTGRES_PORT"]) | 5432
+  database: env["POSTGRES_POSTGRES_DB"],
+  host: env["POSTGRES_HOST"],
+  user: env["POSTGRES_USER"],
+  password: env["POSTGRES_PASSWORD"],
+  port: Number(env["POSTGRES_PORT"]) | 5432
 };
 const MIGRATIONS_PATH = new URL("./migrations", import.meta.url),
   TYPE_PATH = new URL("./db-types.ts", import.meta.url).pathname.substring(1);

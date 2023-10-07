@@ -20,7 +20,10 @@ export const jsonReviver = (key: string, value: unknown) => {
   return value;
 };
 
-export const typedJsonParse = <T>(stringified: string): T => JSON.parse(stringified) as T;
+export const typedJsonParse = <T>(
+  stringified: string,
+  reviver: Parameters<typeof JSON.parse>[1]
+): T => JSON.parse(stringified, reviver) as T;
 
 if (import.meta.vitest) {
   const { describe, expect, it } = import.meta.vitest;
@@ -36,7 +39,7 @@ if (import.meta.vitest) {
         new Date("2020-01-01")
       ]) {
         const stringified = JSON.stringify(example, jsonReplacer);
-        const parsed = JSON.parse(stringified, jsonReviver);
+        const parsed = typedJsonParse<unknown>(stringified, jsonReviver);
         expect(parsed).toEqual(example);
       }
     });

@@ -21,5 +21,5 @@
     "noEmit": true,
     "types": ["vitest/importMeta"]
   },
-  "include": ["./postgres/**/*.ts", "./redis/**/*.ts"]
+  "include": ["./postgres/**/*.ts", "./redis/**/*.ts", "helpers/**/*.ts"]
 }

@@ -1,6 +1,6 @@
+import { jsonReplacer, jsonReviver } from "../helpers/json-helpers.js";
 import { CompleteUserDto } from "../postgres/types.js";
 import client, { clientConnection, type RedisClient } from "./client.js";
-import { jsonReplacer, jsonReviver } from "./utils.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_DEFAULT_SEPARATOR = ":";
