@@ -19,3 +19,26 @@ export const jsonReviver = (key: string, value: unknown) => {
   if (value[REPLACER_MARK] === "null") return null;
   return value;
 };
+
+export const typedJsonParse = <T>(stringified: string): T => JSON.parse(stringified) as T;
+
+if (import.meta.vitest) {
+  const { describe, expect, it } = import.meta.vitest;
+  describe("jsonReplacer and reviver", () => {
+    it("Should allow proper encoding and decoding of nulls and datesd", () => {
+      const stringAndNumArray = ["string", 1, "alsoString", 2];
+
+      for (const example of [
+        stringAndNumArray,
+        [...stringAndNumArray, new Date(), null],
+        { name: null, birthdate: new Date(), surname: "surname" },
+        null,
+        new Date("2020-01-01")
+      ]) {
+        const stringified = JSON.stringify(example, jsonReplacer);
+        const parsed = JSON.parse(stringified, jsonReviver);
+        expect(parsed).toEqual(example);
+      }
+    });
+  });
+}
