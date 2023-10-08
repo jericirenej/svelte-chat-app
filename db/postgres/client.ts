@@ -1,6 +1,6 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 import pg from "pg";
-import env from "../helpers/get-env.js";
+import { env } from "../helpers/get-env.js";
 import type { DB } from "./db-types.js";
 
 const { Pool } = pg;

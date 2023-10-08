@@ -1,5 +1,6 @@
-import type { Auth, BaseDateColumns } from "@db";
-import { pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
+import { env, type Auth, type BaseDateColumns } from "@db";
+import { error } from "@sveltejs/kit";
+import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 
 export type CredentialsResult = Omit<Auth, BaseDateColumns> | null;
 
@@ -32,8 +33,18 @@ export const genPassword = (
   };
 };
 
-export const generateCookieToken = (userId: string): string =>
-  pbkdf2Sync(userId, randomBytes(64).toString("hex"), 10_000, 64, "sha512").toString("hex");
+/** Verify that two strings match in constant time. */
+export const verifyInConstantTime = (first: string, second: string): boolean => {
+  const encoder = new TextEncoder();
+  try {
+    return timingSafeEqual(encoder.encode(first), encoder.encode(second));
+  } catch {
+    // If we need to catch the error, it most likely means that the converted strings
+    // do not resolve to the same buffer byte lengths. Which, by definition means, they
+    // are unequal and should be evaluated as false.
+    return false;
+  }
+};
 
 export const verifyUser = async (
   username: string,
@@ -49,12 +60,11 @@ export const verifyUser = async (
       return null;
     }
 
-    const { hash, salt } = credentials;
+    const { hash: originalHash, salt } = credentials;
     const verificationHash = pbkdf2Sync(password, salt, iterations, keylen, digest).toString(
       toStringType
     );
-    const encoder = new TextEncoder();
-    const isEqual = timingSafeEqual(encoder.encode(verificationHash), encoder.encode(hash));
+    const isEqual = verifyInConstantTime(originalHash, verificationHash);
 
     if (isEqual) {
       return credentials.id;
@@ -65,4 +75,38 @@ export const verifyUser = async (
     console.log("Something went wrong...", err instanceof Error ? err.message : err);
     return null;
   }
+};
+
+export const generateSessionId = (id: string) => {
+  return pbkdf2Sync(id, randomBytes(64).toString("hex"), 10_000, 64, "sha512");
+};
+
+const getServerSecret = () => {
+  const secret = env["SERVER_SECRET"];
+  if (!secret) {
+    throw new Error("Supply the server secret in the .env file!");
+  }
+  return secret;
+};
+
+export const generateHmac = (message: string) => {
+  const secret = getServerSecret();
+  const hmacGenerator = createHmac("sha-512", secret);
+  return hmacGenerator.update(message).digest().toString("hex");
+};
+
+export const generateCsrfToken = (sessionId: string) => {
+  const randomValue = randomBytes(32).toString("hex");
+  const message = `${sessionId}!${randomValue}`;
+  const hmac = generateHmac(message);
+  return [hmac, message].join(".");
+};
+export const verifyCsrfToken = (token: string) => {
+  const splitToken = token.split(".");
+  if (splitToken.length !== 2) {
+    throw error(401, "CSRF token not set properly or missing!");
+  }
+  const [hmac, message] = splitToken;
+  const computedHmac = generateHmac(message);
+  return verifyInConstantTime(hmac, computedHmac);
 };

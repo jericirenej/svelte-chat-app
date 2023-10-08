@@ -15,7 +15,7 @@ import {
   it,
   vi
 } from "vitest";
-import env from "../helpers/get-env.js";
+import { env } from "../helpers/get-env.js";
 import { DatabaseService } from "./db-service.js";
 import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";

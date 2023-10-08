@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import env from "../helpers/get-env.js";
+import { env } from "../helpers/get-env.js";
 
 export const clientConnection = () => createClient({ password: env["REDIS_HOST_PASSWORD"] });
 const client = clientConnection();

@@ -10,5 +10,4 @@ export const getEnv = () => {
   }, {});
 };
 
-const env = getEnv();
-export default env;
+export const env = getEnv();

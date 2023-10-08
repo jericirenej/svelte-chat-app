@@ -5,6 +5,9 @@ import {
   PBKDF,
   VERIFICATION_FAILURE,
   genPassword,
+  generateCsrfToken,
+  verifyCsrfToken,
+  verifyInConstantTime,
   verifyUser,
   type CredentialsResult
 } from "./password-utils.js";
@@ -12,6 +15,9 @@ import {
 vi.mock("node:crypto", async () => {
   const original = await vi.importActual<typeof import("node:crypto")>("node:crypto");
   return { ...original };
+});
+vi.mock("../../db/helpers/get-env.js", () => {
+  return { env: { ["SERVER_SECRET"]: "mockServerSecret" } };
 });
 
 describe("genPassword", () => {
@@ -38,6 +44,15 @@ describe("genPassword", () => {
       new Array(2).fill(settings.toStringType)
     );
     vi.restoreAllMocks();
+  });
+});
+
+describe("verifyInConstantTime", () => {
+  const first1 = "first1",
+    first2 = "first2";
+  it("Should verify string equality", () => {
+    expect(verifyInConstantTime(first1, first2)).toBe(false);
+    expect(verifyInConstantTime(first1, first1)).toBe(true);
   });
 });
 
@@ -80,5 +95,39 @@ describe("verifyUser", () => {
     expect(await verifyUser(username, password, mockDbService)).toBeNull();
     expect(spyOnConsole).toHaveBeenCalledOnce();
     expect(spyOnConsole).toHaveBeenCalledWith("Something went wrong...", "error");
+  });
+});
+
+describe("CSRF token", () => {
+  const sessionId = "sessionId";
+  it("Should create a CSRF token", () => {
+    const csrfToken = generateCsrfToken(sessionId);
+    const splitToken = csrfToken.split(".");
+    expect(splitToken.length).toBe(2);
+    expect(splitToken[1].includes("!"));
+  });
+  it("Successively created CSRF tokens with identical sessionId should not be equal because of random seeds", () => {
+    expect(generateCsrfToken(sessionId)).not.toEqual(generateCsrfToken(sessionId));
+  });
+  it("Should return true, if an identical CSRF token is supplied", () => {
+    const csrfToken = generateCsrfToken(sessionId);
+    expect(verifyCsrfToken(csrfToken)).toBe(true);
+  });
+  it("Should reject if part of token is missing", () => {
+    const csrfToken = generateCsrfToken(sessionId);
+    const split = csrfToken.split(".");
+    expect(() => verifyCsrfToken(split[1])).toThrowError();
+  });
+  it("Should return false, if any part of the message has been changed", () => {
+    const csrfToken = generateCsrfToken(sessionId);
+    const [hmac, token] = csrfToken.split(".");
+
+    const alteredToken = token.replace(sessionId, "sessionId1");
+    let alteredHmac = hmac;
+    while (alteredHmac === hmac) {
+      alteredHmac = crypto.randomBytes(hmac.length).toString("hex");
+    }
+    expect(verifyCsrfToken([hmac, alteredToken].join("."))).toBe(false);
+    expect(verifyCsrfToken([alteredHmac, token].join("."))).toBe(false);
   });
 });
