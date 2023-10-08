@@ -1,5 +1,5 @@
 import type { Auth, BaseDateColumns } from "@db";
-import { pbkdf2Sync, randomBytes } from "node:crypto";
+import { pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 
 export type CredentialsResult = Omit<Auth, BaseDateColumns> | null;
 
@@ -53,8 +53,10 @@ export const verifyUser = async (
     const verificationHash = pbkdf2Sync(password, salt, iterations, keylen, digest).toString(
       toStringType
     );
+    const encoder = new TextEncoder();
+    const isEqual = timingSafeEqual(encoder.encode(verificationHash), encoder.encode(hash));
 
-    if (verificationHash === hash) {
+    if (isEqual) {
       return credentials.id;
     }
     console.log(VERIFICATION_FAILURE);
