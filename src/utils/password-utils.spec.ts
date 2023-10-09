@@ -6,6 +6,7 @@ import {
   VERIFICATION_FAILURE,
   genPassword,
   generateCsrfToken,
+  getSessionFromCsrfToken,
   verifyCsrfToken,
   verifyInConstantTime,
   verifyUser,
@@ -129,5 +130,14 @@ describe("CSRF token", () => {
     }
     expect(verifyCsrfToken([hmac, alteredToken].join("."))).toBe(false);
     expect(verifyCsrfToken([alteredHmac, token].join("."))).toBe(false);
+  });
+  it("Should extract session from token", () => {
+    const csrfToken = generateCsrfToken(sessionId);
+    expect(getSessionFromCsrfToken(csrfToken)).toBe(sessionId);
+  });
+  it("If token is malformed, return empty string", () => {
+    for (const malformed of ["malformed", "hmac.withoutExclamation"]) {
+      expect(getSessionFromCsrfToken(malformed)).toBe("");
+    }
   });
 });

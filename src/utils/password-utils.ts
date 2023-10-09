@@ -107,3 +107,14 @@ export const verifyCsrfToken = (token: string): boolean => {
   const computedHmac = generateHmac(message);
   return verifyInConstantTime(hmac, computedHmac);
 };
+
+export const getSessionFromCsrfToken = (token: string): string => {
+  try {
+    const firstSplit = token.split(".")[1];
+    const secondSplit = firstSplit.split("!");
+    if (secondSplit.length !== 2) throw new Error();
+    return secondSplit[0];
+  } catch {
+    return "";
+  }
+};
