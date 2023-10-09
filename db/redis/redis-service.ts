@@ -1,6 +1,6 @@
 import { jsonReplacer, jsonReviver } from "../helpers/json-helpers.js";
 import { CompleteUserDto } from "../postgres/types.js";
-import client, { clientConnection, type RedisClient } from "./client.js";
+import { clientConnection, redisClient, type RedisClient } from "./client.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_DEFAULT_SEPARATOR = ":";
@@ -55,10 +55,6 @@ export class RedisService {
   }
 }
 
-const redisService = new RedisService(client);
-await redisService.connect();
-export { redisService };
-
 if (import.meta.vitest) {
   const { describe, it, expect, beforeAll, afterAll, afterEach } = import.meta.vitest;
 
@@ -82,7 +78,7 @@ if (import.meta.vitest) {
     beforeAll(async () => {
       standaloneClient = clientConnection();
       await standaloneClient.connect();
-      service = new RedisService(client);
+      service = new RedisService(redisClient);
       await service.connect();
     });
     afterEach(async () => {
