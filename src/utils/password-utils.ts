@@ -1,5 +1,4 @@
 import { env, type Auth, type BaseDateColumns } from "@db";
-import { error } from "@sveltejs/kit";
 import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 
 export type CredentialsResult = Omit<Auth, BaseDateColumns> | null;
@@ -101,11 +100,9 @@ export const generateCsrfToken = (sessionId: string) => {
   const hmac = generateHmac(message);
   return [hmac, message].join(".");
 };
-export const verifyCsrfToken = (token: string) => {
+export const verifyCsrfToken = (token: string): boolean => {
   const splitToken = token.split(".");
-  if (splitToken.length !== 2) {
-    throw error(401, "CSRF token not set properly or missing!");
-  }
+  if (splitToken.length !== 2) return false;
   const [hmac, message] = splitToken;
   const computedHmac = generateHmac(message);
   return verifyInConstantTime(hmac, computedHmac);

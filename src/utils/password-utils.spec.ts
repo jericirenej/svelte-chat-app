@@ -113,10 +113,10 @@ describe("CSRF token", () => {
     const csrfToken = generateCsrfToken(sessionId);
     expect(verifyCsrfToken(csrfToken)).toBe(true);
   });
-  it("Should reject if part of token is missing", () => {
+  it("Should return false if part of token is missing", () => {
     const csrfToken = generateCsrfToken(sessionId);
     const split = csrfToken.split(".");
-    expect(() => verifyCsrfToken(split[1])).toThrowError();
+    expect(verifyCsrfToken(split[1])).toBe(false);
   });
   it("Should return false, if any part of the message has been changed", () => {
     const csrfToken = generateCsrfToken(sessionId);
