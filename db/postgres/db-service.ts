@@ -6,6 +6,7 @@ import { db } from "./client.js";
 import { DB, User } from "./db-types.js";
 import {
   AdminDto,
+  AuthDto,
   BaseTableColumns,
   ChatOrderProperties,
   CompleteUserDto,
@@ -67,6 +68,16 @@ export class DatabaseService {
     if (!user) return user;
     const role = await this.#getRole(user.id);
     return { ...user, role };
+  }
+
+  async getCredentials(username: string): Promise<AuthDto | undefined> {
+    const credentials = await this.db
+      .selectFrom("auth")
+      .innerJoin("user", "user.id", "auth.id")
+      .selectAll("auth")
+      .where("user.username", "=", username)
+      .executeTakeFirst();
+    return credentials;
   }
 
   async searchForUsers(search: string): Promise<CompleteUserDto[]> {

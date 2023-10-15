@@ -213,6 +213,16 @@ describe("DatabaseService", () => {
         );
         await expect(service.removeUser(first.id, second.id)).rejects.toThrowError();
       });
+      it("Get user credentials", async () => {
+        const { username, id } = await service.addUser(firstUser);
+        const targetCredentials = await db
+          .selectFrom("auth")
+          .selectAll()
+          .where("id", "=", id)
+          .executeTakeFirstOrThrow();
+        expect(await service.getCredentials(username)).toEqual(targetCredentials);
+        expect(await service.getCredentials("inexistent")).toBeUndefined();
+      });
       it("Update user credentials", async () => {
         const { id } = await service.addUser(firstUser);
         const date = new Date(3000, 0, 1, 12);
