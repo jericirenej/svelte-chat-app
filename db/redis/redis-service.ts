@@ -55,6 +55,10 @@ export class RedisService {
   }
 }
 
+const redisService = new RedisService(redisClient);
+await redisService.connect();
+export { redisService };
+
 if (import.meta.vitest) {
   const { describe, it, expect, beforeAll, afterAll, afterEach } = import.meta.vitest;
 
