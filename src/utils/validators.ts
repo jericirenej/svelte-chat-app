@@ -1,16 +1,6 @@
 import type { CreateUserDto } from "@db";
 import { error, type HttpError } from "@sveltejs/kit";
-import {
-  email,
-  maxLength,
-  minLength,
-  object,
-  optional,
-  safeParse,
-  strict,
-  string,
-  type BaseSchema
-} from "valibot";
+import { z, ZodType } from "zod";
 
 const DEFAULT_MIN = 3,
   DEFAULT_MAX = 100;
@@ -32,17 +22,31 @@ const defaultStringMinErr = (prop: string, num = DEFAULT_MIN): string =>
 const defaultStringMaxErr = (prop: string, num = DEFAULT_MAX): string =>
   lengthErr(prop, num, "string", "max");
 
-const CreateUserSchema = strict(
-  object({
-    username: string("A username must be provided", [
-      minLength(DEFAULT_MIN, defaultStringMinErr("username")),
-      maxLength(100, defaultStringMaxErr("username"))
-    ]),
-    email: string("An email must be provided", [
-      email("A valid email should be supplied"),
-      minLength(DEFAULT_MIN, defaultStringMinErr("email")),
-      maxLength(100, defaultStringMaxErr("email"))
-    ]),
+const CreateUserSchema = z
+  .object({
+    username: z
+      .string({ required_error: "A username must be provided" })
+      .min(DEFAULT_MIN, defaultStringMinErr("username"))
+      .max(100, defaultStringMaxErr("username")),
+    email: z
+      .string({ required_error: "An email must be provided" })
+      .email("A valid email should be supplied")
+      .min(DEFAULT_MIN, defaultStringMinErr("email"))
+      .max(100, defaultStringMaxErr("email")),
+    name: z
+      .string()
+      .min(DEFAULT_MIN, defaultStringMinErr("name"))
+      .max(100, defaultStringMaxErr("name"))
+      .optional(),
+    surname: z
+      .string()
+      .min(DEFAULT_MIN, defaultStringMinErr("surname"))
+      .max(100, defaultStringMaxErr("surname"))
+      .optional(),
+    avatar: z.string().optional(),
+    hash: z.string({ required_error: "Password hash is required" }),
+    salt: z.string({ required_error: "Password salt is required}" })
+    /*
     name: optional(
       string([
         minLength(DEFAULT_MIN, defaultStringMinErr("name")),
@@ -57,15 +61,14 @@ const CreateUserSchema = strict(
     ),
     avatar: optional(string()),
     hash: string("Password hash is required"),
-    salt: string("Password salt is required")
-  }),
-  "No extra properties allowed"
-);
+    salt: string("Password salt is required") */
+  })
+  .strict("No extra properties allowed");
 
-export const validateRequest = <T>(Schema: BaseSchema<unknown, T>, input: T): T => {
-  const result = safeParse(Schema, input);
-  if (result.success) return result.output;
-  const msg = result.issues.map(({ message }) => message).join("\n");
+export const validateRequest = <T>(schema: ZodType<T>, input: T): T => {
+  const result = schema.safeParse(input);
+  if (result.success) return result.data;
+  const msg = result.error.issues.map(({ message }) => message).join("\n");
   throw error(400, msg);
 };
 
