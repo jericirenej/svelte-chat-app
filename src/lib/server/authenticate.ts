@@ -1,23 +1,34 @@
-import type { RequestEvent } from "@sveltejs/kit";
-import type { CompleteUserDto } from "../../../db/index.js";
-import { CSRF_HEADER, SESSION_COOKIE } from "../../constants.js";
+import { redisService, type CompleteUserDto } from "@db";
 import { getSessionFromCsrfToken, verifyCsrfToken } from "../../utils/password-utils.js";
 
 export const authenticateUser = async ({
-  cookies,
-  request: { headers }
-}: RequestEvent): Promise<CompleteUserDto | null> => {
-  console.log("ENTERED HANDLE");
-  const chatSessionId = cookies.get(SESSION_COOKIE);
-  if (!chatSessionId) return null;
+  sessionId,
+  csrfToken,
+  method
+}: {
+  sessionId: string | undefined;
+  csrfToken: string | null;
+  method: string;
+}): Promise<CompleteUserDto | null> => {
+  if (!sessionId) return null;
+  // All non-GET requests, such as POST, PUT, PATCH, or DELETE
+  // must satisfy the csrf token header check
+  if (method !== "GET") {
+    if (!(csrfToken && verifyCsrfToken(csrfToken))) return null;
 
-  const csrfToken = headers.get(CSRF_HEADER);
-  if (!(csrfToken && verifyCsrfToken(csrfToken))) return null;
+    const csrfSession = getSessionFromCsrfToken(csrfToken);
 
-  const csrfSession = getSessionFromCsrfToken(csrfToken);
+    if (csrfSession !== sessionId) return null;
+  }
 
-  if (csrfSession !== chatSessionId) return null;
+  const user = await redisService.getSession(sessionId);
+  return user;
+};
 
-  /* const user = await redisService.getSession(chatSessionId); */
-  return null;
+/** Logout the current user. Will nt check if session exists.
+ * Will not authenticate. This is done by the authentication function called
+ * previously in the handle hook. */
+export const logoutUser = async (sessionId: string): Promise<boolean> => {
+  const logout = await redisService.deleteSession(sessionId);
+  return !!logout;
 };

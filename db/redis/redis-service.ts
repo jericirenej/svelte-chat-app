@@ -22,6 +22,7 @@ export class RedisService {
 
   /** Create or update a session entry */
   async setSession(sessionId: string, user: CompleteUserDto): Promise<CompleteUserDto> {
+    if (!this.client.isOpen) await this.connect();
     const key = this.addSessionPrefix(sessionId);
     await this.client.set(key, JSON.stringify(user, jsonReplacer));
     await this.client.expire(key, this.ttl);
@@ -29,12 +30,14 @@ export class RedisService {
   }
 
   async getSession(sessionId: string): Promise<CompleteUserDto | null> {
+    if (!this.client.isOpen) await this.connect();
     const user = await this.client.get(this.addSessionPrefix(sessionId));
     if (user === null) return null;
     return JSON.parse(user, jsonReviver) as CompleteUserDto;
   }
 
   async deleteSession(sessionId: string): Promise<number> {
+    if (!this.client.isOpen) await this.connect();
     return await this.client.del(this.addSessionPrefix(sessionId));
   }
 
@@ -48,6 +51,7 @@ export class RedisService {
   }
 
   async deleteAll(): Promise<string> {
+    if (!this.client.isOpen) await this.connect();
     return await this.client.flushDb();
   }
   async destroy(): Promise<void> {

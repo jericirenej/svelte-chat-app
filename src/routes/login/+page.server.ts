@@ -1,21 +1,50 @@
-import { fail } from "@sveltejs/kit";
-import type { Actions } from "./$types";
+import { dbService, redisService } from "@db";
+import { error, fail } from "@sveltejs/kit";
+import { setError, superValidate } from "sveltekit-superforms/server";
+import { SESSION_COOKIE } from "../../constants.js";
+import {
+  VERIFICATION_FAILURE,
+  generateCsrfToken,
+  generateSessionId,
+  verifyUser
+} from "../../utils/password-utils.js";
+import type { Actions, PageServerLoad } from "./$types";
+import { loginSchema } from "./login-form-validator.js";
+
+export const load: PageServerLoad = async () => {
+  const form = await superValidate(loginSchema);
+  return { form };
+};
 
 export const actions = {
-  default: async ({ request }) => {
-    const data = await request.formData();
-    const username = data.get("username"),
-      password = data.get("password");
-    if (!username) {
-      return fail(400, { username, missing: true });
-    }
-    if (!password) {
-      return fail(400, { password, missing: true });
+  default: async ({ request, cookies }) => {
+    const form = await superValidate(request, loginSchema);
+
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    console.log(password, username);
-    return { username, password };
+    const { username, password } = form.data;
+    const isVerified = await verifyUser(username, password, dbService);
+    if (!isVerified) {
+      return setError(form, "", VERIFICATION_FAILURE);
+    }
 
-    /* const isVerified = await verifyUser(username, password, dbService); */
+    const user = await dbService.getUser({
+      property: "username",
+      value: username
+    });
+    if (!user) {
+      throw error(500, "Something went wrong while fetching user from the database");
+    }
+    const sessionId = generateSessionId(user.id);
+    const sessionUser = await redisService.setSession(sessionId, user);
+    cookies.set(SESSION_COOKIE, sessionId, { httpOnly: true, maxAge: 60, sameSite: true });
+    const csrfToken = generateCsrfToken(sessionId);
+    return {
+      form,
+      csrfToken,
+      sessionUser
+    };
   }
 } satisfies Actions;
