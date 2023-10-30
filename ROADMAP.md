@@ -1,3 +1,15 @@
+## Current todo list:
+
+- DB related:
+  - _username_ should be enofrced as lowercase only
+  - _getMessagesForChat_ should have a "includeDeleted" filter option that defaults to false
+  - _username_ should have a minimum number of characters constraint
+  - Limit number of concurrent logins per user
+
+Svelte related:
+
+- Updating user details changes the user session
+
 ## Future features:
 
 - _Contacts_ feature: invite system with pending/accepted/rejected invites.
