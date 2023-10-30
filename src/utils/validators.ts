@@ -46,22 +46,6 @@ const CreateUserSchema = z
     avatar: z.string().optional(),
     hash: z.string({ required_error: "Password hash is required" }),
     salt: z.string({ required_error: "Password salt is required}" })
-    /*
-    name: optional(
-      string([
-        minLength(DEFAULT_MIN, defaultStringMinErr("name")),
-        maxLength(100, defaultStringMaxErr("name"))
-      ])
-    ),
-    surname: optional(
-      string([
-        minLength(DEFAULT_MIN, defaultStringMinErr("surname")),
-        maxLength(100, defaultStringMaxErr("surname"))
-      ])
-    ),
-    avatar: optional(string()),
-    hash: string("Password hash is required"),
-    salt: string("Password salt is required") */
   })
   .strict("No extra properties allowed");
 
