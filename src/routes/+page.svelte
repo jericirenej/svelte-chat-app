@@ -4,9 +4,20 @@
   export let data: PageData;
 </script>
 
-<h1>Welcome to Chat app</h1>
-{#if data.user}
-  <p>Welcome {data.user.name}!</p>
-{:else}
-  <p>Please <a href="/login">login</a></p>
-{/if}
+<div>
+  <h1>Welcome to Chat app</h1>
+  {#if data.user}
+    <p>Welcome {data.user.name}!</p>
+  {:else}
+    <p>Please <a href="/login">login</a></p>
+  {/if}
+</div>
+
+<style lang="scss">
+  div {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+  }
+</style>

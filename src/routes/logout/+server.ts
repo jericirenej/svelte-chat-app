@@ -4,7 +4,6 @@ import { logoutUser } from "../../lib/server/authenticate.js";
 
 export const DELETE: RequestHandler = async ({ cookies }) => {
   const chatSessionId = cookies.get(SESSION_COOKIE);
-  console.log("CHAT ID", chatSessionId);
   if (!chatSessionId) {
     throw error(400, "No session id!");
   }

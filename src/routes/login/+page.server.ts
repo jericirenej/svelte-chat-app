@@ -38,13 +38,16 @@ export const actions = {
       throw error(500, "Something went wrong while fetching user from the database");
     }
     const sessionId = generateSessionId(user.id);
-    const sessionUser = await redisService.setSession(sessionId, user);
-    cookies.set(SESSION_COOKIE, sessionId, { httpOnly: true, maxAge: 60, sameSite: true });
+    await redisService.setSession(sessionId, user);
+    cookies.set(SESSION_COOKIE, sessionId, {
+      httpOnly: true,
+      maxAge: redisService.ttl,
+      sameSite: true
+    });
     const csrfToken = generateCsrfToken(sessionId);
     return {
       form,
-      csrfToken,
-      sessionUser
+      csrfToken
     };
   }
 } satisfies Actions;

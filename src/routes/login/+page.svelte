@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+  import { invalidateAll } from "$app/navigation";
   import type { ActionResult } from "@sveltejs/kit";
+  import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
-  import SuperDebug from "sveltekit-superforms/client/SuperDebug.svelte";
   import { LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
+  import { capitalize } from "../../utils/text-utils.js";
   import type { ActionData, PageData } from "./$types.js";
 
   export let data: PageData;
@@ -25,7 +27,6 @@
       if (result.type === "success" && result.data) {
         const data = result.data;
         localStorage.setItem(LOCAL_SESSION_CSRF_KEY, data.csrfToken);
-        setTimeout(() => goto("/"), 2000);
       }
     }
   });
@@ -38,25 +39,27 @@
     { type: "text", name: "username" },
     { type: "password", name: "password" }
   ] as const;
+
+  onMount(async () => await invalidateAll());
 </script>
 
-<SuperDebug data={$form} />
 <div class="wrapper">
-  <form method="POST" use:enhance>
+  <form method="POST" use:enhance transition:fade>
     <h1>LOGIN</h1>
     {#each formInputs as { name, type }}
       <section>
-        <label for={name}>{`${name[0].toUpperCase()}${name.slice(1)}`}</label>
         <div class="input-wrapper">
           <input
             id={name}
             {name}
             use:typeAction={type}
+            aria-label={capitalize(name)}
             aria-invalid={$errors[name] ? "true" : undefined}
             bind:value={$form[name]}
             on:input={handleInput}
             {...$constraints[name]}
           />
+          <div aria-hidden={true}>{capitalize(name)}</div>
           {#if $errors[name]}
             <small class="invalid-field">{$errors[name]}</small>
           {/if}
@@ -64,6 +67,7 @@
       </section>
     {/each}
     <div class="submit-wrapper">
+      <button type="submit">Login</button>
       {#if showResultMessage}
         {#if $errors?._errors?.length}
           <small class="submission-result invalid">{$errors._errors[0]}</small>
@@ -71,7 +75,6 @@
           <small class="submission-result valid">Login successful!</small>
         {/if}
       {/if}
-      <button type="submit">Login</button>
     </div>
   </form>
 </div>
@@ -97,16 +100,19 @@
     padding: 2rem;
     outline: 1px solid gray;
     border-radius: 5px;
+    width: 500px;
   }
   .submit-wrapper {
+    position: relative;
+    width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: end;
     align-items: center;
     gap: 1rem;
   }
 
-  h1,
-  label {
+  h1 {
     user-select: none;
   }
 
@@ -115,10 +121,7 @@
   }
 
   section {
-    display: grid;
-    grid-template-columns: 10ch 1fr;
-    gap: 1rem;
-    align-items: center;
+    width: 100%;
     margin-bottom: 15px;
   }
 
@@ -127,10 +130,14 @@
   }
   input {
     padding-block: 5px;
+    width: 100%;
   }
 
   .submission-result {
     font-size: 11px;
+    position: absolute;
+    top: 110%;
+    text-justify: center;
     &.invalid {
       color: hsl(0, 75%, 60%);
     }
@@ -155,7 +162,7 @@
     letter-spacing: 0.05ch;
     text-transform: uppercase;
     color: var(--almost-black, black);
-    width: fit-content;
+    width: 100%;
     padding: 5px 15px;
     transition: color 0.2s ease-out, background-color 0.2s ease-out;
     align-self: flex-end;
