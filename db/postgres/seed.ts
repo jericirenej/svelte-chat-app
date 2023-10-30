@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import chalk from "chalk";
 import { add } from "date-fns";
-import { Kysely, Selectable, sql } from "kysely";
+import { Insertable, Kysely, Selectable, sql } from "kysely";
 import { genPassword } from "../../src/utils/password-utils.js";
 import { db } from "./client.js";
 import type { Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
@@ -13,7 +13,7 @@ type BaseCredentials = Omit<Auth, BaseDateColumns>;
 type BaseChat = Omit<Chat, BaseTableColumns> & Record<BaseDateColumns, Date>;
 type ChatSelect = Selectable<Chat>;
 type BaseParticipant = Omit<Participant, BaseTableColumns>;
-type BaseMessage = Omit<Message, BaseTableColumns> & Record<BaseDateColumns, Date>;
+type BaseMessage = Omit<Insertable<Message>, "id">;
 
 /** See https://stackoverflow.com/a/2450976/7249085 for original implementation */
 const randomizeArray = <T>(arr: T[]): T[] => {
@@ -44,9 +44,9 @@ const createUser = (): BaseUser => {
   const name = faker.person.firstName(),
     surname = faker.person.lastName();
 
-  const username = faker.internet.userName({ firstName: name, lastName: surname }),
+  const username = faker.internet.userName({ firstName: name, lastName: surname }).toLowerCase(),
     email = faker.internet.email({ firstName: name, lastName: surname }),
-    avatar = faker.internet.avatar();
+    avatar = faker.image.avatarGitHub();
 
   return { name, surname, username, email, avatar };
 };
@@ -125,7 +125,14 @@ const createMessages = (
     const creationDate = add(createdAt, {
       seconds: Math.floor(Math.random() * 10 + 5)
     });
-    return { chatId: id, createdAt: creationDate, updatedAt: creationDate, message, userId };
+    return {
+      chatId: id,
+      createdAt: creationDate,
+      updatedAt: creationDate,
+      message,
+      userId,
+      deleted: false
+    };
   });
 };
 
@@ -211,7 +218,7 @@ const userGenerator = async (numberOfUsers: number, db: Kysely<DB>): Promise<voi
   await db.insertInto("message").values(messages).execute();
 };
 
-const seed = async (numberOfUsers = 5): Promise<void> => {
+const seed = async (numberOfUsers = 15): Promise<void> => {
   await db.transaction().execute(async (trx) => {
     await sql`DELETE FROM public.user;`.execute(trx);
     await sql`DELETE FROM public.chat;`.execute(trx);
@@ -227,4 +234,5 @@ try {
   console.error(err);
 } finally {
   await db.destroy();
+  process.exit();
 }
