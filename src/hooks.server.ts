@@ -41,12 +41,11 @@ export const handle: Handle = async ({ event, resolve }) => {
   // Update locals and storage if necessary;
   updateLocalsUser(event.locals, user);
 
-  // Handle protected and unprotecteed routes
+  // Handle protected and unprotected routes
   if (!sessionId && isUnprotectedRoute) {
     return await resolve(event);
   }
 
-  // Otherwise resolve as appropriate
   if (isUnprotectedRoute) {
     if (isLoginRoute && sessionId) {
       throw redirect(302, "/");
@@ -55,7 +54,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   if (!user) {
-    throw redirect(302, "/login");
+    throw redirect(302, "/");
   }
 
   return await resolve(event);

@@ -11,17 +11,17 @@ export const authenticateUser = async ({
   method: string;
 }): Promise<CompleteUserDto | null> => {
   if (!sessionId) return null;
+  const user = await redisService.getSession(sessionId);
+  if (!user) return null;
+  if (method === "GET") return user;
   // All non-GET requests, such as POST, PUT, PATCH, or DELETE
   // must satisfy the csrf token header check
-  if (method !== "GET") {
-    if (!(csrfToken && verifyCsrfToken(csrfToken))) return null;
 
-    const csrfSession = getSessionFromCsrfToken(csrfToken);
+  if (!(csrfToken && verifyCsrfToken(csrfToken))) return null;
 
-    if (csrfSession !== sessionId) return null;
-  }
+  const csrfSession = getSessionFromCsrfToken(csrfToken);
 
-  const user = await redisService.getSession(sessionId);
+  if (csrfSession !== sessionId) return null;
   return user;
 };
 
