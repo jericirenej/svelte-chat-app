@@ -1,7 +1,5 @@
-import { env, type Auth, type BaseDateColumns } from "@db";
 import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
-
-export type CredentialsResult = Omit<Auth, BaseDateColumns> | null;
+import { env, type AuthDto } from "../../db/index.js";
 
 export type PbkdfSettings = {
   iterations: number;
@@ -48,7 +46,7 @@ export const verifyInConstantTime = (first: string, second: string): boolean => 
 export const verifyUser = async (
   username: string,
   password: string,
-  dbService: { getCredentials(username: string): Promise<CredentialsResult> }
+  dbService: { getCredentials(username: string): Promise<AuthDto | undefined> }
 ): Promise<string | null> => {
   const { digest, iterations, keylen, toStringType } = PBKDF;
   try {
@@ -77,7 +75,7 @@ export const verifyUser = async (
 };
 
 export const generateSessionId = (id: string) => {
-  return pbkdf2Sync(id, randomBytes(64).toString("hex"), 10_000, 64, "sha512");
+  return pbkdf2Sync(id, randomBytes(64).toString("hex"), 10_000, 64, "sha512").toString("hex");
 };
 
 const getServerSecret = () => {
