@@ -79,7 +79,7 @@
   </form>
 </div>
 
-<style lang="scss">
+<style lang="postcss">
   .wrapper {
     position: absolute;
     top: 50%;

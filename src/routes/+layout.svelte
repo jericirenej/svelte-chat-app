@@ -1,9 +1,9 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { fly } from "svelte/transition";
+  import "../app.css";
   import { CSRF_HEADER, LOCAL_SESSION_CSRF_KEY } from "../constants.js";
   import type { LayoutData } from "./$types";
-  import "./app.scss";
 
   export let data: LayoutData;
 
