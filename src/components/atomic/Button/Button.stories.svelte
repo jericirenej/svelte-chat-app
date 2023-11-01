@@ -6,9 +6,11 @@
     component: Button,
     argTypes: {
       disabled: { control: "boolean" },
-      display: { control: { type: "select" }, options: ["inlineBlock", "block"] },
-      action: { control: { type: "select" }, options: ["confirm", "cancel", "danger"] },
-      size: { control: { type: "select" }, options: ["sm", "md", "lg", undefined] }
+      display: { control: { type: "radio" }, options: ["inline-block", "block"] },
+      action: { control: { type: "radio" }, options: ["confirm", "cancel", "info", "danger"] },
+      size: { control: { type: "radio" }, options: ["sm", "md", "lg"] },
+      type: { control: { type: "radio" }, options: ["button", "submit"] },
+      variant: { table: { disable: true } }
     }
   };
 </script>
@@ -20,21 +22,22 @@
 </script>
 
 <Template let:args>
-  {@const isInline = args.display === "inlineBlock" || !args.display}
-  <div
+  {@const isInline = args.display === "inline-block" || !args.display}
+  <fieldset
     class={`flex 
-    ${isInline ? "flex-row gap-x-5 w-fit" : "flex-col gap-y-5 w-100"}
+    ${isInline ? "flex-row gap-x-5 w-fit" : "flex-col gap-y-5"}
     py-5
     px-4
     border-2
-    border-stone-300
+    border-stone-400
     rounded
     `}
   >
+    <legend class="text-xs uppercase tracking-wide">{args.display}</legend>
     {#each buttonVariants as variant}
       <Button {...args} {variant} on:click>{capitalize(variant)} button</Button>
     {/each}
-  </div>
+  </fieldset>
 </Template>
 
-<Story name="Primary" args={{ display: "inlineBlock" }} />
+<Story name="Primary" args={{ disabled: false, display: "inline-block" }} />
