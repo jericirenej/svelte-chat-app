@@ -2,28 +2,41 @@
   import type { HTMLInputTypeAttribute } from "svelte/elements.js";
 
   export let name: string;
-  export let type: HTMLInputTypeAttribute;
+  export let type: Exclude<
+    HTMLInputTypeAttribute,
+    "button" | "checkbox" | "radio" | "submit" | "hidden" | "color" | "image" | "reset"
+  >;
   export let label: string;
   export let placeholder: string;
   export let disabled: boolean = false;
+
+  export let isControlValid = true;
+
+  let ref: HTMLInputElement;
+
+  $: showPlaceholder = ["text", "input", "email", "number", "tel", "password"].includes(type);
 </script>
 
 <div class="relative bg-inherit">
   <input
-    class="peer text-sm px-2 h-10 w-full outline-none border-2 border-neutral-400 text-neutral-900 rounded placeholder-transparent
+    bind:this={ref}
+    class={`peer text-sm px-2 h-10 w-full outline-none border-2 border-neutral-400 text-neutral-900 rounded ${
+      showPlaceholder ? "placeholder-transparent" : ""
+    }
     focus:border-violet-400 focus:shadow-xs focus:shadow-violet-500
-    invalid:border-red-600"
+    invalid:border-red-600`}
     id={`${name}-input`}
     {name}
     {type}
-    placeholder={placeholder ?? label}
+    {placeholder}
+    on:blur={() => (isControlValid = ref.validity.valid)}
     {disabled}
     {...$$props}
   />
-  {#if label}
+  {#if label && showPlaceholder}
     <label
       class="absolute z-10 inline-block cursor-text transition-all bg-white
-      left-2 -top-2 text-neutral-600 text-xs
+      left-2 -top-2 text-neutral-700 text-xs
       px-2
       peer-placeholder-shown:top-2.5
       peer-placeholder-shown:text-sm
