@@ -2,15 +2,17 @@
   export type ButtonActions = "confirm" | "cancel" | "danger" | "info";
   export type ButtonSizes = "sm" | "md" | "lg";
   export type ButtonTypes = "button" | "submit";
+  export type ButtonDisplay = "inline-block" | "block";
+  export type ButtonVariant = "primary" | "outline";
 </script>
 
 <script lang="ts">
   export let disabled: boolean = false;
-  export let display: "inline-block" | "block" = "inline-block";
+  export let display: ButtonDisplay = "inline-block";
   export let size: ButtonSizes = "md";
   export let action: ButtonActions = "confirm";
   export let type: ButtonTypes = "button";
-  export let variant: "primary" | "outline" = "primary";
+  export let variant: ButtonVariant = "primary";
 
   const sizes = { sm: "py-2 px-3 text-xs", md: "py-3 px-4 text-sm", lg: "py-4 px-7 text-md" };
 
