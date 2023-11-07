@@ -7,7 +7,7 @@
     "button" | "checkbox" | "radio" | "submit" | "hidden" | "color" | "image" | "reset"
   >;
   export let label: string;
-  export let placeholder: string;
+  export let placeholder = "";
   export let disabled: boolean = false;
 
   export let isControlValid = true;
@@ -28,7 +28,7 @@
     id={`${name}-input`}
     {name}
     {type}
-    {placeholder}
+    placeholder={placeholder ?? label}
     on:blur={() => (isControlValid = ref.validity.valid)}
     {disabled}
     {...$$props}
