@@ -13,6 +13,7 @@
   export let action: ButtonActions = "confirm";
   export let type: ButtonTypes = "button";
   export let variant: ButtonVariant = "primary";
+  export let customStyles: string | undefined = undefined;
 
   const sizes = { sm: "py-2 px-3 text-xs", md: "py-3 px-4 text-sm", lg: "py-4 px-7 text-md" };
 
@@ -48,7 +49,7 @@
 <button
   class={`${baseClasses} ${displayType[display]} ${size ? sizes[size] : sizes.sm} ${
     buttonColor[variant][action]
-  }`}
+  } ${customStyles ?? ""}`}
   {type}
   {disabled}
   {...$$restProps}
