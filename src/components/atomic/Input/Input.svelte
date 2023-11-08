@@ -9,10 +9,16 @@
   export let label: string;
   export let placeholder = "";
   export let disabled: boolean = false;
+  export let value: string;
+  export let input: (ev?: Event) => unknown = () => {};
 
   export let isControlValid = true;
 
   let ref: HTMLInputElement;
+
+  const typeAction = (node: HTMLInputElement) => {
+    node.type = type;
+  };
 
   $: showPlaceholder = ["text", "input", "email", "number", "tel", "password"].includes(type);
 </script>
@@ -27,9 +33,11 @@
     invalid:border-red-600`}
     id={`${name}-input`}
     {name}
-    {type}
+    use:typeAction
+    bind:value
     placeholder={placeholder ?? label}
     on:blur={() => (isControlValid = ref.validity.valid)}
+    on:input={input}
     {disabled}
     {...$$props}
   />
