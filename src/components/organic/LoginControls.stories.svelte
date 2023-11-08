@@ -14,10 +14,12 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
+  import type { ComponentProps } from "svelte";
+  const args: ComponentProps<LoginForm> = { isLoading: false, status: undefined };
 </script>
 
 <Template let:args>
   <LoginForm {...args} />
 </Template>
 
-<Story name="Primary" />
+<Story name="Primary" {args} />

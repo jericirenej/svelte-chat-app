@@ -3,9 +3,13 @@
   import Input from "../atomic/Input/Input.svelte";
   import SubmitButton from "../molecular/SubmitButton/SubmitButton.svelte";
 
+  let message: string | undefined = undefined;
   export let isLoading = false;
   export let status: "success" | "error" | undefined = undefined;
-  const message = { success: "Login successful!", error: "Username or password not correct!" };
+  const defaultMessage = {
+    success: "Login successful!",
+    error: "Username or password not correct!"
+  };
 </script>
 
 <div class="flex flex-initial flex-col gap-4">
@@ -14,7 +18,9 @@
     <Input label="Password" placeholder="Enter your password" name="password" type="password" />
   </div>
   <div class="relative pb-5">
-    <SubmitButton text="LOGIN" {isLoading} config={{ display: "block" }} />
+    <div class={isLoading ? "loading relative" : ""}>
+      <SubmitButton text="LOGIN" {isLoading} config={{ display: "block" }} />
+    </div>
     {#if status}
       <small
         transition:fade={{ duration: 150 }}
@@ -22,8 +28,34 @@
       absolute bottom-0 text-xs
       left-[50%] translate-x-[-50%]
       ${status === "error" ? "text-red-600" : "text-emerald-500"}
-      `}>{message[status]}</small
+      `}>{message ?? defaultMessage[status]}</small
       >
     {/if}
   </div>
 </div>
+
+<style>
+  .loading {
+    overflow: hidden;
+  }
+  .loading::after {
+    position: absolute;
+    content: "";
+    left: -150%;
+    height: 120%;
+    width: 75%;
+    bottom: 0;
+    transform: skewX(-20deg);
+    background-color: hsla(0deg, 0%, 100%, 20%);
+    box-shadow: 0 0 10px 10px hsla(0deg, 0%, 100%, 20%);
+    animation: swoosh 2s infinite;
+  }
+  @keyframes swoosh {
+    from {
+      left: -150%;
+    }
+    to {
+      left: 150%;
+    }
+  }
+</style>
