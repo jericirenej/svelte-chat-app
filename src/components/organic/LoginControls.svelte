@@ -36,15 +36,19 @@
   </div>
   <div class="relative pb-5">
     <div class={isLoading ? "loading relative" : ""}>
-      <SubmitButton text="SUBMIT" {isLoading} config={{ display: "block" }} />
+      <SubmitButton
+        text="SUBMIT"
+        {isLoading}
+        config={{ display: "block"}}
+      />
     </div>
     {#if status}
       <small
         transition:fade={{ duration: 150 }}
         class={`
-      absolute bottom-0 text-xs
+      absolute bottom-0 w-[100%]
       text-center
-      w-[100%]
+      text-xs
       ${status === "error" ? "text-red-600" : "text-emerald-500"}
       `}>{message ?? defaultMessage[status]}</small
       >

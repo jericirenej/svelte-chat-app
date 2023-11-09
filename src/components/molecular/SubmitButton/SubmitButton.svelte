@@ -15,16 +15,25 @@
         size: ButtonSizes;
         display: ButtonDisplay;
         action: ButtonActions;
+        customClasses: string;
       }>
     | undefined = undefined;
   export let text = "Submit";
 </script>
 
-<Button type="submit" disabled={isLoading} action="confirm" {...config}>
+<Button
+  type="submit"
+  disabled={isLoading}
+  action={config?.action ?? "confirm"}
+  variant={config?.variant}
+  size={config?.size}
+  display={config?.display}
+  customClasses={config?.customClasses ?? "py-[0.5rem]"}
+>
   <div class="flex justify-center">
     <div class="relative px-3" style:width={`${text.length + 3}ch`}>
       <span
-        class="text-sm leading-1 inline-block relative transition {isLoading
+        class="leading-1 relative inline-block text-sm transition {isLoading
           ? '-translate-x-2'
           : 'translate-x-0'}"
       >
@@ -34,7 +43,7 @@
         <span in:fade={{ duration: 100 }}>
           <Icon
             icon={loadingIcon}
-            class="absolute inline-block text-lg leading-1 -right-2 top-[1px]"
+            class="leading-1 absolute -right-2 top-[1px] inline-block text-lg"
           />
         </span>
       {/if}

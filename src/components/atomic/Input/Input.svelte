@@ -26,11 +26,11 @@
 <div class="relative bg-inherit">
   <input
     bind:this={ref}
-    class={`peer text-sm px-2 h-10 w-full outline-none border-2 border-neutral-400 text-neutral-900 rounded ${
+    class={`peer h-10 w-full rounded border-2 border-neutral-400 px-2 text-sm text-neutral-900 outline-none ${
       showPlaceholder ? "placeholder-transparent" : ""
     }
-    focus:border-violet-400 focus:shadow-xs focus:shadow-violet-500
-    invalid:border-red-600`}
+    focus:shadow-xs invalid:border-red-600 focus:border-violet-400
+    focus:shadow-violet-500`}
     id={`${name}-input`}
     {name}
     use:typeAction
@@ -43,9 +43,9 @@
   />
   {#if label && showPlaceholder}
     <label
-      class="absolute z-10 inline-block cursor-text transition-all bg-white
-      left-2 -top-2 text-neutral-700 text-xs
-      px-2
+      class="absolute -top-2 left-2 z-10
+      inline-block cursor-text bg-white
+      px-2 text-xs text-neutral-700 transition-all
       peer-placeholder-shown:top-2.5
       peer-placeholder-shown:text-sm
       peer-focus:-top-2 peer-focus:text-xs"
