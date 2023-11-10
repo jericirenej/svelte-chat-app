@@ -9,17 +9,17 @@ import {
   getSessionFromCsrfToken,
   verifyCsrfToken,
   verifyInConstantTime,
-  verifyUser,
-  type CredentialsResult
+  verifyUser
 } from "./password-utils.js";
+
+import type { AuthDto } from "../../../db/index.js";
 
 vi.mock("node:crypto", async () => {
   const original = await vi.importActual<typeof import("node:crypto")>("node:crypto");
   return { ...original };
 });
-vi.mock("../../db/helpers/get-env.js", () => {
-  return { env: { ["SERVER_SECRET"]: "mockServerSecret" } };
-});
+
+vi.mock("$env/static/private", () => ({ SERVER_SECRET: "mock-secret" }));
 
 describe("genPassword", () => {
   it("Should generate hash and salt with appropriate arguments", () => {
@@ -63,13 +63,15 @@ describe("verifyUser", () => {
     invalid = "invalid",
     id = "id";
   const { hash, salt } = genPassword(password);
+  const createdAt = new Date(2020, 12, 31),
+    updatedAt = createdAt;
   const mockDbService = {
-    async getCredentials(username: string): Promise<CredentialsResult> {
-      return Promise.resolve(null);
+    async getCredentials(username: string): Promise<AuthDto | undefined> {
+      return Promise.resolve(undefined);
     }
   };
   let spyOnConsole: SpyInstance,
-    spyOnCredentials: SpyInstance<[username: string], Promise<CredentialsResult>>;
+    spyOnCredentials: SpyInstance<[username: string], Promise<AuthDto | undefined>>;
   beforeEach(() => {
     spyOnConsole = vi.spyOn(console, "log").mockImplementation((message?: unknown) => {});
     spyOnCredentials = vi.spyOn(mockDbService, "getCredentials");
@@ -82,12 +84,12 @@ describe("verifyUser", () => {
     expect(spyOnConsole).toHaveBeenCalledWith(VERIFICATION_FAILURE);
   });
   it("Should return null if verification fails and report mismatch", async () => {
-    spyOnCredentials.mockResolvedValueOnce({ hash, salt, id });
+    spyOnCredentials.mockResolvedValueOnce({ hash, salt, id, createdAt, updatedAt });
     expect(await verifyUser(username, invalid, mockDbService)).toBeNull();
     expect(spyOnConsole).toHaveBeenCalledWith(VERIFICATION_FAILURE);
   });
   it("Should return id, if verification succeeds", async () => {
-    spyOnCredentials.mockResolvedValueOnce({ hash, salt, id });
+    spyOnCredentials.mockResolvedValueOnce({ hash, salt, id, createdAt, updatedAt });
     expect(await verifyUser(username, password, mockDbService)).toBe(id);
     expect(spyOnConsole).not.toHaveBeenCalled();
   });

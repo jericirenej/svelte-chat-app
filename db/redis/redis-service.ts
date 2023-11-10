@@ -1,11 +1,11 @@
-import { env } from "../helpers/get-env.js";
+import env from "../environment.js";
 import { jsonReplacer, jsonReviver } from "../helpers/json-helpers.js";
 import { CompleteUserDto } from "../postgres/types.js";
 import { clientConnection, redisClient, type RedisClient } from "./client.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_DEFAULT_SEPARATOR = ":";
-export const REDIS_DEFAULT_TTL = Number(env["SESSION_TTL"]) || 10 * 60;
+export const REDIS_DEFAULT_TTL = env.SESSION_TTL || 10 * 60;
 
 export class RedisService {
   readonly sessionPrefix = REDIS_SESSION_KEY_PREFIX;

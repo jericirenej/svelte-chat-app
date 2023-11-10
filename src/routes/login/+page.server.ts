@@ -7,7 +7,7 @@ import {
   generateCsrfToken,
   generateSessionId,
   verifyUser
-} from "../../utils/password-utils.js";
+} from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
 import { loginSchema } from "./login-form-validator.js";
 
@@ -24,7 +24,8 @@ export const actions = {
       return fail(400, { form });
     }
 
-    const { username, password } = form.data;
+    const { username: originalUsername, password } = form.data;
+    const username = originalUsername.toLowerCase();
     const isVerified = await verifyUser(username, password, dbService);
     if (!isVerified) {
       return setError(form, "", VERIFICATION_FAILURE);

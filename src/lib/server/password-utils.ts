@@ -1,5 +1,6 @@
+import { SERVER_SECRET } from "$env/static/private";
 import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
-import { env, type AuthDto } from "../../db/index.js";
+import type { AuthDto } from "../../../db/index.js";
 
 export type PbkdfSettings = {
   iterations: number;
@@ -78,17 +79,8 @@ export const generateSessionId = (id: string) => {
   return pbkdf2Sync(id, randomBytes(64).toString("hex"), 10_000, 64, "sha512").toString("hex");
 };
 
-const getServerSecret = () => {
-  const secret = env["SERVER_SECRET"];
-  if (!secret) {
-    throw new Error("Supply the server secret in the .env file!");
-  }
-  return secret;
-};
-
 export const generateHmac = (message: string) => {
-  const secret = getServerSecret();
-  const hmacGenerator = createHmac("sha-512", secret);
+  const hmacGenerator = createHmac("sha-512", SERVER_SECRET);
   return hmacGenerator.update(message).digest().toString("hex");
 };
 

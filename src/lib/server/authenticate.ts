@@ -1,5 +1,5 @@
 import { redisService, type CompleteUserDto } from "@db";
-import { getSessionFromCsrfToken, verifyCsrfToken } from "../../utils/password-utils.js";
+import { getSessionFromCsrfToken, verifyCsrfToken } from "./password-utils.js";
 
 export const authenticateUser = async ({
   sessionId,

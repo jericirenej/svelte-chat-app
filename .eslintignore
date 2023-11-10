@@ -16,3 +16,4 @@ migration-template.ts
 svelte.config.js
 
 dist
+db/environment.example.ts
