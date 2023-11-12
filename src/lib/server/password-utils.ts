@@ -75,7 +75,7 @@ export const verifyUser = async (
   }
 };
 
-export const generateSessionId = (id: string) => {
+export const generateSessionId = (id: string): string => {
   return pbkdf2Sync(id, randomBytes(64).toString("hex"), 10_000, 64, "sha512").toString("hex");
 };
 

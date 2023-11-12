@@ -7,6 +7,8 @@
 
   export let data: LayoutData;
 
+  $: loggedIn = !!data.user;
+
   const handleLogout = async () => {
     const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
     if (!csrf) return;
@@ -22,56 +24,28 @@
   };
 </script>
 
-{#if data?.user}
-  <nav transition:fly={{ duration: 300, y: -400 }}>
-    <ul>
-      <li><a href="/">Homepage</a></li>
-      <li><a href="/profile" data-sveltekit-preload-data="hover">Profile</a></li>
-      <li><button type="button" on:click|preventDefault={handleLogout}>Logout</button></li>
-    </ul>
-  </nav>
-{/if}
-<slot />
-
-<style lang="scss">
-  nav {
-    background-color: hsl(0deg, 0%, 10%);
-    width: 100%;
-    display: flex;
-    align-items: center;
-  }
-  ul {
-    height: 50px;
-    width: 100%;
-    list-style: none;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 5px;
-    padding-block: 0.8rem;
-    padding-right: 1rem;
-    color: hsl(0deg, 0%, 85%);
-    font-size: 13px;
-  }
-
-  li {
-    width: 90px;
-    text-align: center;
-    & > * {
-      display: inline-block;
-      width: 100%;
-      text-decoration: none;
-      color: inherit;
-      background-color: transparent;
-      border: none;
-      padding: 3px;
-      cursor: pointer;
-    }
-    &:hover {
-      color: black;
-      background-color: hsla(0deg, 0%, 85%);
-      border-radius: 3px;
-      transition: all 0.2s ease;
-    }
-  }
-</style>
+<div class="app-background flex h-screen w-screen items-center justify-center bg-neutral-400">
+  <div class="app flex h-[95vh] w-[95vw] max-w-[1500px] rounded-md bg-white">
+    <section
+      transition:fly={{ duration: 300, y: -400 }}
+      class={`sidebar transition-max-width h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 duration-300 ${
+        loggedIn ? "max-w-[250px] pl-2 pr-5" : "max-w-0"
+      }`}
+    >
+      {#if loggedIn}
+        <nav>
+          <section>
+            <ul>
+              <li><a href="/">Homepage</a></li>
+              <li><a href="/profile" data-sveltekit-preload-data="hover">Profile</a></li>
+              <li><button type="button" on:click|preventDefault={handleLogout}>Logout</button></li>
+            </ul>
+          </section>
+        </nav>
+      {:else}
+        <nav></nav>
+      {/if}
+    </section>
+    <slot />
+  </div>
+</div>

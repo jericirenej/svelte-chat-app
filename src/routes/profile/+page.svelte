@@ -19,28 +19,32 @@
     }));
 </script>
 
-<div class="wrapper">
-  <h1>Profile</h1>
-  <div class="username-block">
-    {#if user.avatar}
-      <img src={user.avatar} alt="{user.username} avatar" />
-    {/if}
-    <p>{user.username}</p>
-  </div>
-  <div class="properties-wrapper">
-    {#each profileFields as { label, value }}
-      <p>{capitalize(label)}:</p>
-      <p>{value ?? "Not given"}</p>
-    {/each}
+<div class="flex h-full w-full flex-col items-center justify-center px-3">
+  <div>
+    <div class="flex items-center gap-6 self-start">
+      <h1 class="mb-5 text-[2rem] font-light uppercase leading-7 text-sky-800">Profile</h1>
+      <div class="relative -top-2.5 flex w-fit items-center gap-2 text-lg">
+        {#if user.avatar}
+          <img
+            class="inline-block aspect-square h-5 rounded-full object-contain"
+            src={user.avatar}
+            alt="{user.username} avatar"
+          />
+        {/if}
+        <p class="font-bold">{user.username}</p>
+      </div>
+    </div>
+    <div class="properties-wrapper">
+      {#each profileFields as { label, value }}
+        <p>{capitalize(label)}:</p>
+        <p>{value ?? "Not given"}</p>
+      {/each}
+    </div>
   </div>
 </div>
 
 <style lang="scss">
   .wrapper {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    translate: -50% -50%;
   }
   .username-block {
     display: flex;

@@ -1,12 +1,18 @@
 import { authenticateUser } from "$lib/server/authenticate.js";
 import { error, redirect, type Handle } from "@sveltejs/kit";
 import type { CompleteUserDto } from "../db/index.js";
-import { CSRF_HEADER, LOGIN_ROUTE, SESSION_COOKIE, UNPROTECTED_ROUTES } from "./constants.js";
+import {
+  CSRF_HEADER,
+  LOGIN_ROUTE,
+  ROOT_ROUTE,
+  SESSION_COOKIE,
+  UNPROTECTED_ROUTES
+} from "./constants.js";
 
 const hasUserChanged = ({ id: stored }: CompleteUserDto, { id: received }: CompleteUserDto) =>
   stored === received;
 
-const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null) => {
+const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null): void => {
   const { user } = locals;
   if (!received) {
     locals.user = undefined;
@@ -26,7 +32,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     csrfToken = event.request.headers.get(CSRF_HEADER),
     method = event.request.method;
   const isUnprotectedRoute = UNPROTECTED_ROUTES.includes(event.url.pathname),
-    isLoginRoute = event.url.pathname === LOGIN_ROUTE;
+    isLoginRoute = event.url.pathname === LOGIN_ROUTE,
+    isRootRoute = event.url.pathname === ROOT_ROUTE;
   const user = await authenticateUser({ sessionId, csrfToken, method });
   // Clear session id cookie if user is invalid
   if (!user && sessionId) {
@@ -42,19 +49,23 @@ export const handle: Handle = async ({ event, resolve }) => {
   updateLocalsUser(event.locals, user);
 
   // Handle protected and unprotected routes
-  if (!sessionId && isUnprotectedRoute) {
-    return await resolve(event);
-  }
-
   if (isUnprotectedRoute) {
-    if (isLoginRoute && sessionId) {
-      throw redirect(302, "/");
+    if (!sessionId && isRootRoute) {
+      throw redirect(302, LOGIN_ROUTE);
+    }
+
+    if (sessionId && isLoginRoute) {
+      throw redirect(302, ROOT_ROUTE);
+    }
+
+    if (isLoginRoute) {
+      return await resolve(event);
     }
     return await resolve(event);
   }
 
   if (!user) {
-    throw redirect(302, "/");
+    throw redirect(302, ROOT_ROUTE);
   }
 
   return await resolve(event);
