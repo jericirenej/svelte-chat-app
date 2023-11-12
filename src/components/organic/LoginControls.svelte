@@ -15,7 +15,7 @@
   };
 </script>
 
-<div class="flex flex-initial flex-col gap-4">
+<div class="flex min-w-[30ch] flex-initial flex-col gap-4">
   <div class="flex flex-col gap-4">
     <Input
       label="Username"
@@ -36,17 +36,14 @@
   </div>
   <div class="relative pb-5">
     <div class={isLoading ? "loading relative" : ""}>
-      <SubmitButton
-        text="SUBMIT"
-        {isLoading}
-        config={{ display: "block"}}
-      />
+      <SubmitButton text="SUBMIT" {isLoading} config={{ display: "block" }} />
     </div>
     {#if status}
       <small
         transition:fade={{ duration: 150 }}
         class={`
       absolute bottom-0 w-[100%]
+      whitespace-nowrap
       text-center
       text-xs
       ${status === "error" ? "text-red-600" : "text-emerald-500"}
