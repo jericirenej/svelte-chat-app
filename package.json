@@ -20,6 +20,7 @@
   "devDependencies": {
     "@faker-js/faker": "^8.0.2",
     "@iconify/icons-eos-icons": "^1.2.6",
+    "@iconify/icons-humbleicons": "^1.2.4",
     "@iconify/svelte": "^3.1.4",
     "@playwright/test": "^1.28.1",
     "@storybook/addon-essentials": "^7.4.0",
