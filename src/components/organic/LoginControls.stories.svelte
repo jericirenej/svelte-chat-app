@@ -15,7 +15,7 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
-  const args: ComponentProps<LoginForm> = { isLoading: false, status: undefined };
+  const args: Partial<ComponentProps<LoginForm>> = { isLoading: false, status: undefined };
 </script>
 
 <Template let:args>
