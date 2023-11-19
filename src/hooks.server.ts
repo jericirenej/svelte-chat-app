@@ -1,5 +1,5 @@
 import { authenticateUser } from "$lib/server/authenticate.js";
-import { error, redirect, type Handle } from "@sveltejs/kit";
+import { error, redirect, type Handle, type HandleServerError } from "@sveltejs/kit";
 import type { CompleteUserDto } from "../db/index.js";
 import {
   CSRF_HEADER,
@@ -69,4 +69,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   return await resolve(event);
+};
+
+export const handleError: HandleServerError = ({ event }) => {
+  if (event.route.id === null) throw redirect(302, "/");
 };
