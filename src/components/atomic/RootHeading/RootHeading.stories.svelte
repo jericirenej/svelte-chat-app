@@ -6,15 +6,18 @@
     title: "Atomic/RootHeading",
     component: RootHeading,
     argTypes: {
-      heading: { control: "text" }
+      heading: { control: "text" },
+      showIcon: { control: "boolean" }
     }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
+  import type { ComponentProps } from "svelte";
+  const args: ComponentProps<RootHeading> = { heading: "Chat App", showIcon: true };
 </script>
 
 <Template let:args><RootHeading {...args} /></Template>
 
-<Story name="Primary" args={{ heading: "Chat App" }} />
+<Story name="Primary" {args} />
