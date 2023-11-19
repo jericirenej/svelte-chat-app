@@ -6,7 +6,7 @@
   export let showIcon = true;
 </script>
 
-<div class="flex select-none items-center gap-2">
+<div class="inline-flex select-none gap-2">
   <h1 class="text-5xl font-extralight uppercase text-sky-800">
     {heading}
   </h1>

@@ -4,6 +4,7 @@
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
+  import RootHeading from "../../components/atomic/RootHeading/RootHeading.svelte";
   import LoginControls from "../../components/organic/LoginControls.svelte";
   import { LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
   import { promisifiedTimeout } from "../../lib/shared/utils.js";
@@ -52,7 +53,7 @@
 >
   <div class="mb-8 flex flex-col items-center gap-1">
     <h1 class="text-[2rem] font-light uppercase leading-7 text-sky-800">Sign in</h1>
-    <span class="text-sm font-normal text-sky-800">And start chatting!</span>
+    <span class="text-sm font-normal text-sky-800">...and start chatting!</span>
   </div>
   <form method="POST" use:enhance in:fade>
     <LoginControls
@@ -63,4 +64,7 @@
       {status}
     />
   </form>
+  <div class="mt-10">
+    <RootHeading />
+  </div>
 </div>
