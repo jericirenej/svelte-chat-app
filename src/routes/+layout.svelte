@@ -26,12 +26,14 @@
   };
 </script>
 
-<div class="app-background flex h-screen w-screen items-center justify-center bg-neutral-400">
+<div
+  class="app-background flex h-screen w-screen items-center justify-center overflow-hidden bg-neutral-400"
+>
   <div class="app flex h-[95vh] w-[95vw] max-w-[1500px] rounded-md bg-white">
     <section
       transition:fly={{ duration: 300, y: -400 }}
       class={`sidebar h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 transition-max-width duration-300 ${
-        loggedIn ? "max-w-[250px]" : "max-w-0"
+        loggedIn ? "min-w-[200px] max-w-[250px]" : "max-w-0"
       }`}
     >
       {#if loggedIn}

@@ -27,7 +27,7 @@
 <svelte:head>
   <title>Chat App - Profile</title>
 </svelte:head>
-<div class="flex h-full w-full flex-col items-center justify-center px-3">
+<div class="flex h-full w-full flex-col items-center justify-center overflow-hidden px-3">
   <div>
     <div class="flex items-center gap-6 self-start">
       <h1 class="mb-5 text-[2rem] font-light uppercase leading-7 text-sky-800">Profile</h1>
