@@ -19,6 +19,9 @@
     }));
 </script>
 
+<svelte:head>
+  <title>Chat App - Profile</title>
+</svelte:head>
 <div class="flex h-full w-full flex-col items-center justify-center px-3">
   <div>
     <div class="flex items-center gap-6 self-start">
@@ -34,7 +37,7 @@
         <p class="font-bold">{user.username}</p>
       </div>
     </div>
-    <div class="properties-wrapper">
+    <div class="grid grid-cols-[120px,_1fr] text-sm">
       {#each profileFields as { label, value }}
         <p>{capitalize(label)}:</p>
         <p>{value ?? "Not given"}</p>
@@ -42,32 +45,3 @@
     </div>
   </div>
 </div>
-
-<style lang="scss">
-  .wrapper {
-  }
-  .username-block {
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    gap: 10px;
-    font-size: 18px;
-    margin-block: 1rem;
-
-    img {
-      display: inline-block;
-      height: 1.5em;
-      object-fit: contain;
-      aspect-ratio: 1 / 1;
-      border-radius: 100%;
-    }
-    p {
-      font-weight: 600;
-    }
-  }
-  .properties-wrapper {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    font-size: 14px;
-  }
-</style>

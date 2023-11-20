@@ -6,6 +6,9 @@
   export let data: PageData;
 </script>
 
+<svelte:head>
+  <title>Chat App</title>
+</svelte:head>
 <div class="flex w-full flex-col justify-center">
   {#if data.user}
     <div in:fade class="flex w-full flex-col items-center gap-3">

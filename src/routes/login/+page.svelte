@@ -48,6 +48,7 @@
   onMount(async () => await invalidateAll());
 </script>
 
+<svelte:head><title>Chat App - Login</title></svelte:head>
 <div
   class="absolute left-1/2 top-[30%] flex -translate-x-1/2 -translate-y-[30%] flex-col items-center justify-center"
 >
