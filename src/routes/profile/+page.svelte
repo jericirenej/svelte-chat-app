@@ -17,6 +17,11 @@
       label: key,
       value: user[key]
     }));
+  const handleValue = (val: string | Date | null): string => {
+    if (!val) return "Not given";
+    if (val instanceof Date) return new Intl.DateTimeFormat(navigator.language).format(val);
+    return val;
+  };
 </script>
 
 <svelte:head>
@@ -40,7 +45,7 @@
     <div class="grid grid-cols-[120px,_1fr] text-sm">
       {#each profileFields as { label, value }}
         <p>{capitalize(label)}:</p>
-        <p>{value ?? "Not given"}</p>
+        <p>{handleValue(value)}</p>
       {/each}
     </div>
   </div>
