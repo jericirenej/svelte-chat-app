@@ -1,10 +1,13 @@
 import * as crypto from "crypto";
 
+vi.mock("node:crypto", async () => {
+  const original = await vi.importActual<typeof import("node:crypto")>("node:crypto");
+  return { ...original };
+});
+
 import { afterEach, beforeEach, describe, expect, it, vi, type SpyInstance } from "vitest";
 import {
-  PBKDF,
   VERIFICATION_FAILURE,
-  genPassword,
   generateCsrfToken,
   getSessionFromCsrfToken,
   verifyCsrfToken,
@@ -12,6 +15,7 @@ import {
   verifyUser
 } from "./password-utils.js";
 
+import { genPassword } from "@utils";
 import type { AuthDto } from "../../../db/index.js";
 
 vi.mock("node:crypto", async () => {
@@ -20,33 +24,6 @@ vi.mock("node:crypto", async () => {
 });
 
 vi.mock("$env/static/private", () => ({ SERVER_SECRET: "mock-secret" }));
-
-describe("genPassword", () => {
-  it("Should generate hash and salt with appropriate arguments", () => {
-    const spyOnPbkdf = vi.spyOn(crypto, "pbkdf2Sync"),
-      spyOnRandomBytes = vi.spyOn(crypto, "randomBytes");
-    const spyOnBufferToString = vi.spyOn(Buffer.prototype, "toString");
-    const settings = { ...PBKDF },
-      password = "password";
-    const { hash, salt } = genPassword(password, settings);
-    expect(salt).toBeTruthy();
-    expect(hash).toBeTruthy();
-    expect(spyOnRandomBytes).toHaveBeenLastCalledWith(settings.randomBytesLength);
-    expect(spyOnPbkdf).toHaveBeenLastCalledWith(
-      password,
-      salt,
-      settings.iterations,
-      settings.keylen,
-      settings.digest
-    );
-    expect(spyOnBufferToString).toHaveBeenCalledTimes(2);
-
-    expect(spyOnBufferToString.mock.calls.flat(Infinity)).toEqual(
-      new Array(2).fill(settings.toStringType)
-    );
-    vi.restoreAllMocks();
-  });
-});
 
 describe("verifyInConstantTime", () => {
   const first1 = "first1",

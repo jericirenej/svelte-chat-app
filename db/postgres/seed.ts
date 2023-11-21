@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import chalk from "chalk";
 import { add } from "date-fns";
 import { Insertable, Kysely, Selectable, sql } from "kysely";
-import { genPassword } from "../../src/lib/server/password-utils.js";
+import { genPassword } from "../../utils/generate-password.js";
 import { db } from "./client.js";
 import type { Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
 import { randomPick } from "./tools/utils.js";

@@ -1,35 +1,8 @@
 import { SERVER_SECRET } from "$env/static/private";
+import { PBKDF } from "@utils";
 import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 import type { AuthDto } from "../../../db/index.js";
-
-export type PbkdfSettings = {
-  iterations: number;
-  keylen: number;
-  randomBytesLength: number;
-  digest: string;
-  toStringType: BufferEncoding;
-};
-export const PBKDF: PbkdfSettings = {
-  iterations: 10_000,
-  keylen: 128,
-  randomBytesLength: 64,
-  digest: "sha512",
-  toStringType: "base64url"
-};
 export const VERIFICATION_FAILURE = "User name or password did not match";
-
-export const genPassword = (
-  password: string,
-  setting: PbkdfSettings = PBKDF
-): Record<"hash" | "salt", string> => {
-  const { digest, iterations, keylen, toStringType, randomBytesLength } = setting;
-  const salt = randomBytes(randomBytesLength).toString(toStringType);
-  const hash = pbkdf2Sync(password, salt, iterations, keylen, digest).toString(toStringType);
-  return {
-    salt,
-    hash
-  };
-};
 
 /** Verify that two strings match in constant time. */
 export const verifyInConstantTime = (first: string, second: string): boolean => {
