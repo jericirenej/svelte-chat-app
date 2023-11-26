@@ -8,11 +8,11 @@
   export let onInput: (ev?: Event) => unknown = () => {};
   let message: string | undefined = undefined;
   export let isLoading = false;
-  export let status: 200 | 404 | 400 | undefined = undefined;
+  export let status: 200 | 404 | undefined = undefined;
+  export let submitDisabled = false;
   const defaultMessage = {
     200: "Login successful!",
-    404: "Username or password not correct!",
-    400: "Please supply a username and password"
+    404: "Username or password not correct!"
   };
 </script>
 
@@ -37,7 +37,13 @@
   </div>
   <div class="relative pb-5">
     <div class={isLoading ? "loading relative" : ""}>
-      <SubmitButton text="SUBMIT" {isLoading} config={{ display: "block" }} />
+      <SubmitButton
+        disabled={submitDisabled}
+        text="SUBMIT"
+        {isLoading}
+        title={submitDisabled ? "Please supply a username and password." : ""}
+        config={{ display: "block" }}
+      />
     </div>
     {#if status}
       <small

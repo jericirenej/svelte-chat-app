@@ -38,18 +38,21 @@
 
   const baseClasses = `lead-none cursor-pointer 
     rounded border-2 border-solid 
-    disabled:opacity-75 disabled:cursor-not-allowed 
+    ring-offset-2 transition 
+    duration-100
     hover:shadow-sm
-    active:scale-95
-    active:ring-0
-    focus-visible:ring-1 ring-offset-2 focus:outline-none focus-visible:outline-none
-    transition duration-100`;
+    focus:outline-none
+    focus-visible:outline-none
+    focus-visible:ring-1 active:scale-95 active:ring-0 disabled:cursor-not-allowed
+    disabled:opacity-75 disabled:active:scale-100`;
 </script>
 
 <button
   class={`${baseClasses} ${displayType[display]} ${size ? sizes[size] : sizes.sm} ${
     buttonColor[variant][action]
-  } ${customClasses ?? ""}`}
+  } ${customClasses ?? ""}
+  disabled:active:scale-100
+  `}
   {type}
   {disabled}
   {...$$restProps}

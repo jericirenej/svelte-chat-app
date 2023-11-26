@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
+  import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import type { ActionResult } from "@sveltejs/kit";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
@@ -7,7 +8,6 @@
   import RootHeading from "../../components/atomic/RootHeading/RootHeading.svelte";
   import LoginControls from "../../components/organic/LoginControls.svelte";
   import { LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
-  import { promisifiedTimeout } from "../../lib/shared/utils.js";
   import type { ActionData, PageData } from "./$types.js";
   import { loginSchema } from "./login-form-validator.js";
 
@@ -18,9 +18,11 @@
     NonNullable<T>
   >;
 
-  let status: 200 | 404 | 400 | undefined = undefined;
+  let submitDisabled = true;
 
-  const { form, enhance } = superForm(data.form, {
+  let status: 200 | 404 | undefined = undefined;
+
+  const { form, enhance, validate } = superForm(data.form, {
     onSubmit: () => {
       isLoading = true;
     },
@@ -37,15 +39,17 @@
         await promisifiedTimeout(1500);
         return;
       }
-      if (result.type === "failure" && result.data) {
-        status = result.data.form.valid ? 404 : 400;
-        return;
-      }
-      status = 400;
+      status = result.status === 404 ? result.status : undefined;
     }
   });
 
-  const handleInput = () => {
+  const submitDisabledToggle = debounce(async () => {
+    const { valid } = await validate();
+    submitDisabled = !valid;
+  }, 150);
+
+  const handleInput = async () => {
+    submitDisabledToggle();
     status = undefined;
   };
 
@@ -67,6 +71,7 @@
       {isLoading}
       onInput={handleInput}
       {status}
+      {submitDisabled}
     />
   </form>
   <div class="mt-10">

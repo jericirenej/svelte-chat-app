@@ -20,6 +20,7 @@
     | undefined = undefined;
   export let text = "Submit";
   export let disabled = false;
+  export let title = "";
 </script>
 
 <Button
@@ -30,6 +31,7 @@
   size={config?.size}
   display={config?.display}
   customClasses={config?.customClasses ?? "py-[0.5rem]"}
+  {title}
 >
   <div class="flex justify-center">
     <div class="relative px-3" style:width={`${text.length + 3}ch`}>

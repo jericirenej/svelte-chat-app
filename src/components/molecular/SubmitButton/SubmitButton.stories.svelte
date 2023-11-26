@@ -4,7 +4,11 @@
   export const meta: Meta<SubmitButton> = {
     title: "Molecular/SubmitButton",
     component: SubmitButton,
-    argTypes: { isLoading: { control: "boolean" }, text: { control: "text" } }
+    argTypes: {
+      isLoading: { control: "boolean" },
+      text: { control: "text" },
+      title: { control: "text" }
+    }
   };
 </script>
 
@@ -16,4 +20,4 @@
   <SubmitButton {...args} />
 </Template>
 
-<Story name="primary" args={{ isLoading: false, text: "Login" }} />
+<Story name="primary" args={{ isLoading: false, text: "Login", title: "" }} />

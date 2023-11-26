@@ -7,7 +7,8 @@
     component: LoginForm,
     argTypes: {
       isLoading: { control: "boolean" },
-      status: { control: "radio", options: [200, 400, 404, undefined] }
+      submitDisabled: { control: "boolean" },
+      status: { control: "radio", options: [200, 404, undefined] }
     }
   };
 </script>
@@ -15,7 +16,11 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
-  const args: Partial<ComponentProps<LoginForm>> = { isLoading: false, status: undefined };
+  const args: Partial<ComponentProps<LoginForm>> = {
+    isLoading: false,
+    submitDisabled: false,
+    status: undefined
+  };
 </script>
 
 <Template let:args>
