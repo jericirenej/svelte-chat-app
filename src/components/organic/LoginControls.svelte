@@ -8,10 +8,11 @@
   export let onInput: (ev?: Event) => unknown = () => {};
   let message: string | undefined = undefined;
   export let isLoading = false;
-  export let status: "success" | "error" | undefined = undefined;
+  export let status: 200 | 404 | 400 | undefined = undefined;
   const defaultMessage = {
-    success: "Login successful!",
-    error: "Username or password not correct!"
+    200: "Login successful!",
+    404: "Username or password not correct!",
+    400: "Please supply a username and password"
   };
 </script>
 
@@ -46,7 +47,7 @@
       whitespace-nowrap
       text-center
       text-xs
-      ${status === "error" ? "text-red-600" : "text-emerald-500"}
+      ${status === 200 ? "text-emerald-500" : "text-red-600"}
       `}>{message ?? defaultMessage[status]}</small
       >
     {/if}

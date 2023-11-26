@@ -28,7 +28,7 @@ export const actions = {
     const username = originalUsername.toLowerCase();
     const isVerified = await verifyUser(username, password, dbService);
     if (!isVerified) {
-      return setError(form, "", VERIFICATION_FAILURE);
+      return setError(form, "", VERIFICATION_FAILURE, { status: 404 });
     }
 
     const user = await dbService.getUser({

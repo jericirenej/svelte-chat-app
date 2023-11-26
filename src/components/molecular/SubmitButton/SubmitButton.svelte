@@ -19,11 +19,12 @@
       }>
     | undefined = undefined;
   export let text = "Submit";
+  export let disabled = false;
 </script>
 
 <Button
   type="submit"
-  disabled={isLoading}
+  disabled={isLoading || disabled}
   action={config?.action ?? "confirm"}
   variant={config?.variant}
   size={config?.size}

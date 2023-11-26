@@ -18,7 +18,7 @@
     NonNullable<T>
   >;
 
-  let status: undefined | "success" | "error" = undefined;
+  let status: 200 | 404 | 400 | undefined = undefined;
 
   const { form, enhance } = superForm(data.form, {
     onSubmit: () => {
@@ -30,14 +30,18 @@
       const result = event.result as FormResult<Required<ActionData>>;
       isLoading = false;
       if (result.type === "success" && result.data) {
-        status = "success";
+        status = 200;
         const data = result.data;
 
         localStorage.setItem(LOCAL_SESSION_CSRF_KEY, data.csrfToken);
         await promisifiedTimeout(1500);
-      } else {
-        status = "error";
+        return;
       }
+      if (result.type === "failure" && result.data) {
+        status = result.data.form.valid ? 404 : 400;
+        return;
+      }
+      status = 400;
     }
   });
 

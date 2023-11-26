@@ -7,7 +7,7 @@
     component: LoginForm,
     argTypes: {
       isLoading: { control: "boolean" },
-      status: { control: "radio", options: ["success", "error", undefined] }
+      status: { control: "radio", options: [200, 400, 404, undefined] }
     }
   };
 </script>
