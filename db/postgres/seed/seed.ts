@@ -12,6 +12,9 @@ const BASE_UUID = "feec01c4-3e1a-4cde-9160-f114461d700e";
 
 type BaseCredentials = Omit<Auth, BaseDateColumns>;
 
+const formattedTime = (time: number): string =>
+  time >= 1000 ? `${(time / 1000).toFixed(2)} seconds` : `${time.toFixed(2)} miliseconds`;
+
 const { timestamp, printf, align } = format;
 
 const logForm = format.combine(
@@ -232,12 +235,15 @@ const populateChats = async (trx: Transaction<DB>): Promise<void> => {
 
 export const seed = async (): Promise<void> => {
   await db.transaction().execute(async (trx) => {
+    const begin = performance.now();
+    logInfo("Starting seed");
     logInfo("Clearing database");
     await sql`DELETE FROM public.user;`.execute(trx);
     await sql`DELETE FROM public.chat;`.execute(trx);
     await populateUsers(trx);
     await populateChats(trx);
-    logInfo("Seed complete. Exiting.");
+    const formatted = formattedTime(performance.now() - begin);
+    logInfo(`Seed completed in ${formatted}. Exiting.`);
   });
   await db.destroy();
 };
