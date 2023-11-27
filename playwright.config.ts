@@ -17,6 +17,10 @@ const config: PlaywrightTestConfig = {
       use: { ...devices["Desktop Firefox"] }
     },
     {
+      name: "safari",
+      use: { ...devices["Desktop Safari"] }
+    },
+    {
       name: "galaxy",
       use: { ...devices["Galaxy S III"] }
     }
