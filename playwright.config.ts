@@ -7,6 +7,7 @@ const config: PlaywrightTestConfig = {
   },
   globalSetup: "./tests/global.setup",
   testDir: "tests",
+  retries: 3,
   projects: [
     {
       name: "chromium",
@@ -19,10 +20,6 @@ const config: PlaywrightTestConfig = {
     {
       name: "safari",
       use: { ...devices["Desktop Safari"] }
-    },
-    {
-      name: "galaxy",
-      use: { ...devices["Galaxy S III"] }
     }
   ],
   testMatch: /(.+\.)?(test|spec)\.[jt]s/

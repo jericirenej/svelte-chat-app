@@ -44,7 +44,7 @@ const v5 = (...args: (string | number)[]): string => uuid5(args.join("-"), BASE_
 
 const baseCreate = new Date(2023, 0, 1, 12);
 
-const USERS = [
+export const USERS = [
   {
     username: "babbage" as const,
     name: "Charles",
