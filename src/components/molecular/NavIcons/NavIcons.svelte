@@ -33,7 +33,7 @@
           <span class="relative">
             <Icon {icon} class={classes.icon} />
             {#if routeId === href}
-              <span class={classes.visited} />
+              <span role="presentation" class={classes.visited} />
             {/if}
           </span>
         </a>
