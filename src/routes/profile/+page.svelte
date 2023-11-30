@@ -42,11 +42,11 @@
         <p class="font-bold">{user.username}</p>
       </div>
     </div>
-    <div class="grid grid-cols-[120px,_1fr] text-sm">
+    <dl class="grid grid-cols-[120px,_1fr] text-sm">
       {#each profileFields as { label, value }}
-        <p>{capitalize(label)}:</p>
-        <p>{handleValue(value)}</p>
+        <dt>{capitalize(label)}:</dt>
+        <dd>{handleValue(value)}</dd>
       {/each}
-    </div>
+    </dl>
   </div>
 </div>
