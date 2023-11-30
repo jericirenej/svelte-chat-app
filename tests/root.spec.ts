@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { USERS, type AvailableUsers } from "../db/postgres/seed/seed.js";
-import { cleanup, login } from "./utils.js";
+import type { AvailableUsers } from "../db/postgres/seed/seed.js";
+import { cleanup, login, userHashMap } from "./utils.js";
 
 const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
   const role = "listitem";
@@ -55,7 +55,7 @@ test("Should show welcome message", async ({ page }) => {
   await page.getByRole("button", { name: "Logout" }).click();
   await page.waitForURL("/login");
   const username: AvailableUsers = "chu_lonzo";
-  const name = USERS.filter((user) => user.username === username).map(({ name }) => name)[0];
+  const name = userHashMap[username].name;
   await login(page, username, `${username}-password`);
   await expect(page.getByRole("heading", { level: 1, name: "Chat App" })).toBeVisible();
   await expect(page.getByText(`Welcome ${name}!`)).toBeVisible();
