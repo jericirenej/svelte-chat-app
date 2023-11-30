@@ -6,8 +6,16 @@ import { SESSION_COOKIE } from "../src/constants.js";
 const defaultUser: AvailableUsers = "lovelace",
   defaultPassword: `${AvailableUsers}-password` = "lovelace-password";
 
+export const userHashMap = USERS.reduce(
+  (acc, curr) => {
+    acc[curr.username] = curr;
+    return acc;
+  },
+  {} as Record<AvailableUsers, (typeof USERS)[number]>
+);
+
 const shouldWaitForRoot = (user: string, password: string): boolean => {
-  if (!USERS.some(({ username }) => username === user)) return false;
+  if (!(user in userHashMap)) return false;
   return password === `${user}-password`;
 };
 
