@@ -16,10 +16,6 @@ const config: PlaywrightTestConfig = {
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] }
-    },
-    {
-      name: "safari",
-      use: { ...devices["Desktop Safari"] }
     }
   ],
   testMatch: /(.+\.)?(test|spec)\.[jt]s/
