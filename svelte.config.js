@@ -14,7 +14,8 @@ const config = {
     // See https://kit.svelte.dev/docs/adapters for more information about adapters.
     adapter: adapter(),
     alias: {
-      "@db": resolve("./db/index.ts")
+      "@db": resolve("./db/index.ts"),
+      "@utils": resolve("./utils/index.ts")
     }
   }
 };

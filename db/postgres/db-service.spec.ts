@@ -15,7 +15,7 @@ import {
   it,
   vi
 } from "vitest";
-import env from "../helpers/get-env.js";
+import env from "../environment.js";
 import { DatabaseService } from "./db-service.js";
 import { DB } from "./db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
@@ -39,11 +39,11 @@ const { Pool, Client } = pg;
 
 const TEST_DB_NAME = "test_db";
 const postgresConnection = {
-  database: env["POSTGRES_POSTGRES_DB"],
-  host: env["POSTGRES_HOST"],
-  user: env["POSTGRES_USER"],
-  password: env["POSTGRES_PASSWORD"],
-  port: Number(env["POSTGRES_PORT"]) | 5432
+  database: env.POSTGRES_POSTGRES_DB,
+  host: env.POSTGRES_HOST,
+  user: env.POSTGRES_USER,
+  password: env.POSTGRES_PASSWORD,
+  port: env.POSTGRES_PORT | 5432
 };
 const MIGRATIONS_PATH = new URL("./migrations", import.meta.url),
   TYPE_PATH = new URL("./db-types.ts", import.meta.url).pathname.substring(1);
@@ -212,6 +212,16 @@ describe("DatabaseService", () => {
           [firstUser, secondUser].map((u) => service.addUser(u))
         );
         await expect(service.removeUser(first.id, second.id)).rejects.toThrowError();
+      });
+      it("Get user credentials", async () => {
+        const { username, id } = await service.addUser(firstUser);
+        const targetCredentials = await db
+          .selectFrom("auth")
+          .selectAll()
+          .where("id", "=", id)
+          .executeTakeFirstOrThrow();
+        expect(await service.getCredentials(username)).toEqual(targetCredentials);
+        expect(await service.getCredentials("inexistent")).toBeUndefined();
       });
       it("Update user credentials", async () => {
         const { id } = await service.addUser(firstUser);

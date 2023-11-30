@@ -1,13 +1,13 @@
 import { createClient } from "redis";
-import env from "../helpers/get-env.js";
+import env from "../environment.js";
 
-export const clientConnection = () => createClient({ password: env["REDIS_HOST_PASSWORD"] });
-const client = clientConnection();
+const clientConnection = () => createClient({ password: env.REDIS_HOST_PASSWORD });
+const redisClient = clientConnection();
 
-client.on("error", (err) => {
+redisClient.on("error", (err) => {
   console.log("Redis Client Error: ", err);
 });
 
-export default client;
+export { clientConnection, redisClient };
 
-export type RedisClient = typeof client;
+export type RedisClient = typeof redisClient;

@@ -33,7 +33,8 @@ module.exports = {
       files: ["*.ts"],
       rules: {
         "@typescript-eslint/no-throw-literal": 0,
-        "@typescript-eslint/no-dynamic-delete": 0
+        "@typescript-eslint/no-dynamic-delete": 0,
+        "@typescript-eslint/prefer-reduce-type-parameter": 0
       }
     },
     {

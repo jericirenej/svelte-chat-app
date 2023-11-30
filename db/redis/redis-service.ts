@@ -1,10 +1,11 @@
+import env from "../environment.js";
 import { jsonReplacer, jsonReviver } from "../helpers/json-helpers.js";
 import { CompleteUserDto } from "../postgres/types.js";
-import client, { clientConnection, type RedisClient } from "./client.js";
+import { clientConnection, redisClient, type RedisClient } from "./client.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_DEFAULT_SEPARATOR = ":";
-export const REDIS_DEFAULT_TTL = 10 * 60;
+export const REDIS_DEFAULT_TTL = env.SESSION_TTL || 10 * 60;
 
 export class RedisService {
   readonly sessionPrefix = REDIS_SESSION_KEY_PREFIX;
@@ -22,6 +23,7 @@ export class RedisService {
 
   /** Create or update a session entry */
   async setSession(sessionId: string, user: CompleteUserDto): Promise<CompleteUserDto> {
+    if (!this.client.isOpen) await this.connect();
     const key = this.addSessionPrefix(sessionId);
     await this.client.set(key, JSON.stringify(user, jsonReplacer));
     await this.client.expire(key, this.ttl);
@@ -29,12 +31,14 @@ export class RedisService {
   }
 
   async getSession(sessionId: string): Promise<CompleteUserDto | null> {
+    if (!this.client.isOpen) await this.connect();
     const user = await this.client.get(this.addSessionPrefix(sessionId));
     if (user === null) return null;
     return JSON.parse(user, jsonReviver) as CompleteUserDto;
   }
 
   async deleteSession(sessionId: string): Promise<number> {
+    if (!this.client.isOpen) await this.connect();
     return await this.client.del(this.addSessionPrefix(sessionId));
   }
 
@@ -48,12 +52,17 @@ export class RedisService {
   }
 
   async deleteAll(): Promise<string> {
+    if (!this.client.isOpen) await this.connect();
     return await this.client.flushDb();
   }
   async destroy(): Promise<void> {
     await this.client.disconnect();
   }
 }
+
+const redisService = new RedisService(redisClient);
+await redisService.connect();
+export { redisService };
 
 if (import.meta.vitest) {
   const { describe, it, expect, beforeAll, afterAll, afterEach } = import.meta.vitest;
@@ -78,7 +87,7 @@ if (import.meta.vitest) {
     beforeAll(async () => {
       standaloneClient = clientConnection();
       await standaloneClient.connect();
-      service = new RedisService(client);
+      service = new RedisService(redisClient);
       await service.connect();
     });
     afterEach(async () => {

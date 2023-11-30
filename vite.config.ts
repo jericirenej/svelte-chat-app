@@ -7,9 +7,10 @@ export default defineConfig({
     environmentMatchGlobs: [
       ["src/**/*.spec.ts", "happy-dom"],
       ["db/**/*.spec.ts", "node"],
+      ["utils/**/*.spec.ts", "node"],
       ["src/lib/*.ts", "node"]
     ],
-    include: ["src/**/*.spec.ts", "db/**/*.spec.ts"],
-    includeSource: ["src/**/*.ts", "db/redis/*.ts"]
+    include: ["src/**/*.spec.ts", "db/**/*.spec.ts", "utils/**/*.spec.ts"],
+    includeSource: ["src/**/*.ts", "db/redis/*.ts", "utils/**/*.spec.ts"]
   }
 });
