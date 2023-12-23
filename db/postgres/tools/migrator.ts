@@ -10,7 +10,7 @@ import {
 } from "kysely";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { asyncExec } from "./utils.js";
+import { asyncExec, resolveUrlPath } from "./utils.js";
 
 export class ESMFileMigrationProvider implements MigrationProvider {
   constructor(private url: URL) {}
@@ -18,7 +18,8 @@ export class ESMFileMigrationProvider implements MigrationProvider {
   async getMigrations(): Promise<Record<string, Migration>> {
     const migrations: Record<string, Migration> = {};
 
-    const resolvedPath = this.url.pathname.substring(1);
+    
+    const resolvedPath = resolveUrlPath(this.url);
     const files = await fs.readdir(resolvedPath);
     for (const fileName of files) {
       if (!fileName.endsWith(".ts")) {
@@ -58,7 +59,11 @@ export class MigrationHelper {
     reset: this.#reset.bind(this)
   };
 
-  constructor(private db: Kysely<unknown>, private migrator: Migrator, typePath: string) {
+  constructor(
+    private db: Kysely<unknown>,
+    private migrator: Migrator,
+    typePath: string
+  ) {
     this.typePath = typePath;
   }
 

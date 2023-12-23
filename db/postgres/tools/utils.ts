@@ -1,6 +1,10 @@
 import { exec } from "child_process";
 import { randomUUID } from "crypto";
 import { promisify } from "util";
+import { platform } from "node:os";
+
+export const resolveUrlPath = (url: URL): string =>
+  !(platform() === "win32") ? url.pathname : url.pathname.substring(1);
 
 export const asyncExec = async (
   command: string
