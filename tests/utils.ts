@@ -31,10 +31,21 @@ export const login = async (
   password: string = defaultPassword,
   waitForRoot = true
 ): Promise<void> => {
-  if (!page.url().includes("login")) await page.goto("login");
-  await page.getByLabel("Username").fill(user);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "SUBMIT" }).click();
+  if (!page.url().includes("login")) {
+    await page.goto("/login");
+  }
+  const submitButton = page.getByRole("button", { name: "SUBMIT" });
+  const userField = page.getByLabel("Username"),
+    passwordField = page.getByLabel("Password");
+  for (const [field, val] of [
+    [userField, user],
+    [passwordField, password]
+  ] as const) {
+    await field.click();
+    await field.fill(val);
+  }
+
+  await submitButton.click();
   if (waitForRoot && shouldWaitForRoot(user, password)) {
     await page.waitForURL("/");
   }

@@ -55,10 +55,7 @@ test("Login page should show message on failed / successful login", async ({ pag
 });
 test("Successful login should redirect to root", async ({ page, context }) => {
   await page.goto("/login");
-  const submitButton = page.getByRole("button");
-  await page.getByLabel("Username").fill(user);
-  await page.getByLabel("Password").fill(password);
-  await submitButton.click();
+  await login(page, user, password, false);
   await expect(page).toHaveURL("/");
   await cleanup(context);
 });
