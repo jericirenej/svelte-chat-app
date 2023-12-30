@@ -14,3 +14,5 @@ export const debounce = <F extends (...args: unknown[]) => ReturnType<F>>(
     }, timeout);
   };
 };
+
+export const secureCookieEval = (url:URL):boolean =>  url.hostname === "localhost" || url.protocol === "https"

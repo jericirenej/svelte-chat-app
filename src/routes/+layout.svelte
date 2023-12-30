@@ -3,9 +3,12 @@
   import { page } from "$app/stores";
   import { fly } from "svelte/transition";
   import "../app.css";
+  import { getContext } from "svelte";
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import { CSRF_HEADER, LOCAL_SESSION_CSRF_KEY } from "../constants.js";
   import type { LayoutData } from "./$types";
+  import type { ClientToServerEvents, ServerToClientEvents } from "$lib/types";
+  import { socket } from "$lib/client/socket-store";
 
   export let data: LayoutData;
 
@@ -21,6 +24,8 @@
         [CSRF_HEADER]: csrf
       }
     });
+    
+    $socket?.disconnect()
     await invalidateAll();
     goto("/");
   };

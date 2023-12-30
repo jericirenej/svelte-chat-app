@@ -1,13 +1,17 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
+  import { page } from "$app/stores";
+  import { socket } from "$lib/client/socket-store";
+  import type { SocketClient } from "$lib/types";
   import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import type { ActionResult } from "@sveltejs/kit";
+  import { io } from "socket.io-client";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
   import RootHeading from "../../components/atomic/RootHeading/RootHeading.svelte";
   import LoginControls from "../../components/organic/LoginControls.svelte";
-  import { LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
+  import { CSRF_HEADER, LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
   import type { ActionData, PageData } from "./$types.js";
   import { loginSchema } from "./login-form-validator.js";
 
@@ -36,6 +40,13 @@
         const data = result.data;
 
         localStorage.setItem(LOCAL_SESSION_CSRF_KEY, data.csrfToken);
+
+        socket.set(
+          io(`${$page.url.origin}`, {
+            path: "/websocket/",
+            extraHeaders: { [CSRF_HEADER]: data.csrfToken }
+          }).connect() as SocketClient
+        );
         await promisifiedTimeout(1500);
         return;
       }

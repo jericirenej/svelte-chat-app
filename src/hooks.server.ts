@@ -1,4 +1,5 @@
 import { authenticateUser } from "$lib/server/authenticate.js";
+import { GlobalThisSocketServer, type ExtendedGlobal } from "$lib/server/socket.js";
 import { error, redirect, type Handle, type HandleServerError } from "@sveltejs/kit";
 import type { CompleteUserDto } from "../db/index.js";
 import {
@@ -27,7 +28,12 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
   return;
 };
 
+
 export const handle: Handle = async ({ event, resolve }) => {
+ console.log(event.url.href)
+  if (!event.locals.socketServer) {
+    event.locals.socketServer = (globalThis as ExtendedGlobal)[GlobalThisSocketServer];
+  }
   const sessionId = event.cookies.get(SESSION_COOKIE),
     csrfToken = event.request.headers.get(CSRF_HEADER),
     method = event.request.method;
