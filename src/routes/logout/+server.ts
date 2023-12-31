@@ -12,6 +12,6 @@ export const DELETE: RequestHandler = async ({ cookies, url }) => {
   if (!logout) {
     throw error(500, "Error while performing logout!");
   }
-  cookies.delete(SESSION_COOKIE, { secure: secureCookieEval(url) });
+  cookies.delete(SESSION_COOKIE, { secure: secureCookieEval(url), path:"/" });
   return new Response(null, { status: 200 });
 };

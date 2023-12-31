@@ -32,7 +32,7 @@ test("Should show navbar with appropriate nav items", async ({ page }) => {
 test("Should navigate", async ({ page }) => {
   const { homepage, profile } = getPages(page);
   for (const [link, targetUrl] of [
-    [profile, "/profile"],
+    [profile, "/profile/"],
     [homepage, "/"]
   ] as const) {
     await link.click();

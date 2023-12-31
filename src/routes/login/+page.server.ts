@@ -45,6 +45,7 @@ export const actions = {
       httpOnly: true,
       maxAge: redisService.ttl,
       sameSite: true,
+      path:"/",
       secure: secureCookieEval(url)
     });
     const csrfToken = generateCsrfToken(sessionId);

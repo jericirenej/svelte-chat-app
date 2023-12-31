@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Locator, Page } from "@playwright/test";
 import { redisService } from "../db/index.js";
 import { USERS, type AvailableUsers } from "../db/postgres/seed/seed.js";
 import { SESSION_COOKIE } from "../src/constants.js";
@@ -25,6 +25,11 @@ export const cleanup = async (context: BrowserContext): Promise<void> => {
   await redisService.deleteSession(sessionCookie.value);
 };
 
+export const clickAndFillLocator = async (locator: Locator, val: string): Promise<void> => {
+  await locator.click();
+  await locator.fill(val);
+};
+
 export const login = async (
   page: Page,
   user: string = defaultUser,
@@ -41,8 +46,7 @@ export const login = async (
     [userField, user],
     [passwordField, password]
   ] as const) {
-    await field.click();
-    await field.fill(val);
+    await clickAndFillLocator(field, val);
   }
 
   await submitButton.click();

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { cleanup, login } from "./utils.js";
+import { cleanup, clickAndFillLocator, login } from "./utils.js";
 
 const user: AvailableUsers = "babbage",
   password: `${AvailableUsers}-password` = "babbage-password";
@@ -39,8 +39,8 @@ test("Should not allow submission of invalid form", async ({ page }) => {
 test("Should allow submit on valid form", async ({ page }) => {
   await page.goto("/login");
   const submitButton = page.getByRole("button");
-  await page.getByLabel("Username").fill("username");
-  await page.getByLabel("Password").fill("password");
+  await clickAndFillLocator(page.getByLabel("Username"), "username");
+  await clickAndFillLocator(page.getByLabel("Password"), "password");
   await expect(submitButton).toBeEnabled();
 });
 

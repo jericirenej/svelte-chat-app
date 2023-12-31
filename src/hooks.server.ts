@@ -43,7 +43,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   const user = await authenticateUser({ sessionId, csrfToken, method });
   // Clear session id cookie if user is invalid
   if (!user && sessionId) {
-    event.cookies.delete(SESSION_COOKIE);
+    event.cookies.delete(SESSION_COOKIE, {path:"/"});
     event.locals.user = undefined;
   }
   // For non-authorized, non-get methods at non-login endpoint we throw forbidden immediately.
