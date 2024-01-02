@@ -542,6 +542,20 @@ describe("DatabaseService", () => {
       await db.deleteFrom("chat").execute();
       expect(await service.getChat(id)).toBeUndefined();
     });
+    it("Should get chatIds for user", async () => {
+      const otherChat = "otherChat";
+      const { id: firstChatId } = await service.createChat({ name: chatName, participants });
+      const { id: secondChatId } = await service.createChat({
+        name: otherChat,
+        participants: [...participants, thirdCreated.id]
+      });
+
+      expect(await service.getChatIdsForUser(participants[0])).toEqual([
+        firstChatId,
+        secondChatId,
+      ]);
+      expect(await service.getChatIdsForUser(thirdCreated.id)).toEqual([secondChatId]);
+    });
     it("Should get chats", async () => {
       const otherChat = "otherChat";
       const { id: firstChatId } = await service.createChat({ name: chatName, participants });

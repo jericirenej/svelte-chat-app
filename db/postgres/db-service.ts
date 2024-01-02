@@ -334,6 +334,7 @@ export class DatabaseService {
     };
   }
 
+  
   async getChats({ chatIds, direction, property }: GetChatsDto): Promise<GetChatDto[]> {
     if (!chatIds || !chatIds.length) {
       return throwHttpError(400, "At least one chat id must be supplied!");
@@ -346,19 +347,25 @@ export class DatabaseService {
       participants: chat.participants.map(({ userId }) => userId)
     }));
   }
+  
+  async getChatIdsForUser(userId: string): Promise<string[]> {
+    const chatIds = await this.db
+      .selectFrom("participant")
+      .select("chatId")
+      .where("userId", "=", userId)
+      .execute();
+
+    return chatIds.map(({ chatId }) => chatId);
+  }
 
   async getChatsForUser(
     userId: string,
     orderBy: Partial<ChatOrderProperties> = {}
   ): Promise<GetChatDto[]> {
-    const chatIdsQuery = await this.db
-      .selectFrom("participant")
-      .select("chatId")
-      .where("userId", "=", userId)
-      .execute();
-    if (!chatIdsQuery.length) return [];
+    const chatIds = await this.getChatIdsForUser(userId);
+    if (!chatIds.length) return [];
 
-    return await this.getChats({ chatIds: chatIdsQuery.map(({ chatId }) => chatId), ...orderBy });
+    return await this.getChats({ chatIds, ...orderBy });
   }
 
   private baseGetChatQuery() {
