@@ -27,9 +27,9 @@
 
 <ul class="grid grid-cols-3 rounded-[inherit]">
   {#each template as { icon, href, title }}
-    <li {title} class={classes.li}>
+    <li class={classes.li}>
       {#if href}
-        <a class={classes.anchorOrButton} {href}>
+        <a {title} class={classes.anchorOrButton} {href}>
           <span class="relative">
             <Icon {icon} class={classes.icon} />
             {#if routeId === href}

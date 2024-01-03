@@ -36,17 +36,19 @@ test("Should not allow submission of invalid form", async ({ page }) => {
   await expect(submitButton).toBeDisabled();
 });
 
-test("Should allow submit on valid form", async ({ page }) => {
+test("Should allow submit on valid form", async ({ page,  }) => {
   await page.goto("/login");
-  const submitButton = page.getByRole("button");
-  await clickAndFillLocator(page.getByLabel("Username"), "username");
-  await clickAndFillLocator(page.getByLabel("Password"), "password");
-  await expect(submitButton).toBeEnabled();
+  await clickAndFillLocator(page.getByPlaceholder("Enter your username"), "username");
+  await clickAndFillLocator(page.getByPlaceholder("Enter your password"), "password");
+  await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();
 });
 
-test("Login page should show message on failed / successful login", async ({ page, context }) => {
+test("Login page should show message on failed / successful login", async ({
+  page,
+  context,
+}) => {
   await page.goto("/login");
-  await login(page, "user", "password");
+  await login(page, "user", "password", false);
   await expect(page.getByText("Username or password not correct!")).toBeVisible();
 
   await login(page, user, password, false);
@@ -66,6 +68,6 @@ test("Successful login should persist when new page with same storageState is op
   await login(page);
   const newPage = await context.newPage();
   await page.close();
-  await newPage.goto("/");
-  await expect(newPage).toHaveURL("/");
+  await newPage.goto("/login");
+  await newPage.waitForURL("/");
 });
