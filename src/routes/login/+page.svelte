@@ -27,7 +27,7 @@
   let status: 200 | 404 | undefined = undefined;
 
   const { form, enhance, validate } = superForm(data.form, {
-    onSubmit: () => {
+    onSubmit: async () => {
       isLoading = true;
     },
     validators: loginSchema,
@@ -41,12 +41,14 @@
 
         localStorage.setItem(LOCAL_SESSION_CSRF_KEY, data.csrfToken);
 
-        socket.set(
-          io(`${$page.url.origin}`, {
-            path: "/websocket/",
-            extraHeaders: { [CSRF_HEADER]: data.csrfToken }
-          }).connect() as SocketClient
-        );
+        console.log("WILL TRY CONNECTION")
+        const connected = io(`${$page.url.origin}`, {
+          path: "/websocket/",
+          extraHeaders: { [CSRF_HEADER]: data.csrfToken }
+        }).connect() as SocketClient;
+
+        connected.on("basicEmit", (val) => console.log("Received:", val));
+        socket.set(connected);
         await promisifiedTimeout(1500);
         return;
       }

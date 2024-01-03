@@ -1,6 +1,6 @@
 import type { SocketClient } from "$lib/types";
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 
-export const socket = writable(
-  undefined as SocketClient | undefined
+export const socket:Writable<SocketClient|undefined> = writable(
+  undefined
 );

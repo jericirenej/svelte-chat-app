@@ -1,8 +1,9 @@
 import type { Server } from "socket.io";
 import type { Socket } from "socket.io-client";
+import type { GlobalThisSocketServer } from "../constants";
 export type ServerToClientEvents = {
   noArg: () => void;
-  basicEmit: (a: number, b: string, c: Buffer) => void;
+  basicEmit: (a: string) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
   error: (a: string) => void;
 };
@@ -28,3 +29,4 @@ export type SocketServer = Server<
 >;
 
 export type SocketClient = Socket<ServerToClientEvents, ClientToServerEvents>;
+export type ExtendedGlobal = typeof globalThis & { [GlobalThisSocketServer]: SocketServer };

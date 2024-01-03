@@ -1,14 +1,25 @@
 import { authenticateUser } from "$lib/server/authenticate.js";
-import { GlobalThisSocketServer, type ExtendedGlobal } from "$lib/server/socket.js";
 import { error, redirect, type Handle, type HandleServerError } from "@sveltejs/kit";
-import type { CompleteUserDto } from "../db/index.js";
+import type { CompleteUserDto } from "@db";
 import {
   CSRF_HEADER,
+  GlobalThisSocketServer,
   LOGIN_ROUTE,
   ROOT_ROUTE,
   SESSION_COOKIE,
   UNPROTECTED_ROUTES
 } from "./constants.js";
+import { setupSocketServer } from "$lib/server/socket-setup.js";
+import type { ExtendedGlobal } from "$lib/types.js";
+
+let socketServerInitialized = false;
+const extendedGlobal = globalThis as ExtendedGlobal;
+
+const initializeSocketServer = (): void => {
+  if (socketServerInitialized) return;
+  setupSocketServer(extendedGlobal[GlobalThisSocketServer]);
+  socketServerInitialized = true;
+};
 
 const hasUserChanged = ({ id: stored }: CompleteUserDto, { id: received }: CompleteUserDto) =>
   stored === received;
@@ -28,12 +39,12 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
   return;
 };
 
-
 export const handle: Handle = async ({ event, resolve }) => {
- console.log(event.url.href)
-  if (!event.locals.socketServer) {
-    event.locals.socketServer = (globalThis as ExtendedGlobal)[GlobalThisSocketServer];
-  }
+  console.log(event.url.href);
+  initializeSocketServer();
+ /*  if (!event.locals.socketServer) {
+    event.locals.socketServer = extendedGlobal[GlobalThisSocketServer];
+  } */
   const sessionId = event.cookies.get(SESSION_COOKIE),
     csrfToken = event.request.headers.get(CSRF_HEADER),
     method = event.request.method;
@@ -43,7 +54,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   const user = await authenticateUser({ sessionId, csrfToken, method });
   // Clear session id cookie if user is invalid
   if (!user && sessionId) {
-    event.cookies.delete(SESSION_COOKIE, {path:"/"});
+    event.cookies.delete(SESSION_COOKIE, { path: "/" });
     event.locals.user = undefined;
   }
   // For non-authorized, non-get methods at non-login endpoint we throw forbidden immediately.
