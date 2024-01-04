@@ -43,6 +43,19 @@ services:
     container_name: "redis-insight"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    restart: always
+    container_name: "playwright-e2e"
+    init: true
+    ipc: host
+    command:
+      [
+        "/bin/sh",
+        -c,
+        "cd /home/pwuser && npx -y playwright@1.40.0 run-server --port 5000"
+      ]
+    network_mode: host
 
 volumes:
   postgres-vol:

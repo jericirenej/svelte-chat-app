@@ -12,7 +12,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
     "format": "prettier --plugin-search-dir . --write .",
-    "test:integration": "playwright test",
+    "test:integration": "PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:5000/ npx playwright test",
     "test:unit": "vitest",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

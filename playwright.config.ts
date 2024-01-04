@@ -5,8 +5,6 @@ const config: PlaywrightTestConfig = {
     command: "npm run build && npm run preview",
     url: "http://localhost:4173",
   },
-  workers: 4,
- /* timeout: 10e3, */
   globalSetup: "./tests/global.setup",
   globalTeardown: "./tests/global.teardown",
   testDir: "tests",
