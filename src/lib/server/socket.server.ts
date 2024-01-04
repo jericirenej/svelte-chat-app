@@ -1,6 +1,7 @@
-import type { SocketServer } from "$lib/types";
-import { dbService, redisService } from "@db";
+import type { SocketServer } from "$lib/socket.types";
+import { dbService } from "@db";
 import { CSRF_HEADER, SESSION_COOKIE } from "../../constants";
+import { authenticateUserWS } from "./authenticate";
 
 const extractCookies = (cookie?: string): Record<string, string> | null => {
   if (!cookie) return null;
@@ -15,38 +16,40 @@ const extractCookies = (cookie?: string): Record<string, string> | null => {
 };
 
 export const setupSocketServer = (socketServer: SocketServer): void => {
-  socketServer.on("connection", async (socket) => {
+  socketServer.on("connect", async (socket) => {
     console.log(`Socket ${socket.id} connection attempted`);
+
 
     const { headers } = socket.request;
 
-    const csrfHeader = socket.request.headers[CSRF_HEADER.toLowerCase()] as string;
-    const chatSessionId = extractCookies(headers.cookie)?.[SESSION_COOKIE];
-    if (!(chatSessionId && csrfHeader)) {
+    const csrfToken = socket.request.headers[CSRF_HEADER.toLowerCase()] as string;
+    const sessionId = extractCookies(headers.cookie)?.[SESSION_COOKIE];
+    if (!(sessionId && csrfToken)) {
       socket.emit("error", "No chat session cookie or csrf header present. Disconnecting.");
       socket.disconnect(true);
       return;
     }
 
-    const user = await redisService.getSession(chatSessionId);
+    const user = await authenticateUserWS({ sessionId, csrfToken });
+
     if (!user) {
-      socket.emit("error", "Invalid session id. Disconnecting");
+      socket.emit("error", "Authentication failed. Disconnecting.");
       socket.disconnect(true);
       return;
     }
 
-    console.log("USER", user.username);
-
     const chats = await dbService.getChatIdsForUser(user.id);
-    console.log("CHATS", chats);
-
     if (chats.length) {
       await socket.join(chats);
-      socket.to(chats).emit("basicEmit", "Chat participants hello!");
+      socket.to(chats).emit("participantOnline", user.username, true);
     }
 
     socket.on("disconnect", () => {
+      socket.to([...socket.rooms]).emit("participantOnline", user.username, false);
       console.log(`Socket ${socket.id} disconnected`);
+      socket.disconnect(true);
     });
   });
 };
+
+

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { socket } from "$lib/client/socket-store";
-  import type { SocketClient } from "$lib/types";
+  import { socket, socketClientSetup } from "$lib/client/socket.client";
+  import type { SocketClient } from "$lib/socket.types";
   import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import type { ActionResult } from "@sveltejs/kit";
   import { io } from "socket.io-client";
@@ -40,15 +40,8 @@
         const data = result.data;
 
         localStorage.setItem(LOCAL_SESSION_CSRF_KEY, data.csrfToken);
+        socket.set(socketClientSetup($page.url.origin, data.csrfToken));
 
-        console.log("WILL TRY CONNECTION")
-        const connected = io(`${$page.url.origin}`, {
-          path: "/websocket/",
-          extraHeaders: { [CSRF_HEADER]: data.csrfToken }
-        }).connect() as SocketClient;
-
-        connected.on("basicEmit", (val) => console.log("Received:", val));
-        socket.set(connected);
         await promisifiedTimeout(1500);
         return;
       }

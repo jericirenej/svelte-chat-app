@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { socket } from "$lib/client/socket-store";
+  import { socket } from "$lib/client/socket.client";
   import { fly } from "svelte/transition";
   import "../app.css";
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
@@ -22,7 +22,6 @@
         [CSRF_HEADER]: csrf
       }
     });
-    
     $socket?.disconnect();
     socket.set(undefined);
     await invalidateAll();

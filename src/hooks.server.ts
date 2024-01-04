@@ -1,4 +1,4 @@
-import { authenticateUser } from "$lib/server/authenticate.js";
+import { authenticateUserHTTP } from "$lib/server/authenticate.js";
 import { error, redirect, type Handle, type HandleServerError } from "@sveltejs/kit";
 import type { CompleteUserDto } from "@db";
 import {
@@ -9,14 +9,14 @@ import {
   SESSION_COOKIE,
   UNPROTECTED_ROUTES
 } from "./constants.js";
-import { setupSocketServer } from "$lib/server/socket-setup.js";
-import type { ExtendedGlobal } from "$lib/types.js";
+import { setupSocketServer } from "$lib/server/socket.server.js";
+import type { ExtendedGlobal } from "$lib/socket.types.js";
 
 let socketServerInitialized = false;
 const extendedGlobal = globalThis as ExtendedGlobal;
 
 const initializeSocketServer = (): void => {
-  if (socketServerInitialized) return;
+  if (socketServerInitialized || !extendedGlobal[GlobalThisSocketServer]) return;
   setupSocketServer(extendedGlobal[GlobalThisSocketServer]);
   socketServerInitialized = true;
 };
@@ -51,7 +51,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   const isUnprotectedRoute = UNPROTECTED_ROUTES.includes(event.url.pathname),
     isLoginRoute = event.url.pathname === LOGIN_ROUTE,
     isRootRoute = event.url.pathname === ROOT_ROUTE;
-  const user = await authenticateUser({ sessionId, csrfToken, method });
+  const user = await authenticateUserHTTP({ sessionId, csrfToken, method });
   // Clear session id cookie if user is invalid
   if (!user && sessionId) {
     event.cookies.delete(SESSION_COOKIE, { path: "/" });

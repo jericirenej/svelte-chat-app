@@ -1,4 +1,4 @@
-import { createSocketServer } from "./src/lib/server/socket.js";
+import { createSocketServer } from "./src/lib/server/socket.global.js";
 import { sveltekit } from "@sveltejs/kit/vite";
 import type { PreviewServerForHook, ViteDevServer } from "vite";
 import { defineConfig } from "vitest/config";

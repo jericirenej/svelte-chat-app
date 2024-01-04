@@ -4,6 +4,7 @@ import type { GlobalThisSocketServer } from "../constants";
 export type ServerToClientEvents = {
   noArg: () => void;
   basicEmit: (a: string) => void;
+  participantOnline: (username:string, online:boolean) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
   error: (a: string) => void;
 };
@@ -29,4 +30,4 @@ export type SocketServer = Server<
 >;
 
 export type SocketClient = Socket<ServerToClientEvents, ClientToServerEvents>;
-export type ExtendedGlobal = typeof globalThis & { [GlobalThisSocketServer]: SocketServer };
+export type ExtendedGlobal = typeof globalThis & { [GlobalThisSocketServer]: SocketServer | undefined };
