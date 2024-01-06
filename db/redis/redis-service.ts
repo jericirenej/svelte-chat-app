@@ -4,11 +4,13 @@ import { CompleteUserDto } from "../postgres/types.js";
 import { clientConnection, redisClient, type RedisClient } from "./client.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
+export const REDIS_SESSION_SOCKET_PREFIX = "socket";
 export const REDIS_DEFAULT_SEPARATOR = ":";
 export const REDIS_DEFAULT_TTL = env.SESSION_TTL || 10 * 60;
 
 export class RedisService {
   readonly sessionPrefix = REDIS_SESSION_KEY_PREFIX;
+  readonly sessionSocketPrefix = REDIS_SESSION_SOCKET_PREFIX;
   readonly separator = REDIS_DEFAULT_SEPARATOR;
   #ttl = REDIS_DEFAULT_TTL;
 
@@ -46,6 +48,30 @@ export class RedisService {
     return [this.sessionPrefix, sessionId].join(this.separator);
   }
 
+  async setSocketSession(sessionId: string, socketId: string): Promise<string | null> {
+    if (this.client.isOpen) await this.connect();
+    const sessionTTL = await this.client.ttl(this.addSessionPrefix(sessionId));
+
+    if (sessionTTL <= 0) return null;
+    const key = this.addSocketPrefix(sessionId);
+    const val = await this.client.set(key, socketId);
+    if (val) {
+      await this.client.expire(key, sessionTTL);
+    }
+    return val ? socketId : null;
+  }
+
+  async getSocketSession(sessionId: string): Promise<string | null> {
+    if (this.client.isOpen) await this.connect();
+    return await this.client.get(this.addSocketPrefix(sessionId));
+  }
+  async deleteSocketSession(sessionId: string): Promise<number> {
+    return await this.client.del(this.addSocketPrefix(sessionId));
+  }
+  addSocketPrefix(sessionId: string): string {
+    return [this.sessionSocketPrefix, sessionId].join(this.separator);
+  }
+
   async connect(): Promise<void> {
     if (this.client.isOpen) return;
     await this.client.connect();
@@ -66,38 +92,37 @@ export { redisService };
 
 if (import.meta.vitest) {
   const { describe, it, expect, beforeAll, afterAll, afterEach } = import.meta.vitest;
-
-  describe("RedisService", () => {
-    let standaloneClient: RedisClient;
-    const session1 = "session1",
-      session2 = "session2";
-    const user1: CompleteUserDto = {
-        id: "new_user_123_id",
-        username: "new_user_123",
-        name: "Name",
-        surname: null,
-        email: "name@surname.nowhere",
-        avatar: "some-avatar-data",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        role: "admin"
-      },
-      user2 = { ...user1, id: "second_new_user_id", email: "second@surname.nowhere" };
-    let service: RedisService;
-    beforeAll(async () => {
-      standaloneClient = clientConnection();
-      await standaloneClient.connect();
-      service = new RedisService(redisClient);
-      await service.connect();
-    });
-    afterEach(async () => {
-      await service.deleteAll();
-      service.ttl = REDIS_DEFAULT_TTL;
-    });
-    afterAll(async () => {
-      await service.destroy();
-      await standaloneClient.disconnect();
-    });
+  let standaloneClient: RedisClient;
+  const session1 = "session1",
+    session2 = "session2";
+  const user1: CompleteUserDto = {
+      id: "new_user_123_id",
+      username: "new_user_123",
+      name: "Name",
+      surname: null,
+      email: "name@surname.nowhere",
+      avatar: "some-avatar-data",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      role: "admin"
+    },
+    user2 = { ...user1, id: "second_new_user_id", email: "second@surname.nowhere" };
+  let service: RedisService;
+  beforeAll(async () => {
+    standaloneClient = clientConnection();
+    await standaloneClient.connect();
+    service = new RedisService(redisClient);
+    await service.connect();
+  });
+  afterEach(async () => {
+    await service.deleteAll();
+    service.ttl = REDIS_DEFAULT_TTL;
+  });
+  afterAll(async () => {
+    await service.destroy();
+    await standaloneClient.disconnect();
+  });
+  describe("Session management", () => {
     it("Should return user object ", async () => {
       expect(await service.setSession(session1, user1)).toEqual(user1);
     });
@@ -144,6 +169,46 @@ if (import.meta.vitest) {
       await service.setSession(session1, user1);
       ttl = await standaloneClient.ttl(service.addSessionPrefix(session1));
       expect(isInRange(ttl, service.ttl)).toBe(true);
+    });
+  });
+  describe("Socket management", () => {
+    const socket1 = "socket1",
+      socket2 = "socket2";
+    it("Should only set socket session if a session already exists", async () => {
+      for (const populateSession of [false, true]) {
+        if (populateSession) {
+          await service.setSession(session1, user1);
+        }
+        const result = await service.setSocketSession(session1, socket1);
+        const socketEntry = await standaloneClient.get(service.addSocketPrefix(session1));
+        const expected = populateSession ? socket1 : null;
+        expect(result).toEqual(expected);
+        expect(socketEntry).toEqual(expected);
+        await service.deleteAll();
+      }
+    });
+    it("Socket entry should have same TTL as its session", async () => {
+      redisService.ttl = 10;
+      await redisService.setSession(session1, user1);
+      redisService.ttl = 100;
+      await redisService.setSession(session2, user2);
+      redisService.ttl = 30;
+      await Promise.all(
+        [socket1, socket2].map(async (socket, i) => {
+          await redisService.setSocketSession(`session${i + 1}`, socket);
+        })
+      );
+      for (const session of [session1, session2]) {
+        const socket_TTL = await standaloneClient.ttl(redisService.addSocketPrefix(session)),
+          session_TTL = await standaloneClient.ttl(redisService.addSessionPrefix(session));
+        expect(socket_TTL).toBe(session_TTL);
+      }
+    });
+    it("Should delete socket session", async () => {
+      await redisService.setSession(session1, user1);
+      await redisService.setSocketSession(session1, socket1);
+      await redisService.deleteSocketSession(session1);
+      expect(await redisService.getSocketSession(session1)).toBeNull();
     });
   });
 }

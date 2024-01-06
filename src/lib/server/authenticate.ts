@@ -38,11 +38,3 @@ export const authenticateUserWS = async (
 ): Promise<AuthenticationReturn> => {
   return await authenticateUser(authArgs);
 };
-
-/** Logout the current user. Will not check if session exists.
- * Will not authenticate. This is done by the authentication function called
- * previously in the handle hook. */
-export const logoutUser = async (sessionId: string): Promise<boolean> => {
-  const logout = await redisService.deleteSession(sessionId);
-  return !!logout;
-};

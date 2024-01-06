@@ -1,12 +1,13 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { socket } from "$lib/client/socket.client";
+  import { socket, socketClientSetup } from "$lib/client/socket.client";
   import { fly } from "svelte/transition";
   import "../app.css";
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import { CSRF_HEADER, LOCAL_SESSION_CSRF_KEY } from "../constants.js";
   import type { LayoutData } from "./$types";
+  import { onMount } from "svelte";
 
   export let data: LayoutData;
 
@@ -22,11 +23,17 @@
         [CSRF_HEADER]: csrf
       }
     });
-    $socket?.disconnect();
     socket.set(undefined);
     await invalidateAll();
     goto("/");
   };
+
+  onMount(async () => {
+    if ($socket) return;
+    const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
+    if (!csrf) return;
+    socket.set(socketClientSetup($page.url.origin, csrf));
+  });
 </script>
 
 <div

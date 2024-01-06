@@ -42,9 +42,9 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
 export const handle: Handle = async ({ event, resolve }) => {
   console.log(event.url.href);
   initializeSocketServer();
- /*  if (!event.locals.socketServer) {
+  if (!event.locals.socketServer) {
     event.locals.socketServer = extendedGlobal[GlobalThisSocketServer];
-  } */
+  }
   const sessionId = event.cookies.get(SESSION_COOKIE),
     csrfToken = event.request.headers.get(CSRF_HEADER),
     method = event.request.method;

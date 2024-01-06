@@ -1,6 +1,6 @@
 // See https://kit.svelte.dev/docs/types#app
 
-import type { SocketServer } from "$lib/server/socket.js";
+import type { SocketServer } from "$lib/socket.types.js";
 import type { CompleteUserDto } from "../db/index.js";
 
 // for information about these interfaces

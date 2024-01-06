@@ -1,5 +1,5 @@
 import type { SocketServer } from "$lib/socket.types";
-import { dbService } from "@db";
+import { dbService, redisService } from "@db";
 import { CSRF_HEADER, SESSION_COOKIE } from "../../constants";
 import { authenticateUserWS } from "./authenticate";
 
@@ -15,10 +15,21 @@ const extractCookies = (cookie?: string): Record<string, string> | null => {
   );
 };
 
+const removeDuplicatedSocketIfExists = async (
+  socketServer: SocketServer,
+  sessionId: string
+): Promise<void> => {
+  const sessionSocket = await redisService.getSocketSession(sessionId);
+  if (!sessionSocket) return;
+  const sockets = await socketServer.fetchSockets();
+  console.log("Disconnecting socket from orphaned session");
+  sockets.find(({ id }) => id === sessionSocket)?.disconnect(true);
+  await redisService.deleteSocketSession(sessionId);
+};
+
 export const setupSocketServer = (socketServer: SocketServer): void => {
   socketServer.on("connect", async (socket) => {
     console.log(`Socket ${socket.id} connection attempted`);
-
 
     const { headers } = socket.request;
 
@@ -38,6 +49,8 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
       return;
     }
 
+    await removeDuplicatedSocketIfExists(socketServer, sessionId);
+    await redisService.setSocketSession(sessionId, socket.id);
     const chats = await dbService.getChatIdsForUser(user.id);
     if (chats.length) {
       await socket.join(chats);
@@ -51,5 +64,3 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
     });
   });
 };
-
-
