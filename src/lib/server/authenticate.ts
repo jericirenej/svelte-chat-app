@@ -1,15 +1,17 @@
 import { redisService, type CompleteUserDto } from "@db";
 import { getSessionFromCsrfToken, verifyCsrfToken } from "./password-utils.js";
 
-export const authenticateUser = async ({
+type BaseAuthenticationArgs = { sessionId: string | undefined; csrfToken: string | null };
+
+type AuthenticationArgs = BaseAuthenticationArgs & { method?: string };
+type AuthenticationArgsHTTP = Required<AuthenticationArgs>;
+type AuthenticationReturn = CompleteUserDto | null;
+
+const authenticateUser = async ({
   sessionId,
   csrfToken,
   method
-}: {
-  sessionId: string | undefined;
-  csrfToken: string | null;
-  method: string;
-}): Promise<CompleteUserDto | null> => {
+}: AuthenticationArgs): Promise<AuthenticationReturn> => {
   if (!sessionId) return null;
   const user = await redisService.getSession(sessionId);
   if (!user) return null;
@@ -25,10 +27,14 @@ export const authenticateUser = async ({
   return user;
 };
 
-/** Logout the current user. Will not check if session exists.
- * Will not authenticate. This is done by the authentication function called
- * previously in the handle hook. */
-export const logoutUser = async (sessionId: string): Promise<boolean> => {
-  const logout = await redisService.deleteSession(sessionId);
-  return !!logout;
+export const authenticateUserHTTP = async (
+  authArgs: AuthenticationArgsHTTP
+): Promise<AuthenticationReturn> => {
+  return await authenticateUser(authArgs);
+};
+
+export const authenticateUserWS = async (
+  authArgs: BaseAuthenticationArgs
+): Promise<AuthenticationReturn> => {
+  return await authenticateUser(authArgs);
 };

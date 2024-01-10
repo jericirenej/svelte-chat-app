@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { cleanup, login, userHashMap } from "./utils.js";
+import { login, userHashMap } from "./utils.js";
 
 const user: AvailableUsers = "logician",
   password = [user, "password"].join("-");
@@ -9,12 +9,8 @@ const target = userHashMap[user];
 
 test.beforeEach(async ({ page }) => {
   await login(page, user, password);
-  await page.getByRole("listitem", { name: "Profile" }).click();
-  await page.waitForURL("/profile");
-});
-
-test.afterEach(async ({ context }) => {
-  await cleanup(context);
+  await page.getByRole("link", { name: "Profile" }).click();
+  await page.waitForURL("/profile/");
 });
 
 test("Should display appropriate fields and data", async ({ page, browser, context, locale }) => {

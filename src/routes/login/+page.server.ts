@@ -10,6 +10,7 @@ import {
 } from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
 import { loginSchema } from "./login-form-validator.js";
+import { secureCookieEval } from "$lib/utils.js";
 
 export const load: PageServerLoad = async () => {
   const form = await superValidate(loginSchema);
@@ -17,7 +18,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
-  default: async ({ request, cookies }) => {
+  default: async ({ request, cookies, url }) => {
     const form = await superValidate(request, loginSchema);
 
     if (!form.valid) {
@@ -43,7 +44,9 @@ export const actions = {
     cookies.set(SESSION_COOKIE, sessionId, {
       httpOnly: true,
       maxAge: redisService.ttl,
-      sameSite: true
+      sameSite: true,
+      path:"/",
+      secure: secureCookieEval(url)
     });
     const csrfToken = generateCsrfToken(sessionId);
     return {

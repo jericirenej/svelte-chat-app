@@ -1,8 +1,17 @@
 import { error, type RequestHandler } from "@sveltejs/kit";
 import { SESSION_COOKIE } from "../../constants.js";
-import { logoutUser } from "../../lib/server/authenticate.js";
+import { secureCookieEval } from "$lib/utils.js";
+import { redisService } from "@db";
 
-export const DELETE: RequestHandler = async ({ cookies }) => {
+/** Logout the current user. Will not check if session exists.
+ * Will not authenticate. This is done by the authentication function called
+ * previously in the handle hook. */
+const logoutUser = async (sessionId: string): Promise<boolean> => {
+  const logout = await redisService.deleteSession(sessionId);
+  return !!logout;
+};
+
+export const DELETE: RequestHandler = async ({ cookies, url, locals }) => {
   const chatSessionId = cookies.get(SESSION_COOKIE);
   if (!chatSessionId) {
     throw error(400, "No session id!");
@@ -11,6 +20,17 @@ export const DELETE: RequestHandler = async ({ cookies }) => {
   if (!logout) {
     throw error(500, "Error while performing logout!");
   }
-  cookies.delete(SESSION_COOKIE);
+  cookies.delete(SESSION_COOKIE, { secure: secureCookieEval(url), path: "/" });
+  const socketServer = locals.socketServer;
+  if (socketServer) {
+    const socketId = await redisService.getSocketSession(chatSessionId);
+    if (socketId) {
+      await redisService.deleteSocketSession(chatSessionId);
+      const sockets = await socketServer.fetchSockets();
+      const targetSocket = sockets.find(({ id }) => id === socketId);
+      targetSocket?.disconnect(true);
+    }
+  }
+
   return new Response(null, { status: 200 });
 };

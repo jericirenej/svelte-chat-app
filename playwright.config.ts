@@ -3,9 +3,10 @@ import { devices, type PlaywrightTestConfig } from "@playwright/test";
 const config: PlaywrightTestConfig = {
   webServer: {
     command: "npm run build && npm run preview",
-    port: 4173
+    url: "http://localhost:4173",
   },
   globalSetup: "./tests/global.setup",
+  globalTeardown: "./tests/global.teardown",
   testDir: "tests",
   retries: 3,
   projects: [
@@ -18,6 +19,9 @@ const config: PlaywrightTestConfig = {
       use: { ...devices["Desktop Firefox"] }
     }
   ],
+  use: {
+    baseURL:"http://localhost:4173"
+  },
   testMatch: /(.+\.)?(test|spec)\.[jt]s/
 };
 

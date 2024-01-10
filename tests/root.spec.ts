@@ -3,18 +3,15 @@ import type { AvailableUsers } from "../db/postgres/seed/seed.js";
 import { cleanup, login, userHashMap } from "./utils.js";
 
 const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
-  const role = "listitem";
+  const role = "link";
   return {
-    homepage: page.getByRole(role, { name: "Homepage" }),
-    profile: page.getByRole(role, { name: "Profile" })
+    homepage: page.getByTitle("Homepage", { exact: true }),
+    profile: page.getByTitle("Profile", { exact: true })
   };
 };
 
 test.beforeEach(async ({ page }) => {
   await login(page);
-});
-test.afterEach(async ({ context }) => {
-  await cleanup(context);
 });
 
 test("Should show navbar with appropriate nav items", async ({ page }) => {
@@ -22,7 +19,7 @@ test("Should show navbar with appropriate nav items", async ({ page }) => {
   await expect(navbar).toBeVisible();
   const itemNames = ["Homepage", "Profile", "Logout"];
   for (const name of itemNames) {
-    const item = navbar.getByRole("listitem", { name });
+    const item = navbar.getByRole(name !== "Logout" ? "link" : "button", { name });
     await expect(item).toBeVisible();
     await expect(item).toHaveAttribute("title", name);
     await expect(item.locator("svg")).toBeVisible();
@@ -32,7 +29,7 @@ test("Should show navbar with appropriate nav items", async ({ page }) => {
 test("Should navigate", async ({ page }) => {
   const { homepage, profile } = getPages(page);
   for (const [link, targetUrl] of [
-    [profile, "/profile"],
+    [profile, "/profile/"],
     [homepage, "/"]
   ] as const) {
     await link.click();
@@ -45,8 +42,8 @@ test("Should show visual indicator of current page", async ({ page }) => {
 
   await expect(getMark(homepage)).toBeVisible();
   await expect(getMark(profile)).toBeHidden();
-
-  await profile.click().then(() => page.waitForURL("/profile"));
+  await profile.click();
+  await page.waitForURL("/profile/");
   await expect(getMark(homepage)).toBeHidden();
   await expect(getMark(profile)).toBeVisible();
 });

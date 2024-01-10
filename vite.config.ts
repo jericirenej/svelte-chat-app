@@ -1,8 +1,21 @@
+import { createSocketServer } from "./src/lib/server/socket.global.js";
 import { sveltekit } from "@sveltejs/kit/vite";
+import type { PreviewServerForHook, ViteDevServer } from "vite";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [sveltekit()],
+  plugins: [
+    sveltekit(),
+    {
+      name: "socketIOIntegration",
+      configureServer(server: ViteDevServer) {
+        createSocketServer(server.httpServer);
+      },
+      configurePreviewServer(server: PreviewServerForHook) {
+        createSocketServer(server.httpServer);
+      }
+    }
+  ],
   test: {
     environmentMatchGlobs: [
       ["src/**/*.spec.ts", "happy-dom"],
