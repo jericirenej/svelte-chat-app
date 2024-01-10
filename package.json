@@ -16,7 +16,8 @@
     "test:unit": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "migrator": "tsx db/postgres/tools/migrator-cli.ts"
+    "migrator": "tsx db/postgres/tools/migrator-cli.ts",
+    "node-server": "node --env-file=.env --import=tsx prodServer.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.0.2",
