@@ -40,7 +40,6 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
-  console.log(event.url.href);
   initializeSocketServer();
   if (!event.locals.socketServer) {
     event.locals.socketServer = extendedGlobal[GlobalThisSocketServer];
