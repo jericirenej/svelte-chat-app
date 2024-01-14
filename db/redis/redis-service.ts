@@ -44,6 +44,11 @@ export class RedisService {
     return await this.client.del(this.addSessionPrefix(sessionId));
   }
 
+  async getSessionTTL(sessionId: string): Promise<number> {
+    if (!this.client.isOpen) await this.connect();
+    return await this.client.ttl(this.addSessionPrefix(sessionId));
+  }
+
   addSessionPrefix(sessionId: string): string {
     return [this.sessionPrefix, sessionId].join(this.separator);
   }
@@ -171,6 +176,10 @@ if (import.meta.vitest) {
       await service.setSession(session1, user1);
       ttl = await standaloneClient.ttl(service.addSessionPrefix(session1));
       expect(isInRange(ttl, service.ttl)).toBe(true);
+    });
+    it("Should return TTL for session", async () => {
+      await service.setSession(session1, user1);
+      expect(await service.getSessionTTL(session1)).toBe(service.ttl);
     });
   });
   describe("Socket management", () => {
