@@ -49,7 +49,7 @@ export class RedisService {
   }
 
   async setSocketSession(sessionId: string, socketId: string): Promise<string | null> {
-    if (this.client.isOpen) await this.connect();
+    if (!this.client.isOpen) await this.connect();
     const sessionTTL = await this.client.ttl(this.addSessionPrefix(sessionId));
 
     if (sessionTTL <= 0) return null;
@@ -62,7 +62,7 @@ export class RedisService {
   }
 
   async getSocketSession(sessionId: string): Promise<string | null> {
-    if (this.client.isOpen) await this.connect();
+    if (!this.client.isOpen) await this.connect();
     return await this.client.get(this.addSocketPrefix(sessionId));
   }
   async deleteSocketSession(sessionId: string): Promise<number> {
@@ -94,7 +94,9 @@ if (import.meta.vitest) {
   const { describe, it, expect, beforeAll, afterAll, afterEach } = import.meta.vitest;
   let standaloneClient: RedisClient;
   const session1 = "session1",
-    session2 = "session2";
+    session2 = "session2",
+    socket1 = "socket1",
+    socket2 = "socket2";
   const user1: CompleteUserDto = {
       id: "new_user_123_id",
       username: "new_user_123",
@@ -172,8 +174,6 @@ if (import.meta.vitest) {
     });
   });
   describe("Socket management", () => {
-    const socket1 = "socket1",
-      socket2 = "socket2";
     it("Should only set socket session if a session already exists", async () => {
       for (const populateSession of [false, true]) {
         if (populateSession) {
