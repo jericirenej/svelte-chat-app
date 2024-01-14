@@ -7,6 +7,7 @@ export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_SESSION_SOCKET_PREFIX = "socket";
 export const REDIS_DEFAULT_SEPARATOR = ":";
 export const REDIS_DEFAULT_TTL = env.SESSION_TTL || 10 * 60;
+console.log("DEFAULT", REDIS_DEFAULT_TTL);
 
 export class RedisService {
   readonly sessionPrefix = REDIS_SESSION_KEY_PREFIX;
@@ -39,9 +40,32 @@ export class RedisService {
     return JSON.parse(user, jsonReviver) as CompleteUserDto;
   }
 
+  /** Delete session entry. Also deletes associated socket entry
+   * if it exists. */
   async deleteSession(sessionId: string): Promise<number> {
     if (!this.client.isOpen) await this.connect();
-    return await this.client.del(this.addSessionPrefix(sessionId));
+    const result = await this.client.del(this.addSessionPrefix(sessionId));
+    await this.deleteSocketSession(sessionId);
+    return result;
+  }
+
+  /** Replaces existing session entry with a new session key.
+   * Also replaces any socket session entry if it exists. */
+  async replaceSessionKey(currentId: string, newId: string): Promise<CompleteUserDto | null> {
+    if (!this.client.isOpen) await this.connect();
+    const sessionExists = await this.getSession(currentId);
+
+    if (!sessionExists) return null;
+
+    const socketId = await this.getSocketSession(currentId);
+
+    await this.deleteSession(currentId);
+
+    const newSession = await this.setSession(newId, sessionExists);
+    if (socketId) {
+      await this.setSocketSession(newId, socketId);
+    }
+    return newSession;
   }
 
   async getSessionTTL(sessionId: string): Promise<number> {
@@ -218,6 +242,30 @@ if (import.meta.vitest) {
       await redisService.setSocketSession(session1, socket1);
       await redisService.deleteSocketSession(session1);
       expect(await redisService.getSocketSession(session1)).toBeNull();
+    });
+  });
+  describe("Session replacement", () => {
+    it("Deleting session should also delete socket session", async () => {
+      await service.setSession(session1, user1);
+      await service.setSocketSession(session1, socket1);
+      await service.deleteSession(session1);
+      expect(await standaloneClient.get(service.addSocketPrefix(session1))).toBeNull();
+    });
+    it("Should replace session key", async () => {
+      const session_new_1 = "session_new_1",
+        session_new_2 = "session_new_2";
+      await service.setSession(session1, user1);
+      await service.setSocketSession(session1, socket1);
+      await service.setSession(session2, user2);
+
+      await service.replaceSessionKey(session1, session_new_1);
+      expect(await service.getSession(session_new_1)).toEqual(user1);
+      expect(await service.getSocketSession(session_new_1)).toBe(socket1);
+
+      await service.replaceSessionKey(session2, session_new_2);
+      expect(await service.getSession(session_new_2)).toEqual(user2);
+      // Double check that we are not creating any socket entries, if there are none initially
+      expect(await service.getSocketSession(session_new_2)).toBeNull();
     });
   });
 }
