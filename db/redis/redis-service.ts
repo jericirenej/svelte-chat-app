@@ -7,7 +7,6 @@ export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_SESSION_SOCKET_PREFIX = "socket";
 export const REDIS_DEFAULT_SEPARATOR = ":";
 export const REDIS_DEFAULT_TTL = env.SESSION_TTL || 10 * 60;
-console.log("DEFAULT", REDIS_DEFAULT_TTL);
 
 export class RedisService {
   readonly sessionPrefix = REDIS_SESSION_KEY_PREFIX;

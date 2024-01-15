@@ -7,5 +7,9 @@ export const UNPROTECTED_ROUTES = [ROOT_ROUTE, LOGIN_ROUTE];
 export const SESSION_COOKIE = "chatSessionId";
 export const CSRF_HEADER = "X-CSRF";
 export const LOCAL_SESSION_CSRF_KEY = "csrfToken";
+export const LOCAL_DISMISSED_EXPIRATION_WARNING = "dismissedExpiration";
 export const GlobalThisSocketServer = Symbol.for("sveltekit.socket.io");
 export const WEBSOCKET_PATH = "/websocket";
+
+export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_DISMISSED_EXPIRATION_WARNING];
+export const SESSION_WARNING_BUFFER = 1e4 //3e4;

@@ -16,10 +16,6 @@ export const DELETE: RequestHandler = async ({ cookies, url, locals }) => {
   if (!chatSessionId) {
     throw error(400, "No session id!");
   }
-  const logout = await logoutUser(chatSessionId);
-  if (!logout) {
-    throw error(500, "Error while performing logout!");
-  }
   cookies.delete(SESSION_COOKIE, { secure: secureCookieEval(url), path: "/" });
   const socketServer = locals.socketServer;
   if (socketServer) {
@@ -31,6 +27,10 @@ export const DELETE: RequestHandler = async ({ cookies, url, locals }) => {
       targetSocket?.disconnect(true);
     }
   }
-
+  const logout = await logoutUser(chatSessionId);
+  if (!logout) {
+    throw error(500, "Error while performing logout!");
+  }
+  
   return new Response(null, { status: 200 });
 };

@@ -1,6 +1,6 @@
 import type { SocketServer } from "$lib/socket.types";
 import { dbService, redisService } from "@db";
-import { CSRF_HEADER, SESSION_COOKIE } from "../../constants";
+import { CSRF_HEADER, SESSION_COOKIE, SESSION_WARNING_BUFFER } from "../../constants";
 import { authenticateUserWS } from "./authenticate";
 
 const extractCookies = (cookie?: string): Record<string, string> | null => {
@@ -27,8 +27,10 @@ const removeDuplicatedSocketIfExists = async (
   await redisService.deleteSocketSession(sessionId);
 };
 
+
 export const setupSocketServer = (socketServer: SocketServer): void => {
   socketServer.on("connect", async (socket) => {
+    let sessionTimeoutWarning: NodeJS.Timeout;
     console.log(`Socket ${socket.id} connection attempted`);
 
     const { headers } = socket.request;
@@ -51,13 +53,23 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
 
     await removeDuplicatedSocketIfExists(socketServer, sessionId);
     await redisService.setSocketSession(sessionId, socket.id);
+
+    const sessionTTL = await redisService.getSessionTTL(sessionId);
+    // eslint-disable-next-line prefer-const
+    sessionTimeoutWarning = setTimeout(
+      () => {
+        socket.emit("sessionExpirationWarning");
+      },
+      sessionTTL * 1000 - SESSION_WARNING_BUFFER
+    );
+
     const chats = await dbService.getChatIdsForUser(user.id);
     if (chats.length) {
       await socket.join(chats);
       socket.to(chats).emit("participantOnline", user.username, true);
     }
-
     socket.on("disconnect", () => {
+      clearTimeout(sessionTimeoutWarning);
       socket.to([...socket.rooms]).emit("participantOnline", user.username, false);
       console.log(`Socket ${socket.id} disconnected`);
       socket.disconnect(true);

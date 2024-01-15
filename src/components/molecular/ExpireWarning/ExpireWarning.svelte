@@ -1,10 +1,14 @@
+<script context="module" lang="ts">
+  export type ExtendSessionStatus = "fail" | "success" | undefined;
+</script>
+
 <script lang="ts">
   import Icon from "@iconify/svelte";
   import CancelIcon from "@iconify/icons-iconoir/cancel";
   import { fade, fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
 
-  export let status: "fail" | "success" | undefined = undefined;
+  export let status: ExtendSessionStatus = undefined;
 
   const dispatch = createEventDispatcher();
 
