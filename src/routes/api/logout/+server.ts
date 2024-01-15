@@ -1,5 +1,5 @@
 import { error, type RequestHandler } from "@sveltejs/kit";
-import { SESSION_COOKIE } from "../../constants.js";
+import { SESSION_COOKIE } from "../../../constants.js";
 import { secureCookieEval } from "$lib/utils.js";
 import { redisService } from "@db";
 

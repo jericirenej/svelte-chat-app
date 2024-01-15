@@ -10,7 +10,13 @@
     CSRF_HEADER,
     LOCAL_SESSION_CSRF_KEY,
     LOCAL_DISMISSED_EXPIRATION_WARNING,
-    LOCAL_KEYS
+    LOCAL_KEYS,
+
+    LOGOUT_ROUTE,
+
+    EXTEND_SESSION_ROUTE
+
+
   } from "../constants.js";
   import type { LayoutData } from "./$types";
   import { onMount } from "svelte";
@@ -25,7 +31,7 @@
   $: status = extendSessionStatus;
 
   const handleAPICall = async (action: "logout" | "extend"): Promise<Response | undefined> => {
-    const url = action === "logout" ? "/logout" : "/api/extend",
+    const url = action === "logout" ? LOGOUT_ROUTE : EXTEND_SESSION_ROUTE,
       method = action === "logout" ? "DELETE" : "POST";
     const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
     if (!csrf) return undefined;
