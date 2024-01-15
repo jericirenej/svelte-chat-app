@@ -24,7 +24,6 @@ export const socketClientSetup = (
   });
   socket.on("sessionExpirationWarning", () => {
     const hasBeenDismissed = localStorage.getItem(LOCAL_DISMISSED_EXPIRATION_WARNING) === "true";
-    console.log(hasBeenDismissed);
     if (!hasBeenDismissed) {
       showSessionExpirationWarning.set(true);
     }
