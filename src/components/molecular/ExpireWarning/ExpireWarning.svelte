@@ -7,19 +7,15 @@
   import CancelIcon from "@iconify/icons-iconoir/cancel";
   import { fade, fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
+  import { EXPIRATION_MESSAGES } from "../../../constants";
 
   export let status: ExtendSessionStatus = undefined;
 
   const dispatch = createEventDispatcher();
 
-  const messages = {
-    default: "Session will expire soon.\nClick here to extend.",
-    fail: "Failed to extend session\t😭",
-    success: "Session extended\t👍"
-  };
   const getMessage = (): string => {
-    if (!status) return messages.default;
-    return messages[status];
+    if (!status) return EXPIRATION_MESSAGES.initial;
+    return EXPIRATION_MESSAGES[status];
   };
 
   $: toastColor = status === "fail" ? "bg-red-600" : "bg-emerald-500";
@@ -38,7 +34,7 @@
   <div>
     <button
       disabled={status === "fail"}
-      on:click={()=>dispatch("sessionExtend")}
+      on:click={() => dispatch("sessionExtend")}
       class={`${status === undefined ? "extend cursor-pointer" : "cursor-default"} text-justify`}
     >
       {#key status}

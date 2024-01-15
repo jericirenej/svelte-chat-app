@@ -16,3 +16,10 @@ export const WEBSOCKET_PATH = "/websocket";
 
 export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_DISMISSED_EXPIRATION_WARNING];
 export const SESSION_WARNING_BUFFER = 1e4; //3e4;
+
+
+export const EXPIRATION_MESSAGES = {
+    initial: "Session will expire soon.\nClick here to extend.",
+    fail: "Failed to extend session\t😭",
+    success: "Session extended\t👍"
+  };
