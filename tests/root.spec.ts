@@ -1,9 +1,8 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { cleanup, login, userHashMap } from "./utils.js";
+import { login, userHashMap } from "./utils.js";
 
 const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
-  const role = "link";
   return {
     homepage: page.getByTitle("Homepage", { exact: true }),
     profile: page.getByTitle("Profile", { exact: true })

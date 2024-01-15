@@ -2,7 +2,7 @@ export default {
   POSTGRES_PASSWORD: "example-password",
   POSTGRES_USER: "user",
   POSTGRES_DB: "database",
-  REDIS_HOST_PASSWORD: "example-pasword",
+  REDIS_HOST_PASSWORD: "example-password",
   POSTGRES_HOST: "localhost",
   POSTGRES_PORT: 5432,
   POSTGRES_POSTGRES_DB: "postgres",

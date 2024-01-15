@@ -79,9 +79,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
     return await resolve(event);
   }
-
   if (!user) {
-    throw redirect(302, ROOT_ROUTE);
+    throw redirect(302, LOGIN_ROUTE);
   }
 
   return await resolve(event);

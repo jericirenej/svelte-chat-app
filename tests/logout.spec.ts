@@ -7,7 +7,12 @@ import {
   type Cookie
 } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { CSRF_HEADER, LOCAL_SESSION_CSRF_KEY, SESSION_COOKIE } from "../src/constants.js";
+import {
+  CSRF_HEADER,
+  LOCAL_SESSION_CSRF_KEY,
+  LOGOUT_ROUTE,
+  SESSION_COOKIE
+} from "../src/constants.js";
 import { cleanup, login } from "./utils.js";
 const user: AvailableUsers = "lovelace",
   password: `${AvailableUsers}-password` = "lovelace-password";
@@ -66,7 +71,7 @@ test(`Should logout via DELETE request if ${CSRF_HEADER} header is supplied`, as
   await login(page);
   const { csrf, cookie } = await extractCredentials(context.storageState());
   const req = await createContext(baseURL as string, cookie, csrf);
-  const response = await req.delete("/logout", {
+  const response = await req.delete(LOGOUT_ROUTE, {
     headers: { [CSRF_HEADER]: csrf as string }
   });
   expect(response.status()).toBe(200);
@@ -84,7 +89,7 @@ test(`Should reject DELETE request if ${CSRF_HEADER} header or session cookie is
   const reqWithoutCsrf = await createContext(baseURL as string, cookie, undefined);
   for (const req of [reqWithoutCookie, reqWithoutCsrf]) {
     const { csrf } = await extractCredentials(req.storageState());
-    const response = await req.delete("/logout", {
+    const response = await req.delete(LOGOUT_ROUTE, {
       headers: csrf ? { [CSRF_HEADER]: csrf } : {}
     });
     expect(response.status()).toBe(403);

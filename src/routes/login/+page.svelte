@@ -1,17 +1,16 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { socket, socketClientSetup } from "$lib/client/socket.client";
-  import type { SocketClient } from "$lib/socket.types";
+  import { socketClientSetup } from "$lib/client/socket.client";
+  import { socket } from "$lib/client/stores";
   import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import type { ActionResult } from "@sveltejs/kit";
-  import { io } from "socket.io-client";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
   import RootHeading from "../../components/atomic/RootHeading/RootHeading.svelte";
   import LoginControls from "../../components/organic/LoginControls.svelte";
-  import { CSRF_HEADER, LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
+  import { LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
   import type { ActionData, PageData } from "./$types.js";
   import { loginSchema } from "./login-form-validator.js";
 
