@@ -13,8 +13,7 @@ export class RedisService {
   readonly sessionSocketPrefix = REDIS_SESSION_SOCKET_PREFIX;
   readonly separator = REDIS_DEFAULT_SEPARATOR;
   #ttl = REDIS_DEFAULT_TTL;
-
-  constructor(private client: RedisClient) {}
+  constructor(private client:RedisClient){}
 
   set ttl(num: number) {
     this.#ttl = num;
@@ -23,9 +22,9 @@ export class RedisService {
     return this.#ttl;
   }
 
+
   /** Create or update a session entry */
   async setSession(sessionId: string, user: CompleteUserDto): Promise<CompleteUserDto> {
-    if (!this.client.isOpen) await this.connect();
     const key = this.addSessionPrefix(sessionId);
     await this.client.set(key, JSON.stringify(user, jsonReplacer));
     await this.client.expire(key, this.ttl);
@@ -33,7 +32,6 @@ export class RedisService {
   }
 
   async getSession(sessionId: string): Promise<CompleteUserDto | null> {
-    if (!this.client.isOpen) await this.connect();
     const user = await this.client.get(this.addSessionPrefix(sessionId));
     if (user === null) return null;
     return JSON.parse(user, jsonReviver) as CompleteUserDto;
@@ -42,7 +40,6 @@ export class RedisService {
   /** Delete session entry. Also deletes associated socket entry
    * if it exists. */
   async deleteSession(sessionId: string): Promise<number> {
-    if (!this.client.isOpen) await this.connect();
     const result = await this.client.del(this.addSessionPrefix(sessionId));
     await this.deleteSocketSession(sessionId);
     return result;
@@ -51,7 +48,6 @@ export class RedisService {
   /** Replaces existing session entry with a new session key.
    * Also replaces any socket session entry if it exists. */
   async replaceSessionKey(currentId: string, newId: string): Promise<CompleteUserDto | null> {
-    if (!this.client.isOpen) await this.connect();
     const sessionExists = await this.getSession(currentId);
 
     if (!sessionExists) return null;
@@ -68,7 +64,6 @@ export class RedisService {
   }
 
   async getSessionTTL(sessionId: string): Promise<number> {
-    if (!this.client.isOpen) await this.connect();
     return await this.client.ttl(this.addSessionPrefix(sessionId));
   }
 
@@ -77,7 +72,6 @@ export class RedisService {
   }
 
   async setSocketSession(sessionId: string, socketId: string): Promise<string | null> {
-    if (!this.client.isOpen) await this.connect();
     const sessionTTL = await this.client.ttl(this.addSessionPrefix(sessionId));
 
     if (sessionTTL <= 0) return null;
@@ -90,7 +84,6 @@ export class RedisService {
   }
 
   async getSocketSession(sessionId: string): Promise<string | null> {
-    if (!this.client.isOpen) await this.connect();
     return await this.client.get(this.addSocketPrefix(sessionId));
   }
   async deleteSocketSession(sessionId: string): Promise<number> {
@@ -106,16 +99,20 @@ export class RedisService {
   }
 
   async deleteAll(): Promise<string> {
-    if (!this.client.isOpen) await this.connect();
     return await this.client.flushDb();
   }
-  async destroy(): Promise<void> {
+  async disconnect(): Promise<void> {
     await this.client.disconnect();
+  }
+
+  /** Instantiate a RedisService with connected Redis client */
+  static async init(client: RedisClient) {
+    await client.connect();
+    return new RedisService(client);
   }
 }
 
-const redisService = new RedisService(redisClient);
-await redisService.connect();
+const redisService = await RedisService.init(redisClient);
 export { redisService };
 
 if (import.meta.vitest) {
@@ -142,14 +139,13 @@ if (import.meta.vitest) {
     standaloneClient = clientConnection();
     await standaloneClient.connect();
     service = new RedisService(redisClient);
-    await service.connect();
   });
   afterEach(async () => {
     await service.deleteAll();
     service.ttl = REDIS_DEFAULT_TTL;
   });
   afterAll(async () => {
-    await service.destroy();
+    await service.disconnect();
     await standaloneClient.disconnect();
   });
   describe("Session management", () => {
