@@ -12,7 +12,7 @@
   import LoginControls from "../../components/organic/LoginControls.svelte";
   import { LOCAL_SESSION_CSRF_KEY } from "../../constants.js";
   import type { ActionData, PageData } from "./$types.js";
-  import { loginSchema } from "./login-form-validator.js";
+  import { loginSchema } from "../../lib/client/login-signup-validators.js";
 
   export let data: PageData;
   let isLoading = false;

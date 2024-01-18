@@ -9,7 +9,7 @@ import {
   verifyUser
 } from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
-import { loginSchema } from "./login-form-validator.js";
+import { loginSchema } from "../../lib/client/login-signup-validators.js";
 import { secureCookieEval } from "$lib/utils.js";
 
 export const load: PageServerLoad = async () => {
