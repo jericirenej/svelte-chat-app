@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { handleFormResult } from "$lib/client/form-result-handlers";
+  import { handleFormResult } from "$lib/client/session-handlers";
   import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
@@ -13,7 +13,6 @@
 
   export let data: PageData;
   let isLoading = false;
-
 
   let submitDisabled = true;
 
@@ -27,9 +26,7 @@
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
-      const result = handleFormResult(event, $page.url.origin);
-      console.log(result);
-      status = result;
+      status = handleFormResult(event, $page.url.origin);
       // Delay for successful login, so that the user is informed before redirect
       if (status === 200) {
         await promisifiedTimeout(1500);
