@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
-  import Input from "../atomic/Input/Input.svelte";
-  import SubmitButton from "../molecular/SubmitButton/SubmitButton.svelte";
+  import Input from "../../atomic/Input/Input.svelte";
+  import SubmitButton from "../../molecular/SubmitButton/SubmitButton.svelte";
 
   export let username: string;
   export let password: string;

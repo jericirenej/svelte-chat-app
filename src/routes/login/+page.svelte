@@ -7,7 +7,7 @@
   import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
   import RootHeading from "../../components/atomic/RootHeading/RootHeading.svelte";
-  import LoginControls from "../../components/organic/LoginControls.svelte";
+  import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
   import { loginSchema } from "../../lib/client/login-signup-validators.js";
   import type { PageData } from "./$types.js";
 
