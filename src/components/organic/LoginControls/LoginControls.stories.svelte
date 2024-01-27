@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import LoginForm from "./LoginControls.svelte";
+  import LoginControls from "./LoginControls.svelte";
 
-  export const meta: Meta<LoginForm> = {
+  export const meta: Meta<LoginControls> = {
     title: "Organic/Login",
-    component: LoginForm,
+    component: LoginControls,
     argTypes: {
       isLoading: { control: "boolean" },
       submitDisabled: { control: "boolean" },
@@ -16,7 +16,7 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
-  const args: Partial<ComponentProps<LoginForm>> = {
+  const args: Partial<ComponentProps<LoginControls>> = {
     isLoading: false,
     submitDisabled: false,
     status: undefined
@@ -24,7 +24,7 @@
 </script>
 
 <Template let:args>
-  <LoginForm {...args} />
+  <LoginControls {...args} />
 </Template>
 
 <Story name="Primary" {args} />
