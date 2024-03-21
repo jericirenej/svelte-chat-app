@@ -22,7 +22,7 @@
     <slot name="form" />
   </div>
   {#if $$slots.footer}
-    <div class="mt-10">
+    <div class="mt-8">
       <slot name="footer" />
     </div>
   {/if}
