@@ -36,15 +36,13 @@
     />
   </div>
   <div class="relative pb-5">
-    <div class={isLoading ? "loading relative" : ""}>
-      <SubmitButton
-        disabled={submitDisabled}
-        text="SUBMIT"
-        {isLoading}
-        title={submitDisabled ? "Please supply a username and password." : ""}
-        config={{ display: "block" }}
-      />
-    </div>
+    <SubmitButton
+      disabled={submitDisabled}
+      text="SUBMIT"
+      {isLoading}
+      title={submitDisabled ? "Please supply a username and password." : ""}
+      config={{ display: "block" }}
+    />
     {#if status}
       <small
         transition:fade={{ duration: 150 }}
@@ -59,29 +57,3 @@
     {/if}
   </div>
 </div>
-
-<style>
-  .loading {
-    overflow: hidden;
-  }
-  .loading::after {
-    position: absolute;
-    content: "";
-    left: -150%;
-    height: 120%;
-    width: 75%;
-    bottom: 0;
-    transform: skewX(-20deg);
-    background-color: hsla(0deg, 0%, 100%, 20%);
-    box-shadow: 0 0 10px 10px hsla(0deg, 0%, 100%, 20%);
-    animation: swoosh 2s infinite;
-  }
-  @keyframes swoosh {
-    from {
-      left: -150%;
-    }
-    to {
-      left: 150%;
-    }
-  }
-</style>

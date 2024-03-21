@@ -23,33 +23,61 @@
   export let title = "";
 </script>
 
-<Button
-  type="submit"
-  disabled={isLoading || disabled}
-  action={config?.action ?? "confirm"}
-  variant={config?.variant}
-  size={config?.size}
-  display={config?.display}
-  customClasses={config?.customClasses ?? "py-[0.5rem]"}
-  {title}
->
-  <div class="flex justify-center">
-    <div class="relative px-3" style:width={`${text.length + 3}ch`}>
-      <span
-        class="leading-1 relative inline-block text-sm transition {isLoading
-          ? '-translate-x-2'
-          : 'translate-x-0'}"
-      >
-        {text}
-      </span>
-      {#if isLoading}
-        <span in:fade={{ duration: 100 }}>
-          <Icon
-            icon={loadingIcon}
-            class="leading-1 absolute -right-2 top-[1px] inline-block text-lg"
-          />
+<div class={isLoading ? "loading relative" : ""}>
+  <Button
+    type="submit"
+    disabled={isLoading || disabled}
+    action={config?.action ?? "confirm"}
+    variant={config?.variant}
+    size={config?.size}
+    display={config?.display}
+    customClasses={config?.customClasses ?? "py-[0.5rem]"}
+    {title}
+  >
+    <div class="flex justify-center">
+      <div class="relative px-3" style:width={`${text.length + 3}ch`}>
+        <span
+          class="leading-1 relative inline-block text-sm transition {isLoading
+            ? '-translate-x-2'
+            : 'translate-x-0'}"
+        >
+          {text}
         </span>
-      {/if}
+        {#if isLoading}
+          <span in:fade={{ duration: 100 }}>
+            <Icon
+              icon={loadingIcon}
+              class="leading-1 absolute -right-2 top-[1px] inline-block text-lg"
+            />
+          </span>
+        {/if}
+      </div>
     </div>
-  </div>
-</Button>
+  </Button>
+</div>
+
+<style>
+  .loading {
+    overflow: hidden;
+  }
+  .loading::after {
+    position: absolute;
+    content: "";
+    left: -150%;
+    height: 120%;
+    width: 75%;
+    bottom: 0;
+    transform: skewX(-20deg);
+    background-color: hsla(0deg, 0%, 100%, 20%);
+    box-shadow: 0 0 10px 10px hsla(0deg, 0%, 100%, 20%);
+    animation: swoosh 2s infinite;
+  }
+  @keyframes swoosh {
+    from {
+      left: -150%;
+    }
+    to {
+      left: 150%;
+    }
+  }
+</style>
