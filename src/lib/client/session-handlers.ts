@@ -26,6 +26,8 @@ export const setCSRFLocal = (csrfToken: string | undefined): boolean => {
 
 export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
 
+/** On successful result, set CSRF token in localStorage and open
+ * setup web socket connection. */
 export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
   event: FormEventType,
   pageOrigin: string
