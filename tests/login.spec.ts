@@ -23,6 +23,10 @@ test("Should have appropriate elements", async ({ page }) => {
   for (const placeholder of ["Enter your username", "Enter your password"]) {
     await expect(page.getByPlaceholder(placeholder)).toBeVisible();
   }
+  await expect(page.getByRole('heading', { name: 'Chat App' })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Not registered? Create an account!", })
+  ).toBeVisible();
 });
 
 test("Should not allow submission of invalid form", async ({ page }) => {
@@ -36,17 +40,14 @@ test("Should not allow submission of invalid form", async ({ page }) => {
   await expect(submitButton).toBeDisabled();
 });
 
-test("Should allow submit on valid form", async ({ page,  }) => {
+test("Should allow submit on valid form", async ({ page }) => {
   await page.goto("/login");
   await clickAndFillLocator(page.getByPlaceholder("Enter your username"), "username");
   await clickAndFillLocator(page.getByPlaceholder("Enter your password"), "password");
   await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();
 });
 
-test("Login page should show message on failed / successful login", async ({
-  page,
-  context,
-}) => {
+test("Login page should show message on failed / successful login", async ({ page, context }) => {
   await page.goto("/login");
   await login(page, "user", "password", false);
   await expect(page.getByText("Username or password not correct!")).toBeVisible();
