@@ -3,6 +3,7 @@
   import FormSubmitNotification from "../../atomic/FormSubmitNotification/FormSubmitNotification.svelte";
   import Input from "../../atomic/Input/Input.svelte";
   import SubmitButton from "../../molecular/SubmitButton/SubmitButton.svelte";
+  import { LOGIN_MESSAGES } from "../../../messages";
 
   export let username: string;
   export let password: string;
@@ -10,9 +11,16 @@
   export let isLoading = false;
   export let status: 200 | 404 | undefined = undefined;
   export let submitDisabled = false;
+  const {
+    loginFailure,
+    loginSuccess,
+    passwordPlaceholder,
+    usernamePlaceholder,
+    supplyDetailsTitle
+  } = LOGIN_MESSAGES;
   const defaultMessage = {
-    200: "Login successful!",
-    404: "Username or password not correct!"
+    200: loginSuccess,
+    404: loginFailure
   };
 </script>
 
@@ -20,7 +28,7 @@
   <svelte:fragment slot="inputs">
     <Input
       label="Username"
-      placeholder="Enter your username"
+      placeholder={usernamePlaceholder}
       name="username"
       type="text"
       input={onInput}
@@ -28,7 +36,7 @@
     />
     <Input
       label="Password"
-      placeholder="Enter your password"
+      placeholder={passwordPlaceholder}
       name="password"
       type="password"
       input={onInput}
@@ -40,7 +48,7 @@
       disabled={submitDisabled}
       text="SUBMIT"
       {isLoading}
-      title={submitDisabled ? "Please supply a username and password." : ""}
+      title={submitDisabled ? supplyDetailsTitle : ""}
       config={{ display: "block" }}
     />
     <FormSubmitNotification

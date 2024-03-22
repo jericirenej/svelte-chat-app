@@ -12,12 +12,14 @@
   import { SIGNUP_ROUTE } from "../../constants";
   import { loginSchema } from "../../lib/client/login-signup-validators.js";
   import type { PageData } from "./$types.js";
+  import { LOGIN_MESSAGES } from "../../messages";
 
   export let data: PageData;
 
   let isLoading = false;
   let submitDisabled = true;
   let status: 200 | 404 | undefined = undefined;
+  const { title: formTitle, subtitle, signup, pageTitle } = LOGIN_MESSAGES;
 
   const submitDisabledToggle = debounce(async () => {
     const { valid } = await validate();
@@ -48,8 +50,8 @@
   onMount(async () => await invalidateAll());
 </script>
 
-<svelte:head><title>Chat App - Login</title></svelte:head>
-<FormWrapper formTitle="Sign in" subtitle="...and start chatting!">
+<svelte:head><title>{pageTitle}</title></svelte:head>
+<FormWrapper {formTitle} {subtitle}>
   <form slot="form" method="POST" use:enhance in:fade>
     <LoginControls
       bind:username={$form.username}
@@ -61,6 +63,6 @@
     />
   </form>
   <div slot="footer">
-    <FormFooter link={SIGNUP_ROUTE} label="Not registered? Create an account!" />
+    <FormFooter link={SIGNUP_ROUTE} label={signup} />
   </div>
 </FormWrapper>

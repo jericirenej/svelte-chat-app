@@ -7,7 +7,7 @@
   import CancelIcon from "@iconify/icons-iconoir/cancel";
   import { fade, fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
-  import { EXPIRATION_MESSAGES } from "../../../constants";
+  import { EXPIRATION_MESSAGES } from "../../../messages";
 
   export let status: ExtendSessionStatus = undefined;
 
