@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ControlWrapper from "../../atomic/ControlWrapper/ControlWrapper.svelte";
+  import ControlWrapper from "../../molecular/wrappers/ControlsWrapper/ControlsWrapper.svelte";
   import FormSubmitNotification from "../../atomic/FormSubmitNotification/FormSubmitNotification.svelte";
   import Input from "../../atomic/Input/Input.svelte";
   import SubmitButton from "../../molecular/SubmitButton/SubmitButton.svelte";

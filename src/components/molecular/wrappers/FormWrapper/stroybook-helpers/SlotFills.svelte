@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { capitalize } from "../../../../utils/text-utils";
 
   export let isFooter: boolean = false;
   $: slotHeight = isFooter ? "min-h-[10ch]" : "min-h-[15ch]";

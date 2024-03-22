@@ -3,7 +3,7 @@
   import FormWrapper from "./FormWrapper.svelte";
 
   export const meta: Meta<FormWrapper> = {
-    title: "Organic/FormWrapper",
+    title: "Molecular/FormWrapper",
     component: FormWrapper,
     argTypes: {
       subtitle: { control: "text" },

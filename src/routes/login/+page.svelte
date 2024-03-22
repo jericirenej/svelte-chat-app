@@ -6,9 +6,10 @@
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
-  import RootHeading from "../../components/atomic/RootHeading/RootHeading.svelte";
-  import FormWrapper from "../../components/organic/FormWrapper/FormWrapper.svelte";
+  import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
+  import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
+  import { SIGNUP_ROUTE } from "../../constants";
   import { loginSchema } from "../../lib/client/login-signup-validators.js";
   import type { PageData } from "./$types.js";
 
@@ -59,5 +60,7 @@
       {submitDisabled}
     />
   </form>
-  <RootHeading slot="footer" />
+  <div slot="footer">
+    <FormFooter link={SIGNUP_ROUTE} label="Not registered? Create an account!" />
+  </div>
 </FormWrapper>
