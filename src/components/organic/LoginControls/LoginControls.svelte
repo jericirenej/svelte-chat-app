@@ -12,8 +12,8 @@
   export let status: 200 | 404 | undefined = undefined;
   export let submitDisabled = false;
   const {
-    loginFailure,
-    loginSuccess,
+    failure: loginFailure,
+    success: loginSuccess,
     passwordPlaceholder,
     usernamePlaceholder,
     supplyDetailsTitle

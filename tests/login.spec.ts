@@ -6,8 +6,8 @@ import { APP_NAME, LOGIN_MESSAGES } from "../src/messages.js";
 const user: AvailableUsers = "babbage",
   password: `${AvailableUsers}-password` = "babbage-password";
 const {
-  loginFailure,
-  loginSuccess,
+  failure,
+  success,
   pageTitle,
   passwordPlaceholder,
   signup,
@@ -62,10 +62,10 @@ test("Should allow submit on valid form", async ({ page }) => {
 test("Login page should show message on failed / successful login", async ({ page, context }) => {
   await page.goto("/login");
   await login(page, "user", "password", false);
-  await expect(page.getByText(loginFailure)).toBeVisible();
+  await expect(page.getByText(failure)).toBeVisible();
 
   await login(page, user, password, false);
-  await expect(page.getByText(loginSuccess)).toBeVisible();
+  await expect(page.getByText(success)).toBeVisible();
   await cleanup(context);
 });
 test("Successful login should redirect to root", async ({ page, context }) => {

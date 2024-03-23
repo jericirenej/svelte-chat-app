@@ -13,8 +13,8 @@ export const LOGIN_MESSAGES = {
   supplyDetailsTitle: "Please supply a username and password.",
   usernamePlaceholder: "Enter your username",
   passwordPlaceholder: "Enter your password",
-  loginSuccess: "Login successful!",
-  loginFailure: "Username or password not correct!"
+  success: "Login successful!",
+  failure: "Username or password not correct!"
 };
 
 export const SIGNUP_MESSAGES = {
@@ -27,7 +27,10 @@ export const SIGNUP_MESSAGES = {
   namePlaceholder: "Enter your name (optional)",
   surnamePlaceholder: "Enter your surname (optional)",
   passwordPlaceholder: LOGIN_MESSAGES.passwordPlaceholder,
-  signupSuccess: "Successfully registered!",
-  signupFailure: "Registration failed! Please try again or log in, if you already have an account.",
+  passwordVerifyPlaceholder: "Confirm password",
+  success: "Successfully registered!",
+  failure: "Registration failed! Please try again or log in, if you already have an account.",
+  usernameFailure: "Username already taken. Please choose a different one.",
+  badRequestFailure: "Please fill out the signup form as indicated to sign up.",
   supplyDetailsTitle: "Please supply a username, email, and password.",
 };
