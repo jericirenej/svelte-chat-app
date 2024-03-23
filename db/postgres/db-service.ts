@@ -59,14 +59,21 @@ export class DatabaseService {
   async getUser({ property, value }: SingleUserSearch): Promise<CompleteUserDto | undefined> {
     const user = await this.db
       .selectFrom("user")
-
       .selectAll()
-
       .where(property, "=", value)
       .executeTakeFirst();
     if (!user) return user;
     const role = await this.#getRole(user.id);
     return { ...user, role };
+  }
+
+  async usernameExists(username: string): Promise<boolean> {
+    const user = await this.db
+      .selectFrom("user")
+      .select("username")
+      .where("username", "=", username)
+      .executeTakeFirst();
+    return !!user;
   }
 
   async getCredentials(username: string): Promise<AuthDto | undefined> {

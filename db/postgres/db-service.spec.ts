@@ -192,6 +192,11 @@ describe("DatabaseService", () => {
           service.updateUser(randomUUID(), { username: "other-user" })
         ).rejects.toThrowError();
       });
+      it("Should return evaluate whether a username exists", async () => {
+        await service.addUser(firstUser);
+        await expect(service.usernameExists(firstUser.username)).resolves.toBe(true);
+        await expect(service.usernameExists("inexistent")).resolves.toBe(false);
+      });
       it("Should allow users to delete their account", async () => {
         await service.addUser(firstUser);
         const { id } = await service.addUser(secondUser);
