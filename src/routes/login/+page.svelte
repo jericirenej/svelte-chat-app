@@ -4,15 +4,14 @@
   import { handleFormResult } from "$lib/client/session-handlers";
   import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import { onMount } from "svelte";
-  import { fade } from "svelte/transition";
   import { superForm } from "sveltekit-superforms/client";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
   import { SIGNUP_ROUTE } from "../../constants";
   import { loginSchema } from "../../lib/client/login-signup-validators.js";
-  import type { PageData } from "./$types.js";
   import { LOGIN_MESSAGES } from "../../messages";
+  import type { PageData } from "./$types.js";
 
   export let data: PageData;
 
@@ -52,7 +51,7 @@
 
 <svelte:head><title>{pageTitle}</title></svelte:head>
 <FormWrapper {formTitle} {subtitle}>
-  <form slot="form" method="POST" use:enhance in:fade>
+  <form slot="form" method="POST" use:enhance>
     <LoginControls
       bind:username={$form.username}
       bind:password={$form.password}
@@ -62,7 +61,7 @@
       {submitDisabled}
     />
   </form>
-  <div slot="footer">
+  <svelte:fragment slot="footer">
     <FormFooter link={SIGNUP_ROUTE} label={signup} />
-  </div>
+  </svelte:fragment>
 </FormWrapper>

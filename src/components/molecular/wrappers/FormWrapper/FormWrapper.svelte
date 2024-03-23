@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { fade } from "svelte/transition";
+  import FormHeader from "../../FormHeader/FormHeader.svelte";
+
   export let formTitle: string | undefined = undefined;
   export let subtitle: string | undefined = undefined;
 
@@ -7,17 +10,9 @@
 
 <div
   class="absolute left-1/2 top-[30%] flex -translate-x-1/2 -translate-y-[30%] flex-col items-center justify-center"
+  in:fade
 >
-  {#if showHeader}
-    <div class="mb-8 flex flex-col items-center gap-1">
-      {#if formTitle}
-        <h1 class="text-[2rem] font-light uppercase leading-7 text-sky-800">{formTitle}</h1>
-        {#if subtitle}
-          <span class="text-sm font-normal text-sky-800">{subtitle}</span>
-        {/if}
-      {/if}
-    </div>
-  {/if}
+  <FormHeader {formTitle} {subtitle} />
   <div>
     <slot name="form" />
   </div>
