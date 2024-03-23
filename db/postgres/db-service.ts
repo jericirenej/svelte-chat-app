@@ -43,8 +43,7 @@ export class DatabaseService {
 
   /** Create new user, along with their passed credentials. Initial user created as superadmin. */
   async addUser(createUserDto: CreateUserDto): Promise<CompleteUserDto> {
-    const noUsers = await this.#usersExist();
-    if (noUsers) {
+    if (!(await this.#usersExist())) {
       return await this.createSuperAdmin(createUserDto);
     }
     const user = await this.db.transaction().execute<UserDto | undefined>(async (trx) => {
@@ -334,7 +333,6 @@ export class DatabaseService {
     };
   }
 
-  
   async getChats({ chatIds, direction, property }: GetChatsDto): Promise<GetChatDto[]> {
     if (!chatIds || !chatIds.length) {
       return throwHttpError(400, "At least one chat id must be supplied!");
@@ -347,7 +345,7 @@ export class DatabaseService {
       participants: chat.participants.map(({ userId }) => userId)
     }));
   }
-  
+
   async getChatIdsForUser(userId: string): Promise<string[]> {
     const chatIds = await this.db
       .selectFrom("participant")
@@ -634,7 +632,7 @@ export class DatabaseService {
       .select((eb) => eb.fn.countAll().as("userCount"))
       .executeTakeFirstOrThrow();
 
-    return BigInt(userCount) === 0n;
+    return BigInt(userCount) !== 0n;
   }
 }
 

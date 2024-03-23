@@ -137,7 +137,7 @@ describe("DatabaseService", () => {
         expect(user).not.toBeNull();
         expectTypeOf(user).toMatchTypeOf<CompleteUserDto>();
       });
-      it("Initial user should be created as super admin", async () => {
+      it("First user should be created as super admin", async () => {
         const { id } = await service.addUser(firstUser);
         expect(
           await db
@@ -146,6 +146,14 @@ describe("DatabaseService", () => {
             .where((eb) => eb.and([eb("id", "=", id), eb("superAdmin", "=", true)]))
             .executeTakeFirst()
         ).toEqual({ id });
+      });
+      it("Other users should be created as normal users", async () => {
+        await service.addUser(firstUser);
+        const { id } = await service.addUser(secondUser);
+        const admins = await db.selectFrom("admin").select("id").execute();
+        const adminIds = admins.map(({ id }) => id);
+        expect(admins).toHaveLength(1);
+        expect(adminIds[0]).not.toBe(id);
       });
       it("Should throw if required fields are missing", async () => {
         const necessary = ["username", "email"] satisfies (keyof CreateUserDto)[];
@@ -242,14 +250,6 @@ describe("DatabaseService", () => {
     describe("Admin CRUD", () => {
       afterEach(async () => {
         await db.deleteFrom("user").execute();
-      });
-      it("First user should be created as superAdmin", async () => {
-        const { id } = await service.addUser(firstUser);
-        const superAdminFetch = await db
-          .selectFrom("admin")
-          .where((eb) => eb.and([eb("id", "=", id), eb("superAdmin", "=", true)]))
-          .executeTakeFirst();
-        expect(superAdminFetch).not.toBeNull();
       });
       it("Should create admin user", async () => {
         const user = await service.createSuperAdmin(firstUser);
@@ -550,10 +550,7 @@ describe("DatabaseService", () => {
         participants: [...participants, thirdCreated.id]
       });
 
-      expect(await service.getChatIdsForUser(participants[0])).toEqual([
-        firstChatId,
-        secondChatId,
-      ]);
+      expect(await service.getChatIdsForUser(participants[0])).toEqual([firstChatId, secondChatId]);
       expect(await service.getChatIdsForUser(thirdCreated.id)).toEqual([secondChatId]);
     });
     it("Should get chats", async () => {
