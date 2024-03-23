@@ -1,16 +1,10 @@
+import { generateSessionCookieAndCsrf } from "$lib/server/authenticate.js";
 import { dbService, redisService } from "@db";
 import { error, fail } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms/server";
-import { SESSION_COOKIE } from "../../constants.js";
-import {
-  VERIFICATION_FAILURE,
-  generateCsrfToken,
-  generateSessionId,
-  verifyUser
-} from "../../lib/server/password-utils.js";
-import type { Actions, PageServerLoad } from "./$types";
 import { loginSchema } from "../../lib/client/login-signup-validators.js";
-import { secureCookieEval } from "$lib/utils.js";
+import { VERIFICATION_FAILURE, verifyUser } from "../../lib/server/password-utils.js";
+import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
   const form = await superValidate(loginSchema);
@@ -39,16 +33,8 @@ export const actions = {
     if (!user) {
       throw error(500, "Something went wrong while fetching user from the database");
     }
-    const sessionId = generateSessionId(user.id);
-    await redisService.setSession(sessionId, user);
-    cookies.set(SESSION_COOKIE, sessionId, {
-      httpOnly: true,
-      maxAge: redisService.ttl,
-      sameSite: true,
-      path:"/",
-      secure: secureCookieEval(url)
-    });
-    const csrfToken = generateCsrfToken(sessionId);
+    const { csrfToken } = await generateSessionCookieAndCsrf({ cookies, user, redisService, url });
+
     return {
       form,
       csrfToken
