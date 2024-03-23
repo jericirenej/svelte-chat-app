@@ -19,7 +19,9 @@ export const signupSchema = z
     username: username(),
     password: password(),
     verifyPassword: password(),
-    email: z.string().email({ message: errorMessages.email })
+    email: z.string().email({ message: errorMessages.email }),
+    name: z.string().optional(),
+    surname: z.string().optional(),
   })
   .refine(({ password, verifyPassword }) => password.length && password === verifyPassword, {
     message: errorMessages.verify,
