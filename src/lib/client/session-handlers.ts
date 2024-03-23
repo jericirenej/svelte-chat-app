@@ -16,8 +16,6 @@ type FormEventType = {
   cancel: () => void;
 };
 
-type Status = 200 | 404 | undefined;
-
 export const setCSRFLocal = (csrfToken: string | undefined): boolean => {
   if (!csrfToken) return false;
   localStorage.setItem(LOCAL_SESSION_CSRF_KEY, csrfToken);
@@ -31,9 +29,9 @@ export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
 export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
   event: FormEventType,
   pageOrigin: string
-): Status => {
+): number | undefined => {
   const result = event.result as FormResult<T>;
-  const status = result.status as Status;
+  const status = result.status;
   if (result.type !== "success" || !result.data) {
     return status;
   }
@@ -43,7 +41,7 @@ export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
 
   socket.set(socketClientSetup(pageOrigin, result.data.csrfToken));
 
-  return result.status as Status;
+  return result.status;
 };
 
 const csrfHeader = (csrf: string) => ({ [CSRF_HEADER]: csrf });
@@ -68,7 +66,7 @@ export const handleLogoutCall = async () => {
 
 /** Call the extend endpoint and re-set socket
  * If csrf token or username is not present or
- * the API call 's result is not 201, 
+ * the API call 's result is not 201,
  * it will register as failed. */
 export const handleExtendCall = async (
   origin: string,

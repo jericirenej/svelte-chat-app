@@ -16,12 +16,12 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    username: username(),
-    password: password(),
-    verifyPassword: password(),
+    username: username().min(1).max(100),
+    password: password().min(1).max(100),
+    verifyPassword: password().min(1).max(100),
     email: z.string().email({ message: errorMessages.email }),
-    name: z.string().optional(),
-    surname: z.string().optional(),
+    name: z.string().max(100).optional(),
+    surname: z.string().max(100).optional()
   })
   .refine(({ password, verifyPassword }) => password.length && password === verifyPassword, {
     message: errorMessages.verify,

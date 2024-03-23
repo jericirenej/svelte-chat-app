@@ -13,7 +13,7 @@ type BaseAuthenticationArgs = { sessionId: string | undefined; csrfToken: string
 
 type AuthenticationArgs = BaseAuthenticationArgs & { method?: string };
 type AuthenticationArgsHTTP = Required<AuthenticationArgs>;
-type AuthenticationReturn = CompleteUserDto | null;
+export type AuthenticationReturn = CompleteUserDto | null;
 
 const authenticateUser = async ({
   sessionId,

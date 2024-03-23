@@ -38,7 +38,7 @@
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
-      status = handleFormResult(event, $page.url.origin);
+      status = handleFormResult(event, $page.url.origin) as typeof status;
       // Delay for successful login, so that the user is informed before redirect
       if (status === 200) {
         await promisifiedTimeout(1500);

@@ -4,7 +4,7 @@ export const SIGNUP_ROUTE = "/signup";
 export const SIGNUP_LABEL = "";
 /** This s a list of **exact** routes on which no authentication is required.
  * All other routes should perform a check for `sessionId` cookie and and `X-CRSF` header. */
-export const UNPROTECTED_ROUTES = [ROOT_ROUTE, LOGIN_ROUTE, SIGNUP_ROUTE];
+export const UNPROTECTED_ROUTES = [LOGIN_ROUTE, SIGNUP_ROUTE];
 export const LOGOUT_ROUTE = "/api/logout",
   EXTEND_SESSION_ROUTE = "/api/extend",
   API_ROUTES = [LOGOUT_ROUTE, EXTEND_SESSION_ROUTE];

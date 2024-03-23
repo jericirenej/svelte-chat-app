@@ -9,7 +9,7 @@
   export let label: string;
   export let placeholder = "";
   export let disabled: boolean = false;
-  export let value: string;
+  export let value: string|undefined;
   export let input: (ev?: Event) => unknown = () => {};
 
   export let isControlValid = true;

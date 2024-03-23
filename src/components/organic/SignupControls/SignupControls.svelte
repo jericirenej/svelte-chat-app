@@ -7,18 +7,21 @@
 
   export let username: string;
   export let password: string;
+  export let verifyPassword: string;
   export let email: string;
-  export let name: string;
-  export let surname: string;
+  export let name: string | undefined;
+  export let surname: string | undefined;
 
   export let onInput: (ev?: Event) => unknown = () => {};
   export let isLoading = false;
-  export let status: 200 | 404 | undefined = undefined;
+  export let status: 200 | 400 | 409 | 500 | undefined = undefined;
   export let submitDisabled = false;
 
   const defaultMessage = {
-    200: MSG.signupSuccess,
-    404: MSG.signupFailure
+    200: MSG.success,
+    400: MSG.badRequestFailure,
+    409: MSG.usernameFailure,
+    500: MSG.failure
   };
 </script>
 
@@ -47,6 +50,14 @@
       type="password"
       input={onInput}
       bind:value={password}
+    />
+    <Input
+      label="Verify password"
+      placeholder={MSG.passwordVerifyPlaceholder}
+      name="verifyPassword"
+      type="password"
+      input={onInput}
+      bind:value={verifyPassword}
     />
     <Input
       label="Name"
