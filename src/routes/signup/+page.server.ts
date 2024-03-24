@@ -20,8 +20,9 @@ export const actions = {
     }
     const { email, password, username: originalUsername, name, surname } = form.data;
     const username = originalUsername.toLowerCase();
-    const isTaken = await dbService.usernameExists(username);
-    if (isTaken) {
+    const isUserNameTaken = await dbService.usernameExists(username);
+    const isEmailTaken = await dbService.emailExists(email);
+    if (isUserNameTaken || isEmailTaken) {
       return fail(409, { form });
     }
     const { hash, salt } = genPassword(password);
