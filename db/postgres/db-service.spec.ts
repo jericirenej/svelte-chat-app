@@ -192,10 +192,15 @@ describe("DatabaseService", () => {
           service.updateUser(randomUUID(), { username: "other-user" })
         ).rejects.toThrowError();
       });
-      it("Should return evaluate whether a username exists", async () => {
+      it("Should evaluate whether a username exists", async () => {
         await service.addUser(firstUser);
         await expect(service.usernameExists(firstUser.username)).resolves.toBe(true);
         await expect(service.usernameExists("inexistent")).resolves.toBe(false);
+      });
+      it("Should evaluate whether an email exists", async () => {
+        await service.addUser(firstUser);
+        await expect(service.emailExists(firstUser.email)).resolves.toBe(true);
+        await expect(service.emailExists("inexistent@nowhere.never")).resolves.toBe(false);
       });
       it("Should allow users to delete their account", async () => {
         await service.addUser(firstUser);

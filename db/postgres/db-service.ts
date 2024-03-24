@@ -76,6 +76,15 @@ export class DatabaseService {
     return !!user;
   }
 
+  async emailExists(email: string): Promise<boolean> {
+    const user = await this.db
+      .selectFrom("user")
+      .select("email")
+      .where("email", "=", email)
+      .executeTakeFirst();
+    return !!user;
+  }
+
   async getCredentials(username: string): Promise<AuthDto | undefined> {
     const credentials = await this.db
       .selectFrom("auth")
