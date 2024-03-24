@@ -21,14 +21,20 @@
   export let text = "Submit";
   export let disabled = false;
   export let title = "";
+  export let submitMessage: string | undefined = undefined;
+  export let submitStatus: "success" | "error" | undefined = undefined;
+  $: showNotification = !!(submitStatus && submitMessage);
+  $: messages = submitMessage?.split(/(?<=[\.!])/g).filter(Boolean) ?? [];
+
+  $: console.log(messages);
 </script>
 
-<div class={isLoading ? "loading relative" : ""}>
+<div class={`relative ${isLoading ? "loading relative" : ""}`}>
   <Button
     type="submit"
     disabled={isLoading || disabled}
     action={config?.action ?? "confirm"}
-    variant={config?.variant}
+    variant={config?.variant ?? "primary"}
     size={config?.size}
     display={config?.display}
     customClasses={config?.customClasses ?? "py-[0.5rem]"}
@@ -54,6 +60,26 @@
       </div>
     </div>
   </Button>
+  {#if showNotification}
+    <div
+      transition:fade={{ duration: 150 }}
+      class={`
+      top-100 absolute left-0 flex
+      w-full flex-col gap-1
+      ${config?.display === "block" ? "text-center" : "text-left"}
+      select-none
+      overflow-hidden
+      text-ellipsis
+      whitespace-nowrap
+      text-sm
+      ${submitStatus === "success" ? "text-emerald-500" : "text-red-600"}
+`}
+    >
+      {#each messages as message}
+        <small>{message}</small>
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <style>

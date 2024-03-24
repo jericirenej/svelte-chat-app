@@ -29,8 +29,8 @@ export const SIGNUP_MESSAGES = {
   passwordPlaceholder: LOGIN_MESSAGES.passwordPlaceholder,
   passwordVerifyPlaceholder: "Confirm password",
   success: "Successfully registered!",
-  failure: "Registration failed! Please try again or log in, if you already have an account.",
-  usernameFailure: "Username already taken. Please choose a different one.",
+  failure: "Registration failed on the server. Please try again.",
+  duplicateFailure: "Username or email combination already taken.",
   badRequestFailure: "Please fill out the signup form as indicated to sign up.",
-  supplyDetailsTitle: "Please supply a username, email, and password.",
+  supplyDetailsTitle: "Please supply a username, email, and password."
 };

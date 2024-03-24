@@ -1,9 +1,8 @@
 <script lang="ts">
-  import ControlWrapper from "../../molecular/wrappers/ControlsWrapper/ControlsWrapper.svelte";
-  import FormSubmitNotification from "../../atomic/FormSubmitNotification/FormSubmitNotification.svelte";
+  import { LOGIN_MESSAGES } from "../../../messages";
   import Input from "../../atomic/Input/Input.svelte";
   import SubmitButton from "../../molecular/SubmitButton/SubmitButton.svelte";
-  import { LOGIN_MESSAGES } from "../../../messages";
+  import ControlWrapper from "../../molecular/wrappers/ControlsWrapper/ControlsWrapper.svelte";
 
   export let username: string;
   export let password: string;
@@ -50,10 +49,8 @@
       {isLoading}
       title={submitDisabled ? supplyDetailsTitle : ""}
       config={{ display: "block" }}
-    />
-    <FormSubmitNotification
-      status={status === 200 ? "success" : "error"}
-      message={status ? defaultMessage[status] : undefined}
+      submitStatus={status === 200 ? "success" : "error"}
+      submitMessage={status ? defaultMessage[status] : undefined}
     />
   </svelte:fragment>
 </ControlWrapper>

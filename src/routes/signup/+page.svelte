@@ -1,4 +1,10 @@
 <script lang="ts">
+  import { invalidateAll } from "$app/navigation";
+  import { page } from "$app/stores";
+  import { signupSchema } from "$lib/client/login-signup-validators";
+  import { handleFormResult } from "$lib/client/session-handlers";
+  import { debounce, promisifiedTimeout } from "$lib/utils";
+  import { onMount } from "svelte";
   import { superForm } from "sveltekit-superforms/client";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
@@ -6,12 +12,6 @@
   import { LOGIN_ROUTE } from "../../constants";
   import { SIGNUP_MESSAGES } from "../../messages";
   import type { PageData } from "./$types";
-  import { signupSchema } from "$lib/client/login-signup-validators";
-  import { handleFormResult } from "$lib/client/session-handlers";
-  import { page } from "$app/stores";
-  import { debounce, promisifiedTimeout } from "$lib/utils";
-  import { onMount } from "svelte";
-  import { invalidateAll } from "$app/navigation";
   const { login, pageTitle, subtitle, title: formTitle } = SIGNUP_MESSAGES;
 
   export let data: PageData;

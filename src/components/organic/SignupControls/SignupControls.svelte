@@ -1,6 +1,5 @@
 <script lang="ts">
   import { SIGNUP_MESSAGES as MSG } from "../../../messages";
-  import FormSubmitNotification from "../../atomic/FormSubmitNotification/FormSubmitNotification.svelte";
   import Input from "../../atomic/Input/Input.svelte";
   import SubmitButton from "../../molecular/SubmitButton/SubmitButton.svelte";
   import ControlsWrapper from "../../molecular/wrappers/ControlsWrapper/ControlsWrapper.svelte";
@@ -20,7 +19,7 @@
   const defaultMessage = {
     200: MSG.success,
     400: MSG.badRequestFailure,
-    409: MSG.usernameFailure,
+    409: MSG.duplicateFailure,
     500: MSG.failure
   };
 </script>
@@ -83,10 +82,8 @@
       {isLoading}
       title={submitDisabled ? MSG.supplyDetailsTitle : ""}
       config={{ display: "block" }}
-    />
-    <FormSubmitNotification
-      status={status === 200 ? "success" : "error"}
-      message={status ? defaultMessage[status] : undefined}
+      submitStatus={status === 200 ? "success" : "error"}
+      submitMessage={status ? defaultMessage[status] : undefined}
     />
   </svelte:fragment>
 </ControlsWrapper>
