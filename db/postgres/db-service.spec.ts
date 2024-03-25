@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { randomUUID } from "crypto";
 
 import { faker } from "@faker-js/faker";
-import { CamelCasePlugin, Kysely, Migrator, PostgresDialect } from "kysely";
-import pg from "pg";
 import {
   afterAll,
   afterEach,
@@ -15,10 +12,8 @@ import {
   it,
   vi
 } from "vitest";
-import env from "../environment.js";
 import { DatabaseService } from "./db-service.js";
-import { DB } from "./db-types.js";
-import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
+import { createDbConnectionAndMigrator, createOrDestroyTempDb } from "./tools/testing-db-helper.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
   CompleteUserDto,
@@ -35,35 +30,11 @@ import {
   type UpdateUserDto,
   type UserDto
 } from "./types.js";
-const { Pool, Client } = pg;
 
-const TEST_DB_NAME = "test_db";
-const postgresConnection = {
-  database: env.POSTGRES_POSTGRES_DB,
-  host: env.POSTGRES_HOST,
-  user: env.POSTGRES_USER,
-  password: env.POSTGRES_PASSWORD,
-  port: env.POSTGRES_PORT | 5432
-};
-const MIGRATIONS_PATH = new URL("./migrations", import.meta.url),
-  TYPE_PATH = new URL("./db-types.ts", import.meta.url).pathname.substring(1);
 
-// Create test database before creating a connection to it
-const postgresClient = new Client(postgresConnection);
-await postgresClient.connect();
-await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
-await postgresClient.query(`CREATE DATABASE "${TEST_DB_NAME}"`);
+await createOrDestroyTempDb("create");
+const { db, migrationHelper } = createDbConnectionAndMigrator();
 
-// Create connection to test database
-const db = new Kysely<DB>({
-    dialect: new PostgresDialect({
-      pool: new Pool({ ...postgresConnection, database: TEST_DB_NAME })
-    }),
-    plugins: [new CamelCasePlugin()]
-  }),
-  migrator = new Migrator({ db, provider: new ESMFileMigrationProvider(MIGRATIONS_PATH) });
-
-const migrationHelper = new MigrationHelper(db as Kysely<unknown>, migrator, TYPE_PATH);
 describe("DatabaseService", () => {
   let service: DatabaseService;
   const firstUser: CreateUserDto = {
@@ -101,8 +72,7 @@ describe("DatabaseService", () => {
   });
   afterAll(async () => {
     await db.destroy();
-    await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
-    await postgresClient.end();
+    await createOrDestroyTempDb("destroy");
   });
   describe("Users", () => {
     const userProps = ["username", "avatar", "email", "name", "surname"] satisfies (keyof Omit<
