@@ -8,6 +8,7 @@ const config: PlaywrightTestConfig = {
   globalSetup: "./tests/global.setup",
   globalTeardown: "./tests/global.teardown",
   testDir: "tests",
+  workers: 8,
   retries: 3,
   projects: [
     {

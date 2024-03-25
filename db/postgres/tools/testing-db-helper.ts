@@ -1,5 +1,5 @@
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect } from "kysely";
-import { Client, Pool } from "pg";
+import pg from "pg";
 import env from "../../environment.js";
 import { DB } from "../db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./migrator.js";
@@ -18,6 +18,7 @@ const MIGRATIONS_PATH = new URL("../migrations", import.meta.url),
 export const createOrDestroyTempDb = async (
   action: "create" | "destroy" = "create"
 ): Promise<void> => {
+  const {Client} = pg;
   const postgresClient = new Client(postgresConnection);
   await postgresClient.connect();
   await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
@@ -28,6 +29,7 @@ export const createOrDestroyTempDb = async (
 };
 
 export const createDbConnectionAndMigrator = () => {
+  const {Pool} = pg;
   const db = new Kysely<DB>({
     dialect: new PostgresDialect({
       pool: new Pool({ ...postgresConnection, database: TEST_DB_NAME })
