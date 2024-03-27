@@ -59,18 +59,18 @@
       bind:value={verifyPassword}
     />
     <Input
-      label="Name"
+      label={MSG.namePlaceholder}
       placeholder={MSG.namePlaceholder}
       name="name"
-      type="name"
+      type="text"
       input={onInput}
       bind:value={name}
     />
     <Input
-      label="Surname"
+      label={MSG.surnamePlaceholder}
       placeholder={MSG.surnamePlaceholder}
       name="surname"
-      type="surname"
+      type="text"
       input={onInput}
       bind:value={surname}
     />
