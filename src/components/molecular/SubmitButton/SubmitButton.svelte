@@ -9,22 +9,20 @@
     type ButtonVariant
   } from "../../atomic/Button/Button.svelte";
   export let isLoading = false;
-  export let config:
-    | Partial<{
-        variant: ButtonVariant;
-        size: ButtonSizes;
-        display: ButtonDisplay;
-        action: ButtonActions;
-        customClasses: string;
-      }>
-    | undefined = undefined;
+  export let config: Partial<{
+    variant: ButtonVariant;
+    size: ButtonSizes;
+    display: ButtonDisplay;
+    action: ButtonActions;
+    customClasses: string;
+  }> = {};
   export let text = "Submit";
   export let disabled = false;
   export let title = "";
   export let submitMessage: string | undefined = undefined;
   export let submitStatus: "success" | "error" | undefined = undefined;
   $: showNotification = !!(submitStatus && submitMessage);
-  $: messages = submitMessage?.split(/(?<=[\.!])/g).filter(Boolean) ?? [];
+  $: messages = submitMessage?.split(/(?<=[.!])/g).filter(Boolean) ?? [];
 
   $: console.log(messages);
 </script>
@@ -33,11 +31,11 @@
   <Button
     type="submit"
     disabled={isLoading || disabled}
-    action={config?.action ?? "confirm"}
-    variant={config?.variant ?? "primary"}
-    size={config?.size}
-    display={config?.display}
-    customClasses={config?.customClasses ?? "py-[0.5rem]"}
+    action={config.action ?? "confirm"}
+    variant={config.variant ?? "primary"}
+    size={config.size}
+    display={config.display}
+    customClasses={config.customClasses ?? "py-[0.5rem]"}
     {title}
   >
     <div class="flex justify-center">
@@ -66,7 +64,7 @@
       class={`
       top-100 absolute left-0 flex
       w-full flex-col gap-1
-      ${config?.display === "block" ? "text-center" : "text-left"}
+      ${config.display === "block" ? "text-center" : "text-left"}
       select-none
       overflow-hidden
       text-ellipsis

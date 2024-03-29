@@ -2,7 +2,10 @@
   import type { Meta } from "@storybook/svelte";
   import Input from "./Input.svelte";
 
-  export const meta: Meta<Input> = {
+  type StoryProps = RemoveIndexSignature<ComponentProps<Input>>;
+  type ExpandedProps = StoryProps & { containerWidth: number };
+
+  export const meta: Meta<ExpandedProps> = {
     title: "Atomic/Input",
     component: Input,
     argTypes: {
@@ -37,18 +40,25 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
-  const componentKeys = ["name", "type", "label", "disabled", "placeholder"],
-    wrapperKeys = ["containerWidth"];
-  const handleArgs = <T extends Record<string, unknown>>(args: T) => {
+  import type { RemoveIndexSignature } from "../../../types";
+  const componentKeys = ["name", "type", "label", "disabled", "placeholder"] as const,
+    wrapperKeys = ["containerWidth"] as const;
+  const handleArgs = (args: ExpandedProps) => {
     return {
-      props: componentKeys.reduce((obj, key) => {
-        obj[key] = args[key];
-        return obj;
-      }, {} as ComponentProps<Input>),
-      container: wrapperKeys.reduce((obj, key) => {
-        obj[key] = args[key];
-        return obj;
-      }, {} as Record<string, unknown>)
+      props: componentKeys.reduce(
+        (obj, key) => {
+          obj[key] = args[key];
+          return obj;
+        },
+        {} as Record<string, unknown>
+      ) as StoryProps,
+      container: wrapperKeys.reduce(
+        (obj, key) => {
+          obj[key] = args[key];
+          return obj;
+        },
+        {} as Omit<ExpandedProps, keyof StoryProps>
+      )
     };
   };
 </script>

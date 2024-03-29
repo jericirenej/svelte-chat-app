@@ -1,7 +1,10 @@
 <script context="module" lang="ts">
+  import type { ComponentProps } from "svelte";
   import type { Meta } from "@storybook/svelte";
   import SubmitButton from "./SubmitButton.svelte";
-  type CompleteArgs = ComponentProps<SubmitButton> & { containerWidth: number };
+  type StoryProps = RemoveIndexSignature<ComponentProps<SubmitButton>>;
+  type CompleteArgs =StoryProps & { containerWidth: number };
+
   export const meta: Meta<CompleteArgs> = {
     title: "Molecular/SubmitButton",
     component: SubmitButton,
@@ -19,16 +22,19 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import type { ComponentProps } from "svelte";
-  const componentArgs = (completeArgs: CompleteArgs) =>
+  import type { RemoveIndexSignature } from "../../../types";
+  const componentArgs = (completeArgs: CompleteArgs): StoryProps =>
     Object.fromEntries(
-      Object.entries(completeArgs).filter(([key]) => key !== "containerWidth")
-    ) as ComponentProps<SubmitButton>;
+      Object.entries(completeArgs as Record<string, unknown>).filter(
+        ([key]) => key !== "containerWidth"
+      )
+    );
+  const getContainerWidth = (args: CompleteArgs) => args.containerWidth;
 </script>
 
 <Template let:args>
   {@const submitArgs = componentArgs(args)}
-  <div class="flex flex-col gap-3" style:width={`${args.containerWidth}px`}>
+  <div class="flex flex-col gap-3" style:width={`${getContainerWidth(args)}px`}>
     <fieldset class="border border-l-gray-400 p-7">
       <legend class="text-xs uppercase tracking-wide">Inline-block</legend>
       <SubmitButton {...submitArgs} />

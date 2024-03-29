@@ -25,13 +25,13 @@
     submitDisabled = !valid;
   }, 150);
 
-  const handleInput = async () => {
+  const handleInput = () => {
     submitDisabledToggle();
     status = undefined;
   };
 
   const { form, enhance, validate } = superForm(data.form, {
-    onSubmit: async () => {
+    onSubmit: () => {
       isLoading = true;
     },
     validators: loginSchema,
@@ -46,7 +46,9 @@
     }
   });
 
-  onMount(async () => await invalidateAll());
+  onMount(async () => {
+    await invalidateAll();
+  });
 </script>
 
 <svelte:head><title>{pageTitle}</title></svelte:head>

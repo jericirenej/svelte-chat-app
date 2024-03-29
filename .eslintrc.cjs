@@ -1,11 +1,12 @@
+/** @type {import("eslint").Linter.Config} */
 module.exports = {
   root: true,
   extends: [
     "eslint:recommended",
-    "plugin:@typescript-eslint/strict-type-checked",
     "plugin:storybook/recommended",
-    "prettier",
-    "plugin:svelte/recommended"
+    "plugin:@typescript-eslint/strict-type-checked",
+    "plugin:svelte/recommended",
+    "prettier"
   ],
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint"],
@@ -27,14 +28,39 @@ module.exports = {
       parser: "svelte-eslint-parser",
       parserOptions: {
         parser: "@typescript-eslint/parser"
+      },
+      rules: {
+        "@typescript-eslint/prefer-reduce-type-parameter": 0,
+        "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }]
+      }
+    },
+    {
+      files: ["*.stories.svelte"],
+      parser: "svelte-eslint-parser",
+      parserOptions: {
+        parser: "@typescript-eslint/parser"
+      },
+      rules: {
+        "@typescript-eslint/prefer-reduce-type-parameter": 0,
+        // Temporarily turn off until typed args can be passed to <Template let:args />
+        // Or until upgrade to Svelte 5 is made and type assertions are allowed in templates.
+        "@typescript-eslint/no-unsafe-member-access": 1,
+        "@typescript-eslint/no-unsafe-argument": 0,
+        "@typescript-eslint/no-unsafe-assignment": 0,
+        "@typescript-eslint/no-unsafe-return": 1,
+        // Extending component props leads to complaints about "any" 
+        // overriding all other intersection types
+        "@typescript-eslint/no-redundant-type-constituents": 0
       }
     },
     {
       files: ["*.ts"],
       rules: {
         "@typescript-eslint/no-throw-literal": 0,
+        "@typescript-eslint/only-throw-error": 0,
         "@typescript-eslint/no-dynamic-delete": 0,
-        "@typescript-eslint/prefer-reduce-type-parameter": 0
+        "@typescript-eslint/prefer-reduce-type-parameter": 0,
+        "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }]
       }
     },
     {

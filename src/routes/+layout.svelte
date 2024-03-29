@@ -1,14 +1,12 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import {
-    handleExtendCall,
-    handleLogoutCall
-  } from "$lib/client/session-handlers";
+  import { handleExtendCall, handleLogoutCall } from "$lib/client/session-handlers";
   import { socketClientSetup } from "$lib/client/socket.client";
   import { showSessionExpirationWarning, socket } from "$lib/client/stores";
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
+  
   import "../app.css";
   import type { ExtendSessionStatus } from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
   import ExpireWarning from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
@@ -25,13 +23,14 @@
   $: loggedIn = !!data.user;
 
   let extendSessionStatus: ExtendSessionStatus = undefined;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   $: status = extendSessionStatus;
 
   const closeSession = async () => {
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
     await invalidateAll();
-    goto("/");
+    void goto("/");
   };
 
   const dismissWarning = () => {
@@ -39,7 +38,7 @@
     showSessionExpirationWarning.set(false);
   };
   const extendSession = async () => {
-    extendSessionStatus = await handleExtendCall($page.url.origin, data?.user?.username);
+    extendSessionStatus = await handleExtendCall($page.url.origin, data.user?.username);
     localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "false");
     setTimeout(() => {
       $showSessionExpirationWarning = false;
@@ -47,11 +46,12 @@
     }, 2000);
   };
 
-  onMount(async () => {
+  onMount(() => {
     if (!data.user) {
-      return LOCAL_KEYS.forEach((key) => {
+      LOCAL_KEYS.forEach((key) => {
         localStorage.removeItem(key);
       });
+      return;
     }
 
     const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);

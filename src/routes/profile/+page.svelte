@@ -2,11 +2,6 @@
   import type { CompleteUserDto } from "../../../db/index.js";
   import { capitalize } from "../../utils/text-utils.js";
   import type { PageData } from "./$types.js";
-
-  type UserProfileData = {
-    [T in keyof CompleteUserDto]: { label: string; value: CompleteUserDto[T] };
-  };
-
   export let data: PageData;
 
   const user = data.user as CompleteUserDto;

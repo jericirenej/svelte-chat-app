@@ -42,7 +42,9 @@
     {#if show}
       <ExpireWarning
         on:dismiss={() => (show = false)}
-        on:sessionExtend={() => console.log("Extend session fired.")}
+        on:sessionExtend={() => {
+          console.log("Extend session fired.");
+        }}
         {...args}
       />
     {/if}

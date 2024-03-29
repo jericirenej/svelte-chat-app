@@ -5,7 +5,6 @@
   export let formTitle: string | undefined = undefined;
   export let subtitle: string | undefined = undefined;
 
-  $: showHeader = formTitle || subtitle;
 </script>
 
 <div
