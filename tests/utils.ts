@@ -2,6 +2,7 @@ import type { BrowserContext, Locator, Page } from "@playwright/test";
 import { redisService } from "../db/index.js";
 import { USERS, type AvailableUsers } from "../db/postgres/seed/seed.js";
 import { SESSION_COOKIE } from "../src/constants.js";
+import { LOGIN_MESSAGES } from "../src/messages.js";
 
 const defaultUser: AvailableUsers = "lovelace",
   defaultPassword: `${AvailableUsers}-password` = "lovelace-password";
@@ -41,8 +42,8 @@ export const login = async (
   if (!page.url().includes("login")) {
     await page.goto("/login");
   }
-  const userField = page.getByPlaceholder("Enter your username"),
-    passwordField = page.getByPlaceholder("Enter your password");
+  const userField = page.getByPlaceholder(LOGIN_MESSAGES.usernamePlaceholder),
+    passwordField = page.getByPlaceholder(LOGIN_MESSAGES.passwordPlaceholder);
   for (const [field, val] of [
     [userField, user],
     [passwordField, password]
@@ -55,3 +56,6 @@ export const login = async (
     await page.waitForURL("/");
   }
 };
+
+export const typedObjectKeys = <T extends Record<string, unknown>>(arg: T): (keyof T)[] =>
+  Object.keys(arg);

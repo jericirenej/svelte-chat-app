@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
 import { cleanup, clickAndFillLocator, login } from "./utils.js";
-import { APP_NAME, LOGIN_MESSAGES } from "../src/messages.js";
+import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
+import { LOGIN_ROUTE } from "../src/constants.js";
 
 const user: AvailableUsers = "babbage",
   password: `${AvailableUsers}-password` = "babbage-password";
@@ -21,13 +22,13 @@ test("App should redirect to login if not authenticated", async ({ page, browser
   const urls = ["/", "/profile", "random/page"];
   for (const url of urls) {
     await page.goto(url);
-    await expect(page).toHaveURL("/login");
+    await expect(page).toHaveURL(LOGIN_ROUTE);
     await page.screenshot({ path: `./tests/screenshots/login-${browserName}.png` });
   }
 });
 
 test("Should have appropriate elements", async ({ page }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   await expect(page).toHaveTitle(pageTitle);
   await expect(page.getByRole("heading", { level: 1, name: APP_NAME })).toBeVisible();
   await expect(page.getByText(`${title} ${subtitle}`)).toBeVisible();
@@ -40,9 +41,14 @@ test("Should have appropriate elements", async ({ page }) => {
   await expect(page.getByRole("heading", { name: APP_NAME })).toBeVisible();
   await expect(page.getByRole("link", { name: signup })).toBeVisible();
 });
+test("Should navigate to signup", async ({ page }) => {
+  await page.goto(LOGIN_ROUTE);
+  await page.getByRole("link", { name: signup }).click();
+  await expect(page.getByRole("heading", { name: SIGNUP_MESSAGES.title })).toBeVisible();
+});
 
 test("Should not allow submission of invalid form", async ({ page }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   const submitButton = page.getByRole("button");
   await expect(submitButton).toBeDisabled();
   await page.getByLabel("Username").fill("username");
@@ -53,26 +59,24 @@ test("Should not allow submission of invalid form", async ({ page }) => {
 });
 
 test("Should allow submit on valid form", async ({ page }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   await clickAndFillLocator(page.getByPlaceholder(usernamePlaceholder), "username");
   await clickAndFillLocator(page.getByPlaceholder(passwordPlaceholder), "password");
   await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();
 });
 
 test("Login page should show message on failed / successful login", async ({ page, context }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   await login(page, "user", "password", false);
   await expect(page.getByText(failure)).toBeVisible();
 
   await login(page, user, password, false);
   await expect(page.getByText(success)).toBeVisible();
-  await cleanup(context);
 });
 test("Successful login should redirect to root", async ({ page, context }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   await login(page, user, password, false);
   await expect(page).toHaveURL("/");
-  await cleanup(context);
 });
 test("Successful login should persist when new page with same storageState is opened", async ({
   page,
@@ -81,6 +85,6 @@ test("Successful login should persist when new page with same storageState is op
   await login(page);
   const newPage = await context.newPage();
   await page.close();
-  await newPage.goto("/login");
+  await newPage.goto(LOGIN_ROUTE);
   await newPage.waitForURL("/");
 });

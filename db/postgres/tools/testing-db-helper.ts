@@ -16,23 +16,24 @@ const MIGRATIONS_PATH = new URL("../migrations", import.meta.url),
   TYPE_PATH = new URL("../db-types.ts", import.meta.url).pathname.substring(1);
 
 export const createOrDestroyTempDb = async (
-  action: "create" | "destroy" = "create"
+  action: "create" | "destroy" = "create",
+  dbName = TEST_DB_NAME
 ): Promise<void> => {
-  const {Client} = pg;
+  const { Client } = pg;
   const postgresClient = new Client(postgresConnection);
   await postgresClient.connect();
-  await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
+  await postgresClient.query(`DROP DATABASE IF EXISTS "${dbName}" WITH (FORCE)`);
   if (action === "create") {
-    await postgresClient.query(`CREATE DATABASE "${TEST_DB_NAME}"`);
+    await postgresClient.query(`CREATE DATABASE "${dbName}"`);
   }
   await postgresClient.end();
 };
 
-export const createDbConnectionAndMigrator = () => {
-  const {Pool} = pg;
+export const createDbConnectionAndMigrator = (dbName = TEST_DB_NAME) => {
+  const { Pool } = pg;
   const db = new Kysely<DB>({
     dialect: new PostgresDialect({
-      pool: new Pool({ ...postgresConnection, database: TEST_DB_NAME })
+      pool: new Pool({ ...postgresConnection, database: dbName })
     }),
     plugins: [new CamelCasePlugin()]
   });
@@ -41,5 +42,5 @@ export const createDbConnectionAndMigrator = () => {
     new Migrator({ db, provider: new ESMFileMigrationProvider(MIGRATIONS_PATH) }),
     TYPE_PATH
   );
-  return { db,migrationHelper };
+  return { db, migrationHelper };
 };
