@@ -14,7 +14,7 @@
   {#if data.user}
     <div in:fade class="flex w-full flex-col items-center gap-3">
       <RootHeading />
-      <p class="font-bold">Welcome {name}!</p>
+      <p class="font-bold text-center">Welcome {name}!</p>
     </div>
   {/if}
 </div>
