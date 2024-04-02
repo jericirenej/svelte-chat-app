@@ -9,7 +9,7 @@ module.exports = {
     "prettier"
   ],
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
+  plugins: ["@typescript-eslint", "unused-imports"],
   parserOptions: {
     sourceType: "module",
     ecmaVersion: 2020,
@@ -31,7 +31,8 @@ module.exports = {
       },
       rules: {
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
-        "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }]
+        "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+        "unused-imports/no-unused-imports": "error",
       }
     },
     {
@@ -60,7 +61,8 @@ module.exports = {
         "@typescript-eslint/only-throw-error": 0,
         "@typescript-eslint/no-dynamic-delete": 0,
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
-        "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }]
+        "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+        "unused-imports/no-unused-imports": "error",
       }
     },
     {
