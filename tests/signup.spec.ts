@@ -5,6 +5,7 @@ import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { createDbConnectionAndMigrator } from "../db/postgres/tools/testing-db-helper";
 import { typedJsonClone } from "../db/postgres/tools/utils";
 import { typedObjectKeys } from "./utils";
+import { PASSWORD_MIN, USERNAME_MIN } from "../src/lib/client/login-signup-validators";
 
 const {
   title,
@@ -161,4 +162,68 @@ test("Should reject registration if password verification does not match", async
   user.passwordVerify.value = user.password.value;
   await fillSignupForm(page, user, false);
   await expect(page.getByRole("button", { name: "submit" })).toBeEnabled();
+});
+test("Should allow registration with blank optional fields", async ({ page, browserName }) => {
+  const user = exampleUser(test.info(), browserName) as unknown as Partial<
+    ReturnType<typeof exampleUser>
+  >;
+
+  delete user.surname;
+  delete user.name;
+
+  await fillSignupForm(page, user, false);
+  const button = page.getByRole("button", { name: "submit" });
+  await expect(button).toBeEnabled();
+  await button.click();
+  await expect(page).toHaveURL(ROOT_ROUTE);
+  const username = user.username?.value;
+  username && (await db.deleteFrom("user").where("username", "=", username).execute());
+});
+test("Should disallow submit if fields are too long", async ({ page, browserName }) => {
+  const user = exampleUser(test.info(), browserName);
+  const overLimit = new Array(101).fill("a").join("");
+  await fillSignupForm(page, user, false);
+  const button = page.getByRole("button", { name: "submit" });
+  await expect(button).toBeEnabled();
+
+  for (const target of ["username", "password", "name", "surname"] as const) {
+    const locator = page.getByPlaceholder(user[target].placeholder, { exact: true });
+    await locator.fill(overLimit);
+    if (target === "password") {
+      await page.getByPlaceholder(user.passwordVerify.placeholder).fill(overLimit);
+    }
+    await expect(button).toBeDisabled();
+    await locator.fill(user[target].value);
+    if (target === "password") {
+      await page.getByPlaceholder(user.passwordVerify.placeholder).fill(user.passwordVerify.value);
+    }
+    await expect(button).toBeEnabled();
+  }
+});
+test("Should disallow submit if username is too short", async ({ page, browserName }) => {
+  const user = exampleUser(test.info(), browserName);
+  const value = new Array(USERNAME_MIN - 1).fill("a").join("");
+
+  await fillSignupForm(page, user, false);
+  const button = page.getByRole("button", { name: "submit" });
+  await page.getByPlaceholder(user.username.placeholder).fill(value);
+  await expect(button).toBeDisabled();
+  await page.getByPlaceholder(user.username.placeholder, { exact: true }).fill(value + "a");
+
+  await expect(button).toBeEnabled();
+});
+test("Should disallow submit if password is too short", async ({ page, browserName }) => {
+  const user = exampleUser(test.info(), browserName);
+  const value = new Array(PASSWORD_MIN - 1).fill("a").join("");
+  await fillSignupForm(page, user, false);
+  const fillPassword = async (val: string) => {
+    for (const placeholder of [passwordPlaceholder, passwordVerifyPlaceholder]) {
+      await page.getByPlaceholder(placeholder, { exact: true }).fill(val);
+    }
+  };
+  const button = page.getByRole("button", { name: "submit" });
+  await fillPassword(value);
+  await expect(button).toBeDisabled();
+  await fillPassword(value + "a");
+  await expect(button).toBeEnabled();
 });

@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { cleanup, clickAndFillLocator, login } from "./utils.js";
-import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { LOGIN_ROUTE } from "../src/constants.js";
+import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
+import { clickAndFillLocator, login } from "./utils.js";
 
 const user: AvailableUsers = "babbage",
   password: `${AvailableUsers}-password` = "babbage-password";
