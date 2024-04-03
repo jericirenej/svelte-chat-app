@@ -24,7 +24,6 @@
   $: showNotification = !!(submitStatus && submitMessage);
   $: messages = submitMessage?.split(/(?<=[.!])/g).filter(Boolean) ?? [];
 
-  $: console.log(messages);
 </script>
 
 <div class={`relative ${isLoading ? "loading relative" : ""}`}>
