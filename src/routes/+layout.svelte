@@ -6,7 +6,7 @@
   import { showSessionExpirationWarning, socket } from "$lib/client/stores";
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
-  
+
   import "../app.css";
   import type { ExtendSessionStatus } from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
   import ExpireWarning from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
@@ -61,7 +61,9 @@
 </script>
 
 <div class="flex h-screen w-screen items-center justify-center overflow-hidden bg-neutral-400">
-  <div class="app relative flex h-[95vh] w-[95vw] max-w-[1500px] rounded-md bg-white">
+  <div
+    class="app relative flex h-[95vh] w-[95vw] max-w-[1500px] overflow-y-auto rounded-md bg-white"
+  >
     <section
       transition:fly={{ duration: 300, y: -400 }}
       class={`sidebar h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 transition-max-width duration-300 ${

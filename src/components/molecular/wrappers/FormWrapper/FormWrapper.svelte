@@ -8,7 +8,7 @@
 </script>
 
 <div
-  class="absolute left-1/2 top-[30%] flex -translate-x-1/2 -translate-y-[30%] flex-col items-center justify-center"
+  class="m-auto mt-[15vh] flex-col items-center justify-center"
   in:fade
 >
   <FormHeader {formTitle} {subtitle} />
