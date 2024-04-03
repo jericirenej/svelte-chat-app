@@ -1,71 +1,44 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
+  import { handleExtendCall, handleLogoutCall } from "$lib/client/session-handlers";
   import { socketClientSetup } from "$lib/client/socket.client";
-  import { socket, showSessionExpirationWarning } from "$lib/client/stores";
-  import { fly, type CrossfadeParams } from "svelte/transition";
+  import { showSessionExpirationWarning, socket } from "$lib/client/stores";
+  import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
+
   import "../app.css";
+  import type { ExtendSessionStatus } from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
+  import ExpireWarning from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import {
-    CSRF_HEADER,
-    LOCAL_SESSION_CSRF_KEY,
     LOCAL_DISMISSED_EXPIRATION_WARNING,
     LOCAL_KEYS,
-
-    LOGOUT_ROUTE,
-
-    EXTEND_SESSION_ROUTE
-
-
+    LOCAL_SESSION_CSRF_KEY
   } from "../constants.js";
   import type { LayoutData } from "./$types";
-  import { onMount } from "svelte";
-  import ExpireWarning from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
-  import type { ExtendSessionStatus } from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
 
   export let data: LayoutData;
 
   $: loggedIn = !!data.user;
 
   let extendSessionStatus: ExtendSessionStatus = undefined;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   $: status = extendSessionStatus;
 
-  const handleAPICall = async (action: "logout" | "extend"): Promise<Response | undefined> => {
-    const url = action === "logout" ? LOGOUT_ROUTE : EXTEND_SESSION_ROUTE,
-      method = action === "logout" ? "DELETE" : "POST";
-    const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
-    if (!csrf) return undefined;
-    return await fetch(url, {
-      method,
-      headers: { [CSRF_HEADER]: csrf }
-    });
-  };
-
-  const handleLogout = async () => {
-    await handleAPICall("logout");
-    LOCAL_KEYS.forEach((key) => localStorage.removeItem(key));
+  const closeSession = async () => {
+    await handleLogoutCall();
     $showSessionExpirationWarning = false;
-    socket.set(undefined);
     await invalidateAll();
-    goto("/");
+    void goto("/");
   };
 
-  const handleWarningDismiss = () => {
+  const dismissWarning = () => {
     localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "true");
     showSessionExpirationWarning.set(false);
   };
-  const handleExtend = async () => {
-    const response = await handleAPICall("extend");
-    if (response?.status === 201) {
-      const parsed = (await response.json()) as Record<"csrf", string>;
-      localStorage.setItem(LOCAL_SESSION_CSRF_KEY, parsed.csrf);
-      if ($socket) {
-        socketClientSetup($page.url.origin, parsed.csrf, data?.user?.username);
-      }
-      extendSessionStatus = "success" satisfies ExtendSessionStatus;
-    } else {
-      extendSessionStatus = "fail" satisfies ExtendSessionStatus;
-    }
+  const extendSession = async () => {
+    extendSessionStatus = await handleExtendCall($page.url.origin, data.user?.username);
     localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "false");
     setTimeout(() => {
       $showSessionExpirationWarning = false;
@@ -73,11 +46,12 @@
     }, 2000);
   };
 
-  onMount(async () => {
+  onMount(() => {
     if (!data.user) {
-      return LOCAL_KEYS.forEach((key) => {
+      LOCAL_KEYS.forEach((key) => {
         localStorage.removeItem(key);
       });
+      return;
     }
 
     const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
@@ -87,7 +61,9 @@
 </script>
 
 <div class="flex h-screen w-screen items-center justify-center overflow-hidden bg-neutral-400">
-  <div class="app relative flex h-[95vh] w-[95vw] max-w-[1500px] rounded-md bg-white">
+  <div
+    class="app relative flex h-[95vh] w-[95vw] max-w-[1500px] overflow-y-auto rounded-md bg-white"
+  >
     <section
       transition:fly={{ duration: 300, y: -400 }}
       class={`sidebar h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 transition-max-width duration-300 ${
@@ -97,7 +73,7 @@
       {#if loggedIn}
         <nav>
           <section>
-            <NavIcons routeId={$page.route.id} {handleLogout} />
+            <NavIcons routeId={$page.route.id} handleLogout={closeSession} />
           </section>
         </nav>
       {:else}
@@ -107,7 +83,7 @@
     <slot />
     {#if $showSessionExpirationWarning}
       <div class="absolute right-3 top-3 z-10">
-        <ExpireWarning {status} on:dismiss={handleWarningDismiss} on:sessionExtend={handleExtend} />
+        <ExpireWarning {status} on:dismiss={dismissWarning} on:sessionExtend={extendSession} />
       </div>
     {/if}
   </div>

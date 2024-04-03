@@ -1,11 +1,19 @@
-import { redisService, type CompleteUserDto } from "@db";
-import { getSessionFromCsrfToken, verifyCsrfToken } from "./password-utils.js";
+import { secureCookieEval } from "$lib/utils.js";
+import { RedisService, redisService, type CompleteUserDto } from "@db";
+import type { Cookies } from "@sveltejs/kit";
+import { SESSION_COOKIE } from "../../constants.js";
+import {
+  generateCsrfToken,
+  generateSessionId,
+  getSessionFromCsrfToken,
+  verifyCsrfToken
+} from "./password-utils.js";
 
 type BaseAuthenticationArgs = { sessionId: string | undefined; csrfToken: string | null };
 
 type AuthenticationArgs = BaseAuthenticationArgs & { method?: string };
 type AuthenticationArgsHTTP = Required<AuthenticationArgs>;
-type AuthenticationReturn = CompleteUserDto | null;
+export type AuthenticationReturn = CompleteUserDto | null;
 
 const authenticateUser = async ({
   sessionId,
@@ -37,4 +45,22 @@ export const authenticateUserWS = async (
   authArgs: BaseAuthenticationArgs
 ): Promise<AuthenticationReturn> => {
   return await authenticateUser(authArgs);
+};
+
+export const generateSessionCookieAndCsrf = async (args: {
+  user: CompleteUserDto;
+  cookies: Cookies;
+  url: URL;
+  redisService: RedisService;
+}): Promise<{ csrfToken: string }> => {
+  const sessionId = generateSessionId(args.user.id);
+  await args.redisService.setSession(sessionId, args.user);
+  args.cookies.set(SESSION_COOKIE, sessionId, {
+    httpOnly: true,
+    maxAge: args.redisService.ttl,
+    sameSite: true,
+    path: "/",
+    secure: secureCookieEval(args.url)
+  });
+  return { csrfToken: generateCsrfToken(sessionId) };
 };

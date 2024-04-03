@@ -48,7 +48,7 @@
 </script>
 
 <button
-  class={`${baseClasses} ${displayType[display]} ${size ? sizes[size] : sizes.sm} ${
+  class={`${baseClasses} ${displayType[display]} ${sizes[size]} ${
     buttonColor[variant][action]
   } ${customClasses ?? ""}
   disabled:active:scale-100

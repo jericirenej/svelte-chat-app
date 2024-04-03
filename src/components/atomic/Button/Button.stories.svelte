@@ -1,7 +1,8 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
   import Button from "./Button.svelte";
-  export const meta: Meta<Button> = {
+  type StoryProps = RemoveIndexSignature<ComponentProps<Button>>
+  export const meta: Meta<StoryProps> = {
     title: "Atomic/Button",
     component: Button,
     argTypes: {
@@ -18,11 +19,15 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import { capitalize } from "../../../utils/text-utils.js";
+  import type { ComponentProps } from "svelte";
+  import type { RemoveIndexSignature } from "../../../types";
   const buttonVariants = ["primary", "outline"] as const;
+  const assertArgs = (args:unknown) => args as StoryProps;
 </script>
 
 <Template let:args>
-  {@const isInline = args.display === "inline-block" || !args.display}
+  {@const storyArgs = assertArgs(args)}
+  {@const isInline = storyArgs.display === "inline-block" || !storyArgs.display}
   <fieldset
     class={`flex 
     ${isInline ? "flex-row gap-x-5 w-fit" : "flex-col gap-y-5"}
@@ -33,9 +38,9 @@
     rounded
     `}
   >
-    <legend class="text-xs uppercase tracking-wide">{args.display}</legend>
+    <legend class="text-xs uppercase tracking-wide">{storyArgs.display}</legend>
     {#each buttonVariants as variant}
-      <Button {...args} {variant} on:click>{capitalize(variant)} button</Button>
+      <Button {...storyArgs} {variant} on:click>{capitalize(variant)} button</Button>
     {/each}
   </fieldset>
 </Template>

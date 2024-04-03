@@ -4,6 +4,7 @@
   import type { PageData } from "./$types.js";
 
   export let data: PageData;
+  $: name = data.user?.name ?? data.user?.username;
 </script>
 
 <svelte:head>
@@ -13,7 +14,7 @@
   {#if data.user}
     <div in:fade class="flex w-full flex-col items-center gap-3">
       <RootHeading />
-      <p class="font-bold">Welcome {data.user.name}!</p>
+      <p class="font-bold text-center">Welcome {name}!</p>
     </div>
   {/if}
 </div>

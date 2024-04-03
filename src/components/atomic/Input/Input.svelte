@@ -9,7 +9,7 @@
   export let label: string;
   export let placeholder = "";
   export let disabled: boolean = false;
-  export let value: string;
+  export let value: string | undefined;
   export let input: (ev?: Event) => unknown = () => {};
 
   export let isControlValid = true;
@@ -35,7 +35,7 @@
     {name}
     use:typeAction
     bind:value
-    placeholder={placeholder ?? label}
+    placeholder={placeholder.length ? placeholder : label}
     on:blur={() => (isControlValid = ref.validity.valid)}
     on:input={input}
     {disabled}

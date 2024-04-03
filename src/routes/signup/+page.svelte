@@ -1,30 +1,29 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
+  import { signupSchema } from "$lib/client/login-signup-validators";
   import { handleFormResult } from "$lib/client/session-handlers";
-  import { debounce, promisifiedTimeout } from "$lib/utils.js";
+  import { debounce, promisifiedTimeout } from "$lib/utils";
   import { onMount } from "svelte";
   import { superForm } from "sveltekit-superforms/client";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
-  import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
-  import { SIGNUP_ROUTE } from "../../constants";
-  import { loginSchema } from "../../lib/client/login-signup-validators.js";
-  import { LOGIN_MESSAGES } from "../../messages";
-  import type { PageData } from "./$types.js";
+  import SignupControls from "../../components/organic/SignupControls/SignupControls.svelte";
+  import { LOGIN_ROUTE } from "../../constants";
+  import { SIGNUP_MESSAGES } from "../../messages";
+  import type { PageData } from "./$types";
+  const { login, pageTitle, subtitle, title: formTitle } = SIGNUP_MESSAGES;
 
   export let data: PageData;
 
   let isLoading = false;
   let submitDisabled = true;
-  let status: 200 | 404 | undefined = undefined;
-  const { title: formTitle, subtitle, signup, pageTitle } = LOGIN_MESSAGES;
+  let status: 200 | 400 | 409 | 500 | undefined = undefined;
 
   const submitDisabledToggle = debounce(async () => {
     const { valid } = await validate();
     submitDisabled = !valid;
   }, 150);
-
   const handleInput = () => {
     submitDisabledToggle();
     status = undefined;
@@ -34,7 +33,7 @@
     onSubmit: () => {
       isLoading = true;
     },
-    validators: loginSchema,
+    validators: signupSchema,
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
@@ -45,7 +44,6 @@
       }
     }
   });
-
   onMount(async () => {
     await invalidateAll();
   });
@@ -54,16 +52,20 @@
 <svelte:head><title>{pageTitle}</title></svelte:head>
 <FormWrapper {formTitle} {subtitle}>
   <form slot="form" method="POST" use:enhance>
-    <LoginControls
+    <SignupControls
       bind:username={$form.username}
       bind:password={$form.password}
-      {isLoading}
+      bind:verifyPassword={$form.verifyPassword}
+      bind:email={$form.email}
+      bind:name={$form.name}
+      bind:surname={$form.surname}
       onInput={handleInput}
+      {isLoading}
       {status}
       {submitDisabled}
     />
   </form>
   <svelte:fragment slot="footer">
-    <FormFooter link={SIGNUP_ROUTE} label={signup} />
+    <FormFooter link={LOGIN_ROUTE} label={login} />
   </svelte:fragment>
 </FormWrapper>

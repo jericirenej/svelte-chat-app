@@ -32,7 +32,11 @@ const logger = createLogger({
   format: logForm
 });
 
-const logInfo = (message: string) => logger.log("info", message);
+const logInfo = (message: string):void => {
+  if(process.env["NO_LOG"] === "true") return;
+  logger.log("info", message);
+
+}
 
 const createEmail = (username: string): string => `${username}@nowhere.never`;
 
@@ -233,8 +237,8 @@ const populateChats = async (trx: Transaction<DB>): Promise<void> => {
   await trx.insertInto("message").values(messageData).execute();
 };
 
-export const seed = async (): Promise<void> => {
-  await db.transaction().execute(async (trx) => {
+export const seed = async (database = db): Promise<void> => {
+  await database.transaction().execute(async (trx) => {
     const begin = performance.now();
     logInfo("Starting seed");
     logInfo("Clearing database");
@@ -245,5 +249,4 @@ export const seed = async (): Promise<void> => {
     const formatted = formattedTime(performance.now() - begin);
     logInfo(`Seed completed in ${formatted}. Exiting.`);
   });
-  await db.destroy();
 };

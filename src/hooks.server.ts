@@ -7,6 +7,7 @@ import {
   LOGIN_ROUTE,
   ROOT_ROUTE,
   SESSION_COOKIE,
+  SIGNUP_ROUTE,
   UNPROTECTED_ROUTES
 } from "./constants.js";
 import { setupSocketServer } from "$lib/server/socket.server.js";
@@ -49,6 +50,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     method = event.request.method;
   const isUnprotectedRoute = UNPROTECTED_ROUTES.includes(event.url.pathname),
     isLoginRoute = event.url.pathname === LOGIN_ROUTE,
+    isSignupRoute = event.url.pathname === SIGNUP_ROUTE,
     isRootRoute = event.url.pathname === ROOT_ROUTE;
   const user = await authenticateUserHTTP({ sessionId, csrfToken, method });
   // Clear session id cookie if user is invalid
@@ -57,7 +59,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.user = undefined;
   }
   // For non-authorized, non-get methods at non-login endpoint we throw forbidden immediately.
-  if (!user && method !== "GET" && !isLoginRoute) {
+  if (!user && method !== "GET" && !(isLoginRoute || isSignupRoute)) {
     throw error(403);
   }
 
@@ -70,13 +72,10 @@ export const handle: Handle = async ({ event, resolve }) => {
       throw redirect(302, LOGIN_ROUTE);
     }
 
-    if (sessionId && isLoginRoute) {
+    if (sessionId && (isLoginRoute || isSignupRoute)) {
       throw redirect(302, ROOT_ROUTE);
     }
 
-    if (isLoginRoute) {
-      return await resolve(event);
-    }
     return await resolve(event);
   }
   if (!user) {

@@ -1,32 +1,54 @@
 import { expect, test } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { cleanup, clickAndFillLocator, login } from "./utils.js";
+import { LOGIN_ROUTE } from "../src/constants.js";
+import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
+import { clickAndFillLocator, login } from "./utils.js";
 
 const user: AvailableUsers = "babbage",
   password: `${AvailableUsers}-password` = "babbage-password";
+const {
+  failure,
+  success,
+  pageTitle,
+  passwordPlaceholder,
+  signup,
+  subtitle,
+  supplyDetailsTitle,
+  title,
+  usernamePlaceholder
+} = LOGIN_MESSAGES;
 
 test("App should redirect to login if not authenticated", async ({ page, browserName }) => {
   const urls = ["/", "/profile", "random/page"];
   for (const url of urls) {
     await page.goto(url);
-    await expect(page).toHaveURL("/login");
+    await expect(page).toHaveURL(LOGIN_ROUTE);
     await page.screenshot({ path: `./tests/screenshots/login-${browserName}.png` });
   }
 });
 
 test("Should have appropriate elements", async ({ page }) => {
-  await page.goto("/login");
-  await expect(page).toHaveTitle("Chat App - Login");
-  await expect(page.getByRole("heading", { level: 1, name: "Chat App" })).toBeVisible();
-  await expect(page.getByText("Sign in ...and start chatting!")).toBeVisible();
-  await expect(page.getByRole("button", { name: "submit" })).toBeVisible();
-  for (const placeholder of ["Enter your username", "Enter your password"]) {
+  await page.goto(LOGIN_ROUTE);
+  await expect(page).toHaveTitle(pageTitle);
+  await expect(page.getByRole("heading", { level: 1, name: APP_NAME })).toBeVisible();
+  await expect(page.getByText(`${title} ${subtitle}`)).toBeVisible();
+  const submitButton = page.getByRole("button", { name: "submit" });
+  await expect(submitButton).toBeVisible();
+  await expect(submitButton).toHaveAttribute("title", supplyDetailsTitle);
+  for (const placeholder of [usernamePlaceholder, passwordPlaceholder]) {
     await expect(page.getByPlaceholder(placeholder)).toBeVisible();
   }
+  await expect(page.getByRole("heading", { name: APP_NAME })).toBeVisible();
+  await expect(page.getByRole("link", { name: signup })).toBeVisible();
+});
+test("Should navigate to signup", async ({ page }) => {
+  await page.goto(LOGIN_ROUTE);
+  await page.getByRole("link", { name: signup }).click();
+  await expect(page.getByRole("heading", { name: SIGNUP_MESSAGES.title })).toBeVisible();
 });
 
 test("Should not allow submission of invalid form", async ({ page }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   const submitButton = page.getByRole("button");
   await expect(submitButton).toBeDisabled();
   await page.getByLabel("Username").fill("username");
@@ -36,30 +58,25 @@ test("Should not allow submission of invalid form", async ({ page }) => {
   await expect(submitButton).toBeDisabled();
 });
 
-test("Should allow submit on valid form", async ({ page,  }) => {
-  await page.goto("/login");
-  await clickAndFillLocator(page.getByPlaceholder("Enter your username"), "username");
-  await clickAndFillLocator(page.getByPlaceholder("Enter your password"), "password");
+test("Should allow submit on valid form", async ({ page }) => {
+  await page.goto(LOGIN_ROUTE);
+  await clickAndFillLocator(page.getByPlaceholder(usernamePlaceholder), "username");
+  await clickAndFillLocator(page.getByPlaceholder(passwordPlaceholder), "password");
   await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();
 });
 
-test("Login page should show message on failed / successful login", async ({
-  page,
-  context,
-}) => {
-  await page.goto("/login");
+test("Login page should show message on failed / successful login", async ({ page, context }) => {
+  await page.goto(LOGIN_ROUTE);
   await login(page, "user", "password", false);
-  await expect(page.getByText("Username or password not correct!")).toBeVisible();
+  await expect(page.getByText(failure)).toBeVisible();
 
   await login(page, user, password, false);
-  await expect(page.getByText("Login successful!")).toBeVisible();
-  await cleanup(context);
+  await expect(page.getByText(success)).toBeVisible();
 });
 test("Successful login should redirect to root", async ({ page, context }) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_ROUTE);
   await login(page, user, password, false);
   await expect(page).toHaveURL("/");
-  await cleanup(context);
 });
 test("Successful login should persist when new page with same storageState is opened", async ({
   page,
@@ -68,6 +85,6 @@ test("Successful login should persist when new page with same storageState is op
   await login(page);
   const newPage = await context.newPage();
   await page.close();
-  await newPage.goto("/login");
+  await newPage.goto(LOGIN_ROUTE);
   await newPage.waitForURL("/");
 });

@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { randomUUID } from "crypto";
 
 import { faker } from "@faker-js/faker";
-import { CamelCasePlugin, Kysely, Migrator, PostgresDialect } from "kysely";
-import pg from "pg";
 import {
   afterAll,
   afterEach,
@@ -15,10 +12,8 @@ import {
   it,
   vi
 } from "vitest";
-import env from "../environment.js";
 import { DatabaseService } from "./db-service.js";
-import { DB } from "./db-types.js";
-import { ESMFileMigrationProvider, MigrationHelper } from "./tools/migrator.js";
+import { createDbConnectionAndMigrator, createOrDestroyTempDb } from "./tools/testing-db-helper.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
   CompleteUserDto,
@@ -35,35 +30,11 @@ import {
   type UpdateUserDto,
   type UserDto
 } from "./types.js";
-const { Pool, Client } = pg;
 
-const TEST_DB_NAME = "test_db";
-const postgresConnection = {
-  database: env.POSTGRES_POSTGRES_DB,
-  host: env.POSTGRES_HOST,
-  user: env.POSTGRES_USER,
-  password: env.POSTGRES_PASSWORD,
-  port: env.POSTGRES_PORT | 5432
-};
-const MIGRATIONS_PATH = new URL("./migrations", import.meta.url),
-  TYPE_PATH = new URL("./db-types.ts", import.meta.url).pathname.substring(1);
 
-// Create test database before creating a connection to it
-const postgresClient = new Client(postgresConnection);
-await postgresClient.connect();
-await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
-await postgresClient.query(`CREATE DATABASE "${TEST_DB_NAME}"`);
+await createOrDestroyTempDb("create");
+const { db, migrationHelper } = createDbConnectionAndMigrator();
 
-// Create connection to test database
-const db = new Kysely<DB>({
-    dialect: new PostgresDialect({
-      pool: new Pool({ ...postgresConnection, database: TEST_DB_NAME })
-    }),
-    plugins: [new CamelCasePlugin()]
-  }),
-  migrator = new Migrator({ db, provider: new ESMFileMigrationProvider(MIGRATIONS_PATH) });
-
-const migrationHelper = new MigrationHelper(db as Kysely<unknown>, migrator, TYPE_PATH);
 describe("DatabaseService", () => {
   let service: DatabaseService;
   const firstUser: CreateUserDto = {
@@ -101,8 +72,7 @@ describe("DatabaseService", () => {
   });
   afterAll(async () => {
     await db.destroy();
-    await postgresClient.query(`DROP DATABASE IF EXISTS "${TEST_DB_NAME}" WITH (FORCE)`);
-    await postgresClient.end();
+    await createOrDestroyTempDb("destroy");
   });
   describe("Users", () => {
     const userProps = ["username", "avatar", "email", "name", "surname"] satisfies (keyof Omit<
@@ -137,7 +107,7 @@ describe("DatabaseService", () => {
         expect(user).not.toBeNull();
         expectTypeOf(user).toMatchTypeOf<CompleteUserDto>();
       });
-      it("Initial user should be created as super admin", async () => {
+      it("First user should be created as super admin", async () => {
         const { id } = await service.addUser(firstUser);
         expect(
           await db
@@ -146,6 +116,14 @@ describe("DatabaseService", () => {
             .where((eb) => eb.and([eb("id", "=", id), eb("superAdmin", "=", true)]))
             .executeTakeFirst()
         ).toEqual({ id });
+      });
+      it("Other users should be created as normal users", async () => {
+        await service.addUser(firstUser);
+        const { id } = await service.addUser(secondUser);
+        const admins = await db.selectFrom("admin").select("id").execute();
+        const adminIds = admins.map(({ id }) => id);
+        expect(admins).toHaveLength(1);
+        expect(adminIds[0]).not.toBe(id);
       });
       it("Should throw if required fields are missing", async () => {
         const necessary = ["username", "email"] satisfies (keyof CreateUserDto)[];
@@ -183,6 +161,16 @@ describe("DatabaseService", () => {
         await expect(
           service.updateUser(randomUUID(), { username: "other-user" })
         ).rejects.toThrowError();
+      });
+      it("Should evaluate whether a username exists", async () => {
+        await service.addUser(firstUser);
+        await expect(service.usernameExists(firstUser.username)).resolves.toBe(true);
+        await expect(service.usernameExists("inexistent")).resolves.toBe(false);
+      });
+      it("Should evaluate whether an email exists", async () => {
+        await service.addUser(firstUser);
+        await expect(service.emailExists(firstUser.email)).resolves.toBe(true);
+        await expect(service.emailExists("inexistent@nowhere.never")).resolves.toBe(false);
       });
       it("Should allow users to delete their account", async () => {
         await service.addUser(firstUser);
@@ -242,14 +230,6 @@ describe("DatabaseService", () => {
     describe("Admin CRUD", () => {
       afterEach(async () => {
         await db.deleteFrom("user").execute();
-      });
-      it("First user should be created as superAdmin", async () => {
-        const { id } = await service.addUser(firstUser);
-        const superAdminFetch = await db
-          .selectFrom("admin")
-          .where((eb) => eb.and([eb("id", "=", id), eb("superAdmin", "=", true)]))
-          .executeTakeFirst();
-        expect(superAdminFetch).not.toBeNull();
       });
       it("Should create admin user", async () => {
         const user = await service.createSuperAdmin(firstUser);
@@ -550,10 +530,7 @@ describe("DatabaseService", () => {
         participants: [...participants, thirdCreated.id]
       });
 
-      expect(await service.getChatIdsForUser(participants[0])).toEqual([
-        firstChatId,
-        secondChatId,
-      ]);
+      expect(await service.getChatIdsForUser(participants[0])).toEqual([firstChatId, secondChatId]);
       expect(await service.getChatIdsForUser(thirdCreated.id)).toEqual([secondChatId]);
     });
     it("Should get chats", async () => {
