@@ -34,3 +34,13 @@ export const SIGNUP_MESSAGES = {
   badRequestFailure: "Please fill out the signup form as indicated to sign up.",
   supplyDetailsTitle: "Please supply a username, email, and password."
 };
+
+
+export const PROFILE_MESSAGES = {
+  pageTitle: `${APP_NAME} - Profile`,
+  deleteButton: "Delete account",
+  deleteDialogHeading: "Are you sure you want to delete your account?",
+  deleteMessage: "This action cannot be undone. All of you account information, together with stored messages will be deleted permanently!",
+  deleteConfirm: "Do it!"
+
+}

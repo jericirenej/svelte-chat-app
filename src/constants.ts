@@ -6,7 +6,8 @@ export const SIGNUP_ROUTE = "/signup";
 export const UNPROTECTED_ROUTES = [LOGIN_ROUTE, SIGNUP_ROUTE];
 export const LOGOUT_ROUTE = "/api/logout",
   EXTEND_SESSION_ROUTE = "/api/extend",
-  API_ROUTES = [LOGOUT_ROUTE, EXTEND_SESSION_ROUTE];
+  DELETE_ACCOUNT_ROUTE = "/api/delete-account",
+  API_ROUTES = [LOGOUT_ROUTE, EXTEND_SESSION_ROUTE, DELETE_ACCOUNT_ROUTE];
 
 export const SESSION_COOKIE = "chatSessionId";
 export const CSRF_HEADER = "X-CSRF";
