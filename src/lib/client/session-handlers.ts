@@ -2,6 +2,7 @@ import type { ActionResult } from "@sveltejs/kit";
 import type { FormResult } from "sveltekit-superforms/client";
 import {
   CSRF_HEADER,
+  DELETE_ACCOUNT_ROUTE,
   EXTEND_SESSION_ROUTE,
   LOCAL_KEYS,
   LOCAL_SESSION_CSRF_KEY,
@@ -52,16 +53,37 @@ const extendCall = (csrf: string) =>
 const logoutCall = (csrf: string) =>
   fetch(LOGOUT_ROUTE, { method: "DELETE", headers: { ...csrfHeader(csrf) } });
 
-/** Perform a call to the logout endpoint, remove
- * local storage entries and set socket to undefined. */
-export const handleLogoutCall = async () => {
+const deleteAccountCall = (csrf: string) =>
+  fetch(DELETE_ACCOUNT_ROUTE, {
+    method: "DELETE",
+    headers: { ...csrfHeader(csrf) }
+  });
+
+const handleRequestAndCloseSession = async (
+  cb: (csrf: string) => Promise<Response>,
+  validResponse = 200
+): Promise<void> => {
   const csrf = getCSRFLocal();
   if (!csrf) return;
-  await logoutCall(csrf);
+  const response = await cb(csrf);
+  if(response.status !== validResponse) {
+    console.warn(`Request returned response ${response.status}, where ${validResponse} was expected. Keeping session intact.`)
+    return;
+  }
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
   socket.set(undefined);
+};
+
+/** Perform a call to the logout endpoint, remove
+ * local storage entries and set socket to undefined. */
+export const handleLogoutCall = async () => {
+  await handleRequestAndCloseSession(logoutCall);
+};
+
+export const handleDeleteAccountCall = async () => {
+  await handleRequestAndCloseSession(deleteAccountCall);
 };
 
 /** Call the extend endpoint and re-set socket
