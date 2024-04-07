@@ -11,6 +11,7 @@
       open: { control: "boolean", table: { disable: true } },
       confirmAction: { table: { disable: true } },
       message: { control: "text" },
+      heading: { control: "text" },
       confirmMessage: { control: "text" },
       rejectMessage: { control: "text" }
     },
@@ -51,6 +52,7 @@
   args={{
     open: isOpen,
     message: "Is this what you want, what you really really want?",
+    heading: "",
     confirmMessage: "",
     rejectMessage: ""
   }}

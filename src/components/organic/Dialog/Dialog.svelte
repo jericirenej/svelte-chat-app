@@ -4,6 +4,7 @@
 
   export let open = false;
   export let message: string;
+  export let heading: string | undefined = undefined;
   export let confirmMessage: string | undefined = undefined;
   export let rejectMessage: string | undefined = undefined;
 
@@ -34,7 +35,7 @@
 
 <dialog
   bind:this={ref}
-  class="scale-75 rounded-md from-blue-100 to-blue-200 opacity-50 shadow transition-all duration-150 backdrop:bg-gradient-to-bl backdrop:opacity-40 [&.open]:scale-100 [&.open]:opacity-100 max-w-prose"
+  class="max-w-prose scale-75 rounded-md from-blue-100 to-blue-200 opacity-50 shadow transition-all duration-150 backdrop:bg-gradient-to-bl backdrop:opacity-40 [&.open]:scale-100 [&.open]:opacity-100"
   class:open
   on:close
   on:close={() => {
@@ -42,6 +43,9 @@
   }}
 >
   <div class="mt-2 px-8 py-4">
+    {#if heading}
+      <h1 class="text-lg text-center mb-3 font-semibold">{heading}</h1>
+    {/if}
     <p class="mb-5 mt-2">{message}</p>
     <div class="mb-2 mt-3 flex justify-center gap-3">
       <Button
