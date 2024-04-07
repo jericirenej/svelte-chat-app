@@ -9,7 +9,7 @@ const config: PlaywrightTestConfig = {
   globalTeardown: "./tests/global.teardown",
   testDir: "tests",
   workers: 8,
-  retries: 3,
+  retries: 1,
   projects: [
     {
       name: "chromium",
