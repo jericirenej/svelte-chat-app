@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
   import Button from "../../atomic/Button/Button.svelte";
 
   export let open = false;
@@ -20,10 +20,6 @@
     ref.close();
   };
 
-  const onClose = () => {
-    if (open) open = false;
-  };
-
   const handleClick = (val: boolean) => {
     if (val) confirmAction();
     open = false;
@@ -32,20 +28,18 @@
   $: showModal(open);
 
   onMount(() => {
-    ref?.addEventListener("close", onClose);
     showModal(open);
-  });
-
-  onDestroy(() => {
-    ref?.removeEventListener("close", onClose);
   });
 </script>
 
 <dialog
   bind:this={ref}
-  class="scale-75 rounded-md from-blue-100 to-blue-200 opacity-50 shadow transition-all duration-150 backdrop:bg-gradient-to-bl backdrop:opacity-40 [&.open]:scale-100 [&.open]:opacity-100"
+  class="scale-75 rounded-md from-blue-100 to-blue-200 opacity-50 shadow transition-all duration-150 backdrop:bg-gradient-to-bl backdrop:opacity-40 [&.open]:scale-100 [&.open]:opacity-100 max-w-prose"
   class:open
   on:close
+  on:close={() => {
+    open = false;
+  }}
 >
   <div class="mt-2 px-8 py-4">
     <p class="mb-5 mt-2">{message}</p>

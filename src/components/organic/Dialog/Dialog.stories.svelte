@@ -5,7 +5,7 @@
   import Dialog from "./Dialog.svelte";
   import type { ComponentProps } from "svelte";
   export const meta: Meta<ComponentProps<Dialog>> = {
-    title: "Molecular/Dialog",
+    title: "Organic/Dialog",
     component: Dialog,
     argTypes: {
       open: { control: "boolean", table: { disable: true } },
@@ -25,7 +25,9 @@
 </script>
 
 <Template let:args>
-  <div class="flex wrapper items-center justify-center border-2 border-violet-500 repeat from-violet-400 to-violet-600">
+  <div
+    class="wrapper repeat flex items-center justify-center rounded-md border-2 border-violet-500 from-violet-400 to-violet-600"
+  >
     <Button
       action="cancel"
       on:click={() => {
@@ -55,9 +57,15 @@
 />
 
 <style>
-.wrapper {
-  height: calc(100vh - 2rem);
-  width: calc(100vw - 2rem);
-  background: repeating-linear-gradient(135deg, rgb(167, 139, 250), rgb(167, 139, 250) 20px, lightgray 20px,lightgray 40px )
-}
+  .wrapper {
+    height: calc(100vh - 2rem);
+    width: calc(100vw - 2rem);
+    background: repeating-linear-gradient(
+      135deg,
+      rgb(167, 139, 250),
+      rgb(167, 139, 250) 20px,
+      lightgray 20px,
+      lightgray 40px
+    );
+  }
 </style>
