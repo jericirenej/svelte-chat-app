@@ -3,7 +3,7 @@
   import Button from "../../atomic/Button/Button.svelte";
 
   export let open = false;
-  export let message: string;
+  export let message: string | undefined = undefined;
   export let heading: string | undefined = undefined;
   export let confirmMessage: string | undefined = undefined;
   export let rejectMessage: string | undefined = undefined;
@@ -44,9 +44,13 @@
 >
   <div class="mt-2 px-8 py-4">
     {#if heading}
-      <h1 class="text-lg text-center mb-3 font-semibold">{heading}</h1>
+      <h1 class="mb-3 text-center text-lg font-semibold">{heading}</h1>
     {/if}
-    <p class="mb-5 mt-2">{message}</p>
+    <article class="mb-5 mt-2">
+      <slot
+        >{#if message}<p>{message}</p>{/if}</slot
+      >
+    </article>
     <div class="mb-2 mt-3 flex justify-center gap-3">
       <Button
         action="danger"
