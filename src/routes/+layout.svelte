@@ -41,7 +41,9 @@
     extendSessionStatus = await handleExtendCall($page.url.origin, data.user?.username);
     localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "false");
     setTimeout(() => {
-      $showSessionExpirationWarning = false;
+      if ($showSessionExpirationWarning) {
+        $showSessionExpirationWarning = false;
+      }
       extendSessionStatus = undefined;
     }, 2000);
   };
