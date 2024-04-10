@@ -27,7 +27,10 @@
 
   let openDeleteDialog = false;
   const deleteProfile = async () => {
-    await handleDeleteAccountCall();
+    const response = await handleDeleteAccountCall();
+    if (response !== 200) {
+      return;
+    }
     await invalidateAll();
     void goto("/");
   };
@@ -72,7 +75,7 @@
 <Dialog
   bind:open={openDeleteDialog}
   confirmMessage={deleteConfirm}
-  confirmAction={() => deleteProfile()}
+  confirmAction={deleteProfile}
 >
   <h1 class="mb-3 text-center text-lg font-semibold">
     {deleteDialogHeading}
