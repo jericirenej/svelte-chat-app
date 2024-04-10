@@ -62,28 +62,32 @@ const deleteAccountCall = (csrf: string) =>
 const handleRequestAndCloseSession = async (
   cb: (csrf: string) => Promise<Response>,
   validResponse = 200
-): Promise<void> => {
+): Promise<number | null> => {
   const csrf = getCSRFLocal();
-  if (!csrf) return;
+  if (!csrf) return null;
   const response = await cb(csrf);
-  if(response.status !== validResponse) {
-    console.warn(`Request returned response ${response.status}, where ${validResponse} was expected. Keeping session intact.`)
-    return;
+
+  if (response.status !== validResponse) {
+    console.warn(
+      `Request returned response ${response.status}, where ${validResponse} was expected. Keeping session intact.`
+    );
+    return response.status;
   }
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
   socket.set(undefined);
+  return response.status;
 };
 
 /** Perform a call to the logout endpoint, remove
  * local storage entries and set socket to undefined. */
-export const handleLogoutCall = async () => {
-  await handleRequestAndCloseSession(logoutCall);
+export const handleLogoutCall = async ():Promise<number|null> => {
+  return await handleRequestAndCloseSession(logoutCall);
 };
 
-export const handleDeleteAccountCall = async () => {
-  await handleRequestAndCloseSession(deleteAccountCall);
+export const handleDeleteAccountCall = async ():Promise<number|null> => {
+  return await handleRequestAndCloseSession(deleteAccountCall);
 };
 
 /** Call the extend endpoint and re-set socket
