@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto, invalidateAll } from "$app/navigation";
   import { handleDeleteAccountCall } from "$lib/client/session-handlers.js";
   import type { CompleteUserDto } from "../../../db/index.js";
   import Button from "../../components/atomic/Button/Button.svelte";
@@ -27,12 +26,7 @@
 
   let openDeleteDialog = false;
   const deleteProfile = async () => {
-    const response = await handleDeleteAccountCall();
-    if (response !== 200) {
-      return;
-    }
-    await invalidateAll();
-    void goto("/");
+    await handleDeleteAccountCall();
   };
 </script>
 
@@ -72,11 +66,7 @@
   </div>
 </div>
 
-<Dialog
-  bind:open={openDeleteDialog}
-  confirmMessage={deleteConfirm}
-  confirmAction={deleteProfile}
->
+<Dialog bind:open={openDeleteDialog} confirmMessage={deleteConfirm} confirmAction={deleteProfile}>
   <h1 class="mb-3 text-center text-lg font-semibold">
     {deleteDialogHeading}
   </h1>

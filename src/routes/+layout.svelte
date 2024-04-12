@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import { handleExtendCall, handleLogoutCall } from "$lib/client/session-handlers";
   import { socketClientSetup } from "$lib/client/socket.client";
@@ -29,8 +28,6 @@
   const closeSession = async () => {
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
-    await invalidateAll();
-    void goto("/");
   };
 
   const dismissWarning = () => {

@@ -1,3 +1,4 @@
+import { goto, invalidateAll } from "$app/navigation";
 import type { ActionResult } from "@sveltejs/kit";
 import type { FormResult } from "sveltekit-superforms/client";
 import {
@@ -80,14 +81,24 @@ const handleRequestAndCloseSession = async (
   return response.status;
 };
 
-/** Perform a call to the logout endpoint, remove
- * local storage entries and set socket to undefined. */
-export const handleLogoutCall = async ():Promise<number|null> => {
-  return await handleRequestAndCloseSession(logoutCall);
+const invalidateAndNavigateOnSuccess = async (status: number | null): Promise<void> => {
+  if (status !== 200) {
+    return;
+  }
+  await invalidateAll();
+  void goto("/");
 };
 
-export const handleDeleteAccountCall = async ():Promise<number|null> => {
-  return await handleRequestAndCloseSession(deleteAccountCall);
+/** Perform a call to the logout endpoint, remove
+ * local storage entries and set socket to undefined. */
+export const handleLogoutCall = async (): Promise<void> => {
+  const status = await handleRequestAndCloseSession(logoutCall);
+  await invalidateAndNavigateOnSuccess(status);
+};
+
+export const handleDeleteAccountCall = async (): Promise<void> => {
+  const status = await handleRequestAndCloseSession(deleteAccountCall);
+  await invalidateAndNavigateOnSuccess(status);
 };
 
 /** Call the extend endpoint and re-set socket
