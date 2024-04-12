@@ -3,6 +3,7 @@
   import HomeIcon from "@iconify/icons-humbleicons/home.js";
   import LogoutIcon from "@iconify/icons-humbleicons/logout.js";
   import Icon, { type IconifyIcon } from "@iconify/svelte";
+  import { PROFILE_ROUTE, ROOT_ROUTE } from "../../../constants";
 
   export let routeId: string | null;
   export let handleLogout: () => Promise<void>;
@@ -19,8 +20,8 @@
   type Template = { icon: IconifyIcon; title: string; href?: string };
 
   const template: Template[] = [
-    { icon: HomeIcon, href: "/", title: "Homepage" },
-    { icon: ProfileIcon, href: "/profile", title: "Profile" },
+    { icon: HomeIcon, href: ROOT_ROUTE, title: "Homepage" },
+    { icon: ProfileIcon, href: PROFILE_ROUTE, title: "Profile" },
     { icon: LogoutIcon, title: "Logout" }
   ];
 </script>

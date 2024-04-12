@@ -7,6 +7,8 @@
 </script>
 
 <script lang="ts">
+  import { tick } from "svelte";
+
   export let disabled: boolean = false;
   export let display: ButtonDisplay = "inline-block";
   export let size: ButtonSizes = "md";
@@ -14,6 +16,16 @@
   export let type: ButtonTypes = "button";
   export let variant: ButtonVariant = "primary";
   export let customClasses: string | undefined = undefined;
+  export let focus: boolean | undefined = undefined;
+  let ref: HTMLButtonElement | undefined = undefined;
+
+  const onFocus = async (focusVal: boolean | undefined): Promise<void> => {
+    if (!focusVal) return;
+    await tick();
+    ref?.focus();
+  };
+
+  $: void onFocus(focus);
 
   const sizes = { sm: "py-2 px-3 text-xs", md: "py-3 px-4 text-sm", lg: "py-4 px-7 text-md" };
 
@@ -36,25 +48,32 @@
     }
   };
 
-  const baseClasses = `lead-none cursor-pointer 
-    rounded border-2 border-solid 
-    ring-offset-2 transition 
-    duration-100
-    hover:shadow-sm
-    focus:outline-none
-    focus-visible:outline-none
-    focus-visible:ring-1 active:scale-95 active:ring-0 disabled:cursor-not-allowed
-    disabled:opacity-75 disabled:active:scale-100`;
+  const baseClasses = `lead-none disabled:cursor-not-allowed,
+  disabled:opacity-75 cursor-pointer rounded border-2 border-solid
+  ring-offset-2 transition duration-100 hover:shadow-sm 
+  focus:outline-none focus-visible:outline-none focus:ring-1 active:scale-95 active:ring-0 disabled:active:scale-100 [&.active]:scale-95 [&.active]:ring-0 disabled:[&.active]:scale-100`;
+
+  let active = false;
 </script>
 
 <button
-  class={`${baseClasses} ${displayType[display]} ${sizes[size]} ${
-    buttonColor[variant][action]
-  } ${customClasses ?? ""}
-  disabled:active:scale-100
+  bind:this={ref}
+  class={` ${baseClasses} ${displayType[display]} ${sizes[size]} ${buttonColor[variant][action]} ${
+    customClasses ?? ""
+  }
+  disabled:[.active]:scale-100
   `}
+  class:active
   {type}
   {disabled}
   {...$$restProps}
+  on:pointerenter
+  on:pointerleave
+  on:focus
+  on:blur
+  on:keydown={(ev) => {
+    if (ev.key === "Enter") active = true;
+  }}
+  on:keyup={() => (active = false)}
   on:click><slot /></button
 >

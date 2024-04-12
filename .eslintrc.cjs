@@ -32,7 +32,7 @@ module.exports = {
       rules: {
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
         "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
-        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-imports": "error"
       }
     },
     {
@@ -49,7 +49,7 @@ module.exports = {
         "@typescript-eslint/no-unsafe-argument": 0,
         "@typescript-eslint/no-unsafe-assignment": 0,
         "@typescript-eslint/no-unsafe-return": 1,
-        // Extending component props leads to complaints about "any" 
+        // Extending component props leads to complaints about "any"
         // overriding all other intersection types
         "@typescript-eslint/no-redundant-type-constituents": 0
       }
@@ -62,7 +62,7 @@ module.exports = {
         "@typescript-eslint/no-dynamic-delete": 0,
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
         "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
-        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-imports": "error"
       }
     },
     {
@@ -71,6 +71,11 @@ module.exports = {
         "@typescript-eslint/no-unused-vars": 0,
         "@typescript-eslint/no-dynamic-delete": 0
       }
+    },
+    {
+      files: ["tests/**/*.spec.ts"],
+      extends: "plugin:playwright/recommended",
+      rules: { "playwright/no-conditional-in-test": "off" }
     }
   ]
 };

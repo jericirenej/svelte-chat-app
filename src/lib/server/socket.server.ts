@@ -27,6 +27,11 @@ const removeDuplicatedSocketIfExists = async (
   await redisService.deleteSocketSession(sessionId);
 };
 
+export const disconnectTargetSocket = async (socketServer: SocketServer, socketId: string) => {
+  const sockets = await socketServer.fetchSockets();
+  const targetSocket = sockets.find(({ id }) => id === socketId);
+  targetSocket?.disconnect(true);
+};
 
 export const setupSocketServer = (socketServer: SocketServer): void => {
   socketServer.on("connect", async (socket) => {

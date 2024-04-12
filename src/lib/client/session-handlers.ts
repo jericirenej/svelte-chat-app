@@ -1,7 +1,9 @@
+import { goto, invalidateAll } from "$app/navigation";
 import type { ActionResult } from "@sveltejs/kit";
 import type { FormResult } from "sveltekit-superforms/client";
 import {
   CSRF_HEADER,
+  DELETE_ACCOUNT_ROUTE,
   EXTEND_SESSION_ROUTE,
   LOCAL_KEYS,
   LOCAL_SESSION_CSRF_KEY,
@@ -52,16 +54,51 @@ const extendCall = (csrf: string) =>
 const logoutCall = (csrf: string) =>
   fetch(LOGOUT_ROUTE, { method: "DELETE", headers: { ...csrfHeader(csrf) } });
 
-/** Perform a call to the logout endpoint, remove
- * local storage entries and set socket to undefined. */
-export const handleLogoutCall = async () => {
+const deleteAccountCall = (csrf: string) =>
+  fetch(DELETE_ACCOUNT_ROUTE, {
+    method: "DELETE",
+    headers: { ...csrfHeader(csrf) }
+  });
+
+const handleRequestAndCloseSession = async (
+  cb: (csrf: string) => Promise<Response>,
+  validResponse = 200
+): Promise<number | null> => {
   const csrf = getCSRFLocal();
-  if (!csrf) return;
-  await logoutCall(csrf);
+  if (!csrf) return null;
+  const response = await cb(csrf);
+
+  if (response.status !== validResponse) {
+    console.warn(
+      `Request returned response ${response.status}, where ${validResponse} was expected. Keeping session intact.`
+    );
+    return response.status;
+  }
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
   socket.set(undefined);
+  return response.status;
+};
+
+const invalidateAndNavigateOnSuccess = async (status: number | null): Promise<void> => {
+  if (status !== 200) {
+    return;
+  }
+  await invalidateAll();
+  void goto("/");
+};
+
+/** Perform a call to the logout endpoint, remove
+ * local storage entries and set socket to undefined. */
+export const handleLogoutCall = async (): Promise<void> => {
+  const status = await handleRequestAndCloseSession(logoutCall);
+  await invalidateAndNavigateOnSuccess(status);
+};
+
+export const handleDeleteAccountCall = async (): Promise<void> => {
+  const status = await handleRequestAndCloseSession(deleteAccountCall);
+  await invalidateAndNavigateOnSuccess(status);
 };
 
 /** Call the extend endpoint and re-set socket

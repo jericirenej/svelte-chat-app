@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { LOGIN_ROUTE } from "../src/constants.js";
+import { LOGIN_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { clickAndFillLocator, login } from "./utils.js";
 
@@ -86,5 +86,5 @@ test("Successful login should persist when new page with same storageState is op
   const newPage = await context.newPage();
   await page.close();
   await newPage.goto(LOGIN_ROUTE);
-  await newPage.waitForURL("/");
+  await expect(newPage).toHaveURL(ROOT_ROUTE);
 });

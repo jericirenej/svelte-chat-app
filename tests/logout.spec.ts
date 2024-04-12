@@ -6,7 +6,6 @@ import {
   type BrowserContext,
   type Cookie
 } from "@playwright/test";
-import type { AvailableUsers } from "../db/postgres/seed/seed.js";
 import {
   CSRF_HEADER,
   LOCAL_SESSION_CSRF_KEY,

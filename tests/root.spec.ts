@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
 import { login, userHashMap } from "./utils.js";
+import { PROFILE_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 
 const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
   return {
@@ -28,11 +29,11 @@ test("Should show navbar with appropriate nav items", async ({ page }) => {
 test("Should navigate", async ({ page }) => {
   const { homepage, profile } = getPages(page);
   for (const [link, targetUrl] of [
-    [profile, "/profile/"],
-    [homepage, "/"]
+    [profile, PROFILE_ROUTE],
+    [homepage, ROOT_ROUTE]
   ] as const) {
     await link.click();
-    await expect(page).toHaveURL(targetUrl);
+    await expect(page).toHaveURL(new RegExp(targetUrl));
   }
 });
 test("Should show visual indicator of current page", async ({ page }) => {
@@ -42,7 +43,7 @@ test("Should show visual indicator of current page", async ({ page }) => {
   await expect(getMark(homepage)).toBeVisible();
   await expect(getMark(profile)).toBeHidden();
   await profile.click();
-  await page.waitForURL("/profile/");
+  await page.waitForURL(new RegExp(PROFILE_ROUTE));
   await expect(getMark(homepage)).toBeHidden();
   await expect(getMark(profile)).toBeVisible();
 });
