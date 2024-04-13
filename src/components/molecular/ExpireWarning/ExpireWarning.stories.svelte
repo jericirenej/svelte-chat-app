@@ -14,6 +14,7 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
+  import StoryFieldsetWrapper from "../../helpers/StoryFieldsetWrapper.svelte";
 
   $: show = true;
 
@@ -23,22 +24,7 @@
 </script>
 
 <Template let:args>
-  <fieldset
-    class="flex
-  h-[125px] w-[270px] flex-row items-center
-  gap-x-5
-  rounded
-  border-2
-  border-stone-300
-  px-4
-  pb-2
-  "
-  >
-    <legend class="select-none">
-      <button class="text-xs uppercase tracking-wide" on:click={() => (show = !show)}
-        >{show ? "Hide" : "Show"} notification</button
-      ></legend
-    >
+  <StoryFieldsetWrapper labelCallback={() => (show = !show)} label={`${show ? "Hide" : "Show"} extend notification`}>
     {#if show}
       <ExpireWarning
         on:dismiss={() => (show = false)}
@@ -48,7 +34,7 @@
         {...args}
       />
     {/if}
-  </fieldset>
+  </StoryFieldsetWrapper>
 </Template>
 
 <Story name="Primary" {args} />
