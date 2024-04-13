@@ -1,0 +1,62 @@
+<script context="module" lang="ts">
+  export type NotificationTypes = "default" | "secondary" | "failure";
+</script>
+
+<script lang="ts">
+  import Icon from "@iconify/svelte";
+  import CancelIcon from "@iconify/icons-iconoir/cancel";
+  import { fade, fly } from "svelte/transition";
+  export let type: NotificationTypes = "default";
+  export let content: string;
+  export let close: () => void;
+  export let action: (() => unknown) | undefined = undefined;
+
+  const colors = { default: "bg-emerald-500", failure: "bg-red-600", secondary: "bg-violet-500" };
+
+  const handleClick = () => {
+    action ? action() : close();
+  };
+</script>
+
+<div
+  out:fly={{ x: 50 }}
+  class={`wrapper relative flex h-[60px] max-h-[150px] w-[230px] select-none flex-col justify-center rounded-md ${colors[type]} bg-opacity-75 px-6 py-3 pl-4 text-xs text-white transition-all`}
+>
+  <button
+    on:click={close}
+    class="absolute -right-1 -top-1 cursor-pointer p-2 hover:text-neutral-500"
+    title="Dismiss"
+    ><Icon class="text-[15px]" icon={CancelIcon} />
+  </button>
+  <div>
+    <button
+      class={`${action ? "actionable cursor-pointer" : "cursor-default"} mr-2 mt-1 text-justify`}
+      on:click={handleClick}
+    >
+      <p class="line-clamp-3" title={content} in:fade>{content}</p>
+    </button>
+  </div>
+</div>
+
+<style>
+  .wrapper {
+    opacity: 0;
+    filter: blur(10px);
+    animation: appear 0.3s ease forwards;
+  }
+
+  .actionable {
+    text-shadow: none;
+    transition: text-shadow 0.33s ease;
+  }
+  .actionable:hover {
+    text-shadow: 0px 0px 1px white;
+  }
+
+  @keyframes appear {
+    to {
+      filter: blur(0);
+      opacity: 1;
+    }
+  }
+</style>
