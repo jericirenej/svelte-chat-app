@@ -5,13 +5,13 @@
 
 <fieldset
   class="flex
-h-[125px] w-[270px] flex-row items-center
+min-h-[125px] w-[270px] flex-row items-center
 gap-x-5
 rounded
 border-2
 border-stone-300
 px-4
-pb-2
+py-3
 "
 >
   <legend class="select-none">
