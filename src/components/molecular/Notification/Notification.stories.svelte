@@ -7,6 +7,7 @@
     component: Notification,
     argTypes: {
       type: { control: "radio", options: ["default", "secondary", "failure"] },
+      lifespan: {control:"number"},
       content: { control: "text" },
       close: { table: { disable: true } },
       action: { table: { disable: true } }
@@ -34,7 +35,7 @@
   >
     {#if show}
       {@const storyArgs = assertArgs(args)}
-      <Notification close={handleClose} type={storyArgs.type} content={storyArgs.content} />
+      <Notification close={handleClose} type={storyArgs.type} content={storyArgs.content} lifespan={storyArgs.lifespan} />
     {/if}
   </StoryFieldsetWrapper>
 </Template>
@@ -43,6 +44,7 @@
   name="Primary"
   args={{
     type: "default",
-    content: "Notification content"
+    content: "Notification content",
+    lifespan: 0
   }}
 />
