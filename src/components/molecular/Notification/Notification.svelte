@@ -12,6 +12,7 @@
   export let action: (() => unknown) | undefined = undefined;
 
   let timeout: ReturnType<typeof setTimeout> | undefined;
+  let active = false;
 
   const colors = { default: "bg-emerald-500", failure: "bg-red-600", secondary: "bg-violet-500" };
   const handleClick = () => {
@@ -32,7 +33,12 @@
 
 <div
   out:fly={{ x: 50 }}
-  class={`wrapper relative flex h-[60px] max-h-[150px] w-[230px] select-none flex-col justify-center rounded-md ${colors[type]} bg-opacity-75 px-6 py-3 pl-4 text-xs text-white transition-all`}
+  class:active
+  class={`wrapper relative flex h-[60px] max-h-[150px] w-[230px] select-none flex-col justify-center rounded-md ${
+    colors[type]
+  } bg-opacity-75 px-6 py-3 pl-4 text-xs text-white transition-all ${
+    action ? "transition-all active:scale-[98%] [&.active]:scale-[98%]" : ""
+  }`}
 >
   <button
     on:click={() => close()}
@@ -44,6 +50,10 @@
     <button
       class={`${action ? "actionable cursor-pointer" : "cursor-default"} mr-2 mt-1 text-justify`}
       on:click={handleClick}
+      on:keydown={(ev) => {
+        if (ev.key === "Enter") active = true;
+      }}
+      on:keyup={() => (active = false)}
     >
       {#if content}
         <p class="line-clamp-3 text-left" title={content} in:fade>{content}</p>
