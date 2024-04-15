@@ -123,7 +123,6 @@ test.describe("Delete account", () => {
   }) => {
     const resp = page.waitForResponse((resp) => resp.url().includes(DELETE_ACCOUNT_ROUTE));
     await page.route(DELETE_ACCOUNT_ROUTE, async (route) => {
-      console.log(route.request().url());
       const headers = route.request().headers();
       delete headers[CSRF_HEADER.toLowerCase()];
       await route.continue({ headers });
