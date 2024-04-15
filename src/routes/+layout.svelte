@@ -9,6 +9,7 @@
   import "../app.css";
   import type { ExtendSessionStatus } from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
   import ExpireWarning from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
+
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import {
     LOCAL_DISMISSED_EXPIRATION_WARNING,
@@ -35,7 +36,7 @@
     showSessionExpirationWarning.set(false);
   };
   const extendSession = async () => {
-    extendSessionStatus = await handleExtendCall($page.url.origin, data.user?.username);
+    extendSessionStatus = await handleExtendCall(data.user?.username);
     localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "false");
     setTimeout(() => {
       if ($showSessionExpirationWarning) {

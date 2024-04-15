@@ -1,14 +1,14 @@
+import { page } from "$app/stores";
 import type { SocketClient } from "$lib/socket.types";
 import { io } from "socket.io-client";
+import { get } from "svelte/store";
 import { CSRF_HEADER, LOCAL_DISMISSED_EXPIRATION_WARNING, WEBSOCKET_PATH } from "../../constants";
 import { showSessionExpirationWarning } from "./stores";
 
-export const socketClientSetup = (
-  origin: string,
-  csrfToken: string,
-  socketUIserName?: string
-): SocketClient => {
-  const socket = io(origin, {
+const getOrigin = (): string => get(page).url.origin;
+
+export const socketClientSetup = (csrfToken: string, socketUIserName?: string): SocketClient => {
+  const socket = io(getOrigin(), {
     path: WEBSOCKET_PATH,
     extraHeaders: { [CSRF_HEADER]: csrfToken }
   }).connect() as SocketClient;

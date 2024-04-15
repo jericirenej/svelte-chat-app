@@ -30,7 +30,6 @@ export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
  * setup web socket connection. */
 export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
   event: FormEventType,
-  pageOrigin: string
 ): number | undefined => {
   const result = event.result as FormResult<T>;
   const status = result.status;
@@ -41,7 +40,7 @@ export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
   const tokenSet = setCSRFLocal(result.data.csrfToken);
   if (!tokenSet) return status;
 
-  socket.set(socketClientSetup(pageOrigin, result.data.csrfToken));
+  socket.set(socketClientSetup(result.data.csrfToken));
 
   return result.status;
 };
@@ -106,7 +105,6 @@ export const handleDeleteAccountCall = async (): Promise<void> => {
  * the API call 's result is not 201,
  * it will register as failed. */
 export const handleExtendCall = async (
-  origin: string,
   username?: string
 ): Promise<"success" | "fail"> => {
   const csrf = getCSRFLocal();
@@ -117,6 +115,6 @@ export const handleExtendCall = async (
   if (!parsed.csrf) return "fail";
   const tokenSet = setCSRFLocal(parsed.csrf);
   if (!tokenSet) return "fail";
-  socketClientSetup(origin, parsed.csrf, username);
+  socketClientSetup(parsed.csrf, username);
   return "success";
 };
