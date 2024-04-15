@@ -3,15 +3,31 @@
   import CancelIcon from "@iconify/icons-iconoir/cancel";
   import { fade, fly } from "svelte/transition";
   import type { NotificationTypes } from "../../../types";
+  import { onDestroy, onMount } from "svelte";
   export let type: NotificationTypes = "default";
   export let content: string;
   export let close: () => unknown;
-  export let action: ((...args: unknown[]) => unknown) | undefined = undefined;
+  /** Passing 0 or Infinity will prevent notifications from being automatically dismissed. */
+  export let lifespan: number = 5e3;
+  export let action: (() => unknown) | undefined = undefined;
+
+  let timeout: ReturnType<typeof setTimeout> | undefined;
 
   const colors = { default: "bg-emerald-500", failure: "bg-red-600", secondary: "bg-violet-500" };
   const handleClick = () => {
     if (action) action();
   };
+
+  onMount(() => {
+    if (lifespan !== 0 && lifespan !== Infinity) {
+      timeout = setTimeout(() => {
+        setTimeout(() => close(), lifespan);
+      });
+    }
+  });
+  onDestroy(() => {
+    timeout && clearTimeout(timeout);
+  });
 </script>
 
 <div
@@ -30,7 +46,7 @@
       on:click={handleClick}
     >
       {#if content}
-        <p class="line-clamp-3" title={content} in:fade>{content}</p>
+        <p class="line-clamp-3 text-left" title={content} in:fade>{content}</p>
       {/if}
     </button>
   </div>

@@ -12,6 +12,6 @@ export type RemoveIndexSignature<T extends Record<string, unknown>> = {
 export type NotificationTypes = "default" | "secondary" | "failure";
 export type NotificationEntry = {
   content: string;
-  action?: (...args: unknown[]) => unknown;
+  action?: () => unknown;
   type?: NotificationTypes;
 };
