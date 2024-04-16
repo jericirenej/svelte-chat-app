@@ -11,14 +11,20 @@
     }
   };
   const baseNotifications = (): [string, NotificationEntry][] => [
-    [v4(), { content: "First notification" }],
     [
       v4(),
       {
-        content: "Second notification with action",
-        action: () => {
+        content: "First notification with action",
+        action: async () => {
+          await new Promise((resolve) => setTimeout(resolve, 5000));
           console.log("Triggered action");
         }
+      }
+    ],
+    [
+      v4(),
+      {
+        content: "Second notification"
       }
     ],
     [v4(), { content: "Third notification", type: "secondary" }],
