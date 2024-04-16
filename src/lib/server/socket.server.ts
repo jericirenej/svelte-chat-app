@@ -1,6 +1,6 @@
 import type { SocketServer } from "$lib/socket.types";
 import { dbService, redisService } from "@db";
-import { CSRF_HEADER, SESSION_COOKIE, SESSION_WARNING_BUFFER } from "../../constants";
+import { CSRF_HEADER, SESSION_COOKIE, EXPIRE_SESSION_WARNING_BUFFER } from "../../constants";
 import { authenticateUserWS } from "./authenticate";
 
 const extractCookies = (cookie?: string): Record<string, string> | null => {
@@ -65,7 +65,7 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
       () => {
         socket.emit("sessionExpirationWarning");
       },
-      sessionTTL * 1000 - SESSION_WARNING_BUFFER
+      sessionTTL * 1000 - EXPIRE_SESSION_WARNING_BUFFER
     );
 
     const chats = await dbService.getChatIdsForUser(user.id);

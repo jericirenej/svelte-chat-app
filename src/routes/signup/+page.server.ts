@@ -30,6 +30,7 @@ export const actions = {
     const { csrfToken } = await generateSessionCookieAndCsrf({ user, cookies, url, redisService });
     return {
       form,
+      username,
       csrfToken
     };
   }

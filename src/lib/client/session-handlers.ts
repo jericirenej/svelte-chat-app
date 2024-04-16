@@ -6,8 +6,12 @@ import {
   DELETE_ACCOUNT_ROUTE,
   EXTEND_SESSION_ROUTE,
   LOCAL_KEYS,
+  LOCAL_EXPIRE_REDIRECT,
   LOCAL_SESSION_CSRF_KEY,
-  LOGOUT_ROUTE
+  LOGIN_ROUTE,
+  LOGOUT_ROUTE,
+  REDIRECT_AFTER_EXPIRE_DELAY,
+  EXPIRE_SESSION_WARNING_BUFFER
 } from "../../constants";
 import { socketClientSetup } from "./socket.client";
 import { notificationStore, socket } from "./stores";
@@ -27,6 +31,29 @@ export const setCSRFLocal = (csrfToken: string | undefined): boolean => {
 
 export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
 
+export const setRedirectAfterExpire = () => {
+  const timeout = setTimeout(() => {
+    notificationStore.addNotification({
+      content: `Your session has expired. You will be redirected to login in ${
+        REDIRECT_AFTER_EXPIRE_DELAY / 1000
+      } seconds.`,
+      type: "secondary",
+      lifespan: REDIRECT_AFTER_EXPIRE_DELAY
+    });
+    setTimeout(() => {
+      void goto(LOGIN_ROUTE);
+    }, REDIRECT_AFTER_EXPIRE_DELAY);
+  }, EXPIRE_SESSION_WARNING_BUFFER);
+  localStorage.setItem(LOCAL_EXPIRE_REDIRECT, (timeout as unknown as number).toString());
+};
+
+export const clearExpireRedirect = () => {
+  const timeoutVal = localStorage.getItem(LOCAL_EXPIRE_REDIRECT);
+  const timeoutId = Number(timeoutVal);
+  if (!timeoutId) return;
+  clearTimeout(timeoutId);
+  localStorage.removeItem(LOCAL_EXPIRE_REDIRECT);
+};
 /** On successful result, set CSRF token in localStorage and open
  * setup web socket connection. */
 export const handleFormResult = <T extends Partial<{ csrfToken: string; username: string }>>(
@@ -75,6 +102,7 @@ const handleRequestAndCloseSession = async (
     );
     return response.status;
   }
+  clearExpireRedirect();
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
@@ -118,6 +146,7 @@ export const handleExtendCall = async (username?: string): Promise<void> => {
     if (!tokenSet) throw new Error();
     socketClientSetup(parsed.csrf, username);
     notificationStore.addNotification({ content: EXPIRATION_MESSAGES.success, type: "default" });
+    clearExpireRedirect();
   } catch {
     notificationStore.addNotification({ content: EXPIRATION_MESSAGES.fail, type: "failure" });
   }
