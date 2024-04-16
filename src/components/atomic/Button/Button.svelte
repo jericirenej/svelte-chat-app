@@ -61,7 +61,6 @@
   class={` ${baseClasses} ${displayType[display]} ${sizes[size]} ${buttonColor[variant][action]} ${
     customClasses ?? ""
   }
-  disabled:[.active]:scale-100
   `}
   class:active
   {type}
