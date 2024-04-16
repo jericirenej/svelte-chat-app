@@ -34,13 +34,13 @@
 </script>
 
 <script lang="ts">
+  import { NotificationStore } from "$lib/client/stores";
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { writable } from "svelte/store";
-  import type { NotificationEntry, RemoveIndexSignature } from "../../../../types";
-  import StoryFieldsetWrapper from "../../../helpers/StoryFieldsetWrapper.svelte";
   import type { ComponentProps } from "svelte";
   import { v4 } from "uuid";
-  const notifications = writable(createMap());
+  import type { NotificationEntry, RemoveIndexSignature } from "../../../../types";
+  import StoryFieldsetWrapper from "../../../helpers/StoryFieldsetWrapper.svelte";
+  const notifications = new NotificationStore();
 
   const resetNotifications = () => {
     notifications.set(createMap());

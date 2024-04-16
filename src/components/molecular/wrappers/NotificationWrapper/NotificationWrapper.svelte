@@ -1,17 +1,13 @@
 <script lang="ts">
+  import type { NotificationStore } from "$lib/client/stores";
   import { flip } from "svelte/animate";
-  import type { Writable } from "svelte/store";
-  import type { NotificationEntry } from "../../../../types";
   import Notification from "../../Notification/Notification.svelte";
 
-  export let notifications: Writable<Map<string, NotificationEntry>>;
+  export let notifications: NotificationStore;
   /** Passing 0 or Infinity will prevent notifications from being automatically dismissed. */
   export let lifespan = 5e3;
   const handleClose = (id: string) => {
-    notifications.update((n) => {
-      n.delete(id);
-      return n;
-    });
+    notifications.removeNotification(id);
   };
 </script>
 
