@@ -28,7 +28,15 @@
       }
     ],
     [v4(), { content: "Third notification", type: "secondary" }],
-    [v4(), { content: "Fourth notification", type: "failure" }]
+    [v4(), { content: "Fourth notification", type: "failure" }],
+    [
+      v4(),
+      {
+        content: "Fifth notification with a custom lifespan (3000ms)",
+        type: "failure",
+        lifespan: 3000
+      }
+    ]
   ];
   const createMap = () => new Map<string, NotificationEntry>(baseNotifications());
 </script>
@@ -41,7 +49,6 @@
   import type { NotificationEntry, RemoveIndexSignature } from "../../../../types";
   import StoryFieldsetWrapper from "../../../helpers/StoryFieldsetWrapper.svelte";
   const notifications = new NotificationStore();
-
   const resetNotifications = () => {
     notifications.set(createMap());
   };

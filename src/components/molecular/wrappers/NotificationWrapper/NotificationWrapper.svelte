@@ -12,14 +12,14 @@
 </script>
 
 <ul class="flex flex-col gap-3">
-  {#each Array.from($notifications) as [id, args] (id)}
+  {#each Array.from($notifications) as [id, { lifespan: notificationLifespan, ...rest }] (id)}
     <li animate:flip={{ duration: 200 }}>
       <Notification
-        {lifespan}
+        lifespan={notificationLifespan ?? lifespan}
         close={() => {
           handleClose(id);
         }}
-        {...args}
+        {...rest}
       />
     </li>
   {/each}

@@ -14,4 +14,5 @@ export type NotificationEntry = {
   content: string;
   action?: () => unknown;
   type?: NotificationTypes;
+  lifespan?: number;
 };
