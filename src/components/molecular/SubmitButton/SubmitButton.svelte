@@ -8,6 +8,7 @@
     type ButtonSizes,
     type ButtonVariant
   } from "../../atomic/Button/Button.svelte";
+  import LoadOverlay from "../../atomic/LoadOverlay/LoadOverlay.svelte";
   export let isLoading = false;
   export let config: Partial<{
     variant: ButtonVariant;
@@ -23,10 +24,10 @@
   export let submitStatus: "success" | "error" | undefined = undefined;
   $: showNotification = !!(submitStatus && submitMessage);
   $: messages = submitMessage?.split(/(?<=[.!])/g).filter(Boolean) ?? [];
-
 </script>
 
-<div class={`relative ${isLoading ? "loading relative" : ""}`}>
+<div class="relative">
+  <LoadOverlay {isLoading} />
   <Button
     type="submit"
     disabled={isLoading || disabled}
@@ -38,7 +39,7 @@
     {title}
   >
     <div class="flex justify-center">
-      <div class="relative px-3" style:width={`${text.length + 3}ch`}>
+      <div class="relative flex px-3" style:width={`${text.length + 3}ch`}>
         <span
           class="leading-1 relative inline-block text-sm transition {isLoading
             ? '-translate-x-2'
@@ -48,10 +49,7 @@
         </span>
         {#if isLoading}
           <span in:fade={{ duration: 100 }}>
-            <Icon
-              icon={loadingIcon}
-              class="leading-1 absolute -right-2 top-[1px] inline-block text-lg"
-            />
+            <Icon icon={loadingIcon} class="text-lg" />
           </span>
         {/if}
       </div>
@@ -78,29 +76,3 @@
     </div>
   {/if}
 </div>
-
-<style>
-  .loading {
-    overflow: hidden;
-  }
-  .loading::after {
-    position: absolute;
-    content: "";
-    left: -150%;
-    height: 120%;
-    width: 75%;
-    bottom: 0;
-    transform: skewX(-20deg);
-    background-color: hsla(0deg, 0%, 100%, 20%);
-    box-shadow: 0 0 10px 10px hsla(0deg, 0%, 100%, 20%);
-    animation: swoosh 2s infinite;
-  }
-  @keyframes swoosh {
-    from {
-      left: -150%;
-    }
-    to {
-      left: 150%;
-    }
-  }
-</style>
