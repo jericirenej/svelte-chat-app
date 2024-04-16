@@ -37,7 +37,8 @@ export const actions = {
 
     return {
       form,
-      csrfToken
+      csrfToken,
+      username
     };
   }
 } satisfies Actions;

@@ -10,7 +10,8 @@ import {
   LOGOUT_ROUTE
 } from "../../constants";
 import { socketClientSetup } from "./socket.client";
-import { socket } from "./stores";
+import { notificationStore, socket } from "./stores";
+import { EXPIRATION_MESSAGES } from "../../messages";
 
 type FormEventType = {
   result: ActionResult;
@@ -28,8 +29,8 @@ export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
 
 /** On successful result, set CSRF token in localStorage and open
  * setup web socket connection. */
-export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
-  event: FormEventType,
+export const handleFormResult = <T extends Partial<{ csrfToken: string; username: string }>>(
+  event: FormEventType
 ): number | undefined => {
   const result = event.result as FormResult<T>;
   const status = result.status;
@@ -39,8 +40,9 @@ export const handleFormResult = <T extends Partial<{ csrfToken: string }>>(
   if (!result.data.csrfToken) return status;
   const tokenSet = setCSRFLocal(result.data.csrfToken);
   if (!tokenSet) return status;
-
-  socket.set(socketClientSetup(result.data.csrfToken));
+  if (result.data.username) {
+    socket.set(socketClientSetup(result.data.csrfToken, result.data.username));
+  }
 
   return result.status;
 };
@@ -104,17 +106,19 @@ export const handleDeleteAccountCall = async (): Promise<void> => {
  * If csrf token or username is not present or
  * the API call 's result is not 201,
  * it will register as failed. */
-export const handleExtendCall = async (
-  username?: string
-): Promise<"success" | "fail"> => {
-  const csrf = getCSRFLocal();
-  if (!username || !csrf) return "fail";
-  const response = await extendCall(csrf);
-  if (response.status !== 201) return "fail";
-  const parsed = (await response.json()) as Partial<Record<"csrf", string>>;
-  if (!parsed.csrf) return "fail";
-  const tokenSet = setCSRFLocal(parsed.csrf);
-  if (!tokenSet) return "fail";
-  socketClientSetup(parsed.csrf, username);
-  return "success";
+export const handleExtendCall = async (username?: string): Promise<void> => {
+  try {
+    const csrf = getCSRFLocal();
+    if (!username || !csrf) throw new Error();
+    const response = await extendCall(csrf);
+    if (response.status !== 201) throw new Error();
+    const parsed = (await response.json()) as Partial<Record<"csrf", string>>;
+    if (!parsed.csrf) throw new Error();
+    const tokenSet = setCSRFLocal(parsed.csrf);
+    if (!tokenSet) throw new Error();
+    socketClientSetup(parsed.csrf, username);
+    notificationStore.addNotification({ content: EXPIRATION_MESSAGES.success, type: "default" });
+  } catch {
+    notificationStore.addNotification({ content: EXPIRATION_MESSAGES.fail, type: "failure" });
+  }
 };
