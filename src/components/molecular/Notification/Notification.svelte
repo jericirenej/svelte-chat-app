@@ -49,6 +49,9 @@
       ? "transition-all active:scale-[98%] [&.active]:scale-[98%] [&.disabled]:active:scale-100 [&.disabled]:[&.active]:scale-100"
       : ""
   }`}
+  role="alert"
+  aria-atomic="true"
+  aria-live="assertive"
 >
   <LoadOverlay {isLoading} --opacity="0.4" />
   <button
