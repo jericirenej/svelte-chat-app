@@ -7,54 +7,54 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Admin {
+  createdAt: Generated<Timestamp>;
   id: string;
   superAdmin: Generated<boolean>;
-  createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }
 
 export interface Auth {
-  id: string;
-  hash: string;
-  salt: string;
   createdAt: Generated<Timestamp>;
+  hash: string;
+  id: string;
+  salt: string;
   updatedAt: Generated<Timestamp>;
 }
 
 export interface Chat {
+  createdAt: Generated<Timestamp>;
   id: Generated<string>;
   name: string | null;
-  createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
 }
 
 export interface Message {
-  id: Generated<string>;
-  userId: string;
   chatId: string;
-  message: string;
-  deleted: Generated<boolean>;
   createdAt: Generated<Timestamp>;
+  deleted: Generated<boolean>;
+  id: Generated<string>;
+  message: string;
   updatedAt: Generated<Timestamp>;
+  userId: string;
 }
 
 export interface Participant {
-  id: Generated<string>;
   chatId: string;
-  userId: string;
   createdAt: Generated<Timestamp>;
+  id: Generated<string>;
   updatedAt: Generated<Timestamp>;
+  userId: string;
 }
 
 export interface User {
-  id: Generated<string>;
-  email: string;
-  name: string | null;
-  surname: string | null;
-  username: string;
   avatar: string | null;
   createdAt: Generated<Timestamp>;
+  email: string;
+  id: Generated<string>;
+  name: string | null;
+  surname: string | null;
   updatedAt: Generated<Timestamp>;
+  username: string;
 }
 
 export interface DB {
