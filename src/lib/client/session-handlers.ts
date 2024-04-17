@@ -4,23 +4,70 @@ import type { FormResult } from "sveltekit-superforms/client";
 import {
   CSRF_HEADER,
   DELETE_ACCOUNT_ROUTE,
+  EXPIRE_SESSION_WARNING_BUFFER,
   EXTEND_SESSION_ROUTE,
-  LOCAL_KEYS,
   LOCAL_EXPIRE_REDIRECT,
+  LOCAL_KEYS,
   LOCAL_SESSION_CSRF_KEY,
   LOGIN_ROUTE,
   LOGOUT_ROUTE,
-  REDIRECT_AFTER_EXPIRE_DELAY,
-  EXPIRE_SESSION_WARNING_BUFFER
+  REDIRECT_AFTER_EXPIRE_DELAY
 } from "../../constants";
+import { NOTIFICATION_MESSAGES } from "../../messages";
 import { socketClientSetup } from "./socket.client";
 import { notificationStore, socket } from "./stores";
-import { EXPIRATION_MESSAGES } from "../../messages";
 
 type FormEventType = {
   result: ActionResult;
   formEl: HTMLFormElement;
   cancel: () => void;
+};
+
+const handleNotification = async ({
+  response,
+  successCodes = [200, 201],
+  successMsg = NOTIFICATION_MESSAGES.defaultSuccess,
+  defaultFailMsg = NOTIFICATION_MESSAGES.defaultFail,
+  failMessages = {},
+  lifespan,
+  notificationOnNull = false
+}: {
+  response: Response | null;
+  successCodes?: number[];
+  successMsg?: string;
+  defaultFailMsg?: string;
+  failMessages?: Record<number, string>;
+  lifespan?: number;
+  notificationOnNull?: boolean;
+}): Promise<void> => {
+  if (!response) {
+    notificationOnNull &&
+      notificationStore.addNotification({
+        content: defaultFailMsg,
+        type: "failure"
+      });
+    return;
+  }
+  if (successCodes.includes(response.status)) {
+    notificationStore.addNotification({ content: successMsg, lifespan, type: "default" });
+    return;
+  }
+  let content: string;
+  const { message } = (await response.json()) as { message?: string };
+  switch (true) {
+    case !!failMessages[response.status]:
+      content = failMessages[response.status];
+      break;
+    case response.status === 403:
+      content = NOTIFICATION_MESSAGES[403];
+      break;
+    case !!message:
+      content = message;
+      break;
+    default:
+      content = defaultFailMsg;
+  }
+  notificationStore.addNotification({ content, lifespan, type: "failure" });
 };
 
 export const setCSRFLocal = (csrfToken: string | undefined): boolean => {
@@ -34,9 +81,7 @@ export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
 export const setRedirectAfterExpire = () => {
   const timeout = setTimeout(() => {
     notificationStore.addNotification({
-      content: `Your session has expired. You will be redirected to login in ${
-        REDIRECT_AFTER_EXPIRE_DELAY / 1000
-      } seconds.`,
+      content: NOTIFICATION_MESSAGES.extend.redirectNotification,
       type: "secondary",
       lifespan: REDIRECT_AFTER_EXPIRE_DELAY
     });
@@ -91,7 +136,7 @@ const deleteAccountCall = (csrf: string) =>
 const handleRequestAndCloseSession = async (
   cb: (csrf: string) => Promise<Response>,
   validResponse = 200
-): Promise<number | null> => {
+): Promise<Response | null> => {
   const csrf = getCSRFLocal();
   if (!csrf) return null;
   const response = await cb(csrf);
@@ -100,17 +145,17 @@ const handleRequestAndCloseSession = async (
     console.warn(
       `Request returned response ${response.status}, where ${validResponse} was expected. Keeping session intact.`
     );
-    return response.status;
+    return response;
   }
   clearExpireRedirect();
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
   socket.set(undefined);
-  return response.status;
+  return response;
 };
 
-const invalidateAndNavigateOnSuccess = async (status: number | null): Promise<void> => {
+const invalidateAndNavigateOnSuccess = async (status: number | null | undefined): Promise<void> => {
   if (status !== 200) {
     return;
   }
@@ -121,13 +166,15 @@ const invalidateAndNavigateOnSuccess = async (status: number | null): Promise<vo
 /** Perform a call to the logout endpoint, remove
  * local storage entries and set socket to undefined. */
 export const handleLogoutCall = async (): Promise<void> => {
-  const status = await handleRequestAndCloseSession(logoutCall);
-  await invalidateAndNavigateOnSuccess(status);
+  const response = await handleRequestAndCloseSession(logoutCall);
+  await handleNotification({ response, successMsg: NOTIFICATION_MESSAGES.logoutSuccess });
+  await invalidateAndNavigateOnSuccess(response?.status);
 };
 
 export const handleDeleteAccountCall = async (): Promise<void> => {
-  const status = await handleRequestAndCloseSession(deleteAccountCall);
-  await invalidateAndNavigateOnSuccess(status);
+  const response = await handleRequestAndCloseSession(deleteAccountCall);
+  await handleNotification({ response, successMsg: NOTIFICATION_MESSAGES.deleteAccountSuccess });
+  await invalidateAndNavigateOnSuccess(response?.status);
 };
 
 /** Call the extend endpoint and re-set socket
@@ -145,9 +192,13 @@ export const handleExtendCall = async (username?: string): Promise<void> => {
     const tokenSet = setCSRFLocal(parsed.csrf);
     if (!tokenSet) throw new Error();
     socketClientSetup(parsed.csrf, username);
-    notificationStore.addNotification({ content: EXPIRATION_MESSAGES.success, type: "default" });
+    await handleNotification({ response, successMsg: NOTIFICATION_MESSAGES.extend.success });
     clearExpireRedirect();
   } catch {
-    notificationStore.addNotification({ content: EXPIRATION_MESSAGES.fail, type: "failure" });
+    await handleNotification({
+      response: null,
+      notificationOnNull: true,
+      defaultFailMsg: NOTIFICATION_MESSAGES.extend.fail
+    });
   }
 };
