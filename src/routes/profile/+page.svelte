@@ -4,7 +4,7 @@
   import Button from "../../components/atomic/Button/Button.svelte";
   import Dialog from "../../components/organic/Dialog/Dialog.svelte";
   import { PROFILE_MESSAGES } from "../../messages.js";
-  import { capitalize } from "../../utils/text-utils.js";
+  import { capitalize } from "../../helpers";
   import type { PageData } from "./$types.js";
   export let data: PageData;
 

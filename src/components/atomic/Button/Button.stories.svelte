@@ -18,7 +18,7 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { capitalize } from "../../../utils/text-utils.js";
+  import { capitalize } from "../../../helpers";
   import type { ComponentProps } from "svelte";
   import type { RemoveIndexSignature } from "../../../types";
   const buttonVariants = ["primary", "outline"] as const;

@@ -16,3 +16,6 @@ export type NotificationEntry = {
   type?: NotificationTypes;
   lifespan?: number;
 };
+
+export type MaybeArray<T> = T | T[];
+export type Nullish = undefined | null;
