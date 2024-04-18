@@ -249,4 +249,6 @@ export const seed = async (database = db): Promise<void> => {
     const formatted = formattedTime(performance.now() - begin);
     logInfo(`Seed completed in ${formatted}. Exiting.`);
   });
+  await database.destroy();
+  process.exit(0);
 };
