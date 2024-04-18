@@ -89,8 +89,9 @@ export class MigrationHelper {
   }
 
   async updateSchema(): Promise<void> {
+    console.log("PATH", this.typePath);
     const { stderr, stdout } = await asyncExec(
-      `npx kysely-codegen --camel-case --print true --dialect postgres --out-file ${this.typePath}`
+      `npx kysely-codegen --camel-case --dialect postgres --out-file=${this.typePath}`
     );
     if (stderr) {
       console.error(stderr);

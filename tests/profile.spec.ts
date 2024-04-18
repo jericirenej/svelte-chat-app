@@ -9,7 +9,7 @@ import {
   PROFILE_ROUTE,
   ROOT_ROUTE
 } from "../src/constants.js";
-import { PROFILE_MESSAGES } from "../src/messages.js";
+import { NOTIFICATION_MESSAGES, PROFILE_MESSAGES } from "../src/messages.js";
 import { genPassword } from "../utils/generate-password.js";
 import { login, userHashMap } from "./utils.js";
 
@@ -117,13 +117,20 @@ test.describe("Delete account", () => {
     const userExists = await dbService.usernameExists(createUsername(browserName));
     expect(userExists).toBeFalsy();
   });
+  test("Successful delete should show notification", async ({ page, browserName }) => {
+    await loginUserAndNavigate(page, createUsername(browserName), password);
+    await deleteButton(page).click();
+    await page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm }).click();
+    await expect(
+      page.getByRole("alert").getByText(NOTIFICATION_MESSAGES.deleteAccountSuccess)
+    ).toBeVisible();
+  });
   test("Delete operation should fail, if csrf header is not present", async ({
     page,
     browserName
   }) => {
     const resp = page.waitForResponse((resp) => resp.url().includes(DELETE_ACCOUNT_ROUTE));
     await page.route(DELETE_ACCOUNT_ROUTE, async (route) => {
-      console.log(route.request().url());
       const headers = route.request().headers();
       delete headers[CSRF_HEADER.toLowerCase()];
       await route.continue({ headers });
@@ -137,6 +144,20 @@ test.describe("Delete account", () => {
     expect(userExists).toBeTruthy();
     const awaitedResponse = await resp;
     expect(awaitedResponse.status()).toBe(403);
+  });
+  test("Unauthorized delete operation should show appropriate notification", async ({
+    page,
+    browserName
+  }) => {
+    await page.route(DELETE_ACCOUNT_ROUTE, async (route) => {
+      const headers = route.request().headers();
+      delete headers[CSRF_HEADER.toLowerCase()];
+      await route.continue({ headers });
+    });
+    await loginUserAndNavigate(page, createUsername(browserName), password);
+    await deleteButton(page).click();
+    await page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm }).click();
+    await expect(page.getByRole("alert").getByText(NOTIFICATION_MESSAGES[403])).toBeVisible();
   });
   test("Should not allow super-admins to delete own account", async ({ page }) => {
     const resp = page.waitForResponse((resp) => resp.url().includes(DELETE_ACCOUNT_ROUTE));
@@ -153,5 +174,21 @@ test.describe("Delete account", () => {
     expect(userExists).toBeTruthy();
     const awaitedResponse = await resp;
     expect(awaitedResponse.status()).toBe(400);
+  });
+  test("Should show notification for super-user delete attempt", async ({ page }) => {
+    await loginUserAndNavigate(
+      page,
+      userHashMap.lovelace.username,
+      `${userHashMap.lovelace.username}-password`
+    );
+    await deleteButton(page).click();
+    await page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm }).click();
+    await expect(
+      page
+        .getByRole("alert")
+        .getByText(
+          "Super administrators cannot delete their own account without privilege transfer!"
+        )
+    ).toBeVisible();
   });
 });

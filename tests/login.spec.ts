@@ -65,7 +65,7 @@ test("Should allow submit on valid form", async ({ page }) => {
   await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();
 });
 
-test("Login page should show message on failed / successful login", async ({ page, context }) => {
+test("Login page should show message on failed / successful login", async ({ page }) => {
   await page.goto(LOGIN_ROUTE);
   await login(page, "user", "password", false);
   await expect(page.getByText(failure)).toBeVisible();
@@ -73,7 +73,7 @@ test("Login page should show message on failed / successful login", async ({ pag
   await login(page, user, password, false);
   await expect(page.getByText(success)).toBeVisible();
 });
-test("Successful login should redirect to root", async ({ page, context }) => {
+test("Successful login should redirect to root", async ({ page }) => {
   await page.goto(LOGIN_ROUTE);
   await login(page, user, password, false);
   await expect(page).toHaveURL("/");

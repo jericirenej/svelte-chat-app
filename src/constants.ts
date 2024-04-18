@@ -12,10 +12,12 @@ export const LOGOUT_ROUTE = "/api/logout",
 
 export const SESSION_COOKIE = "chatSessionId";
 export const CSRF_HEADER = "X-CSRF";
-export const LOCAL_SESSION_CSRF_KEY = "csrfToken";
-export const LOCAL_DISMISSED_EXPIRATION_WARNING = "dismissedExpiration";
 export const GlobalThisSocketServer = Symbol.for("sveltekit.socket.io");
 export const WEBSOCKET_PATH = "/websocket";
 
-export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_DISMISSED_EXPIRATION_WARNING];
-export const SESSION_WARNING_BUFFER = 1e4; //3e4;
+export const EXPIRE_SESSION_WARNING_BUFFER = 1e4; //3e4;
+export const REDIRECT_AFTER_EXPIRE_DELAY = 5e3;
+
+export const LOCAL_SESSION_CSRF_KEY = "csrfToken";
+export const LOCAL_EXPIRE_REDIRECT = "redirectAfterExpire";
+export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_EXPIRE_REDIRECT];

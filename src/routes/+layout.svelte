@@ -1,17 +1,16 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { handleExtendCall, handleLogoutCall } from "$lib/client/session-handlers";
+  import { handleLogoutCall } from "$lib/client/session-handlers";
   import { socketClientSetup } from "$lib/client/socket.client";
-  import { showSessionExpirationWarning, socket } from "$lib/client/stores";
+  import { notificationStore, showSessionExpirationWarning, socket } from "$lib/client/stores";
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
 
   import "../app.css";
-  import type { ExtendSessionStatus } from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
-  import ExpireWarning from "../components/molecular/ExpireWarning/ExpireWarning.svelte";
+  
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
+  import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
   import {
-    LOCAL_DISMISSED_EXPIRATION_WARNING,
     LOCAL_KEYS,
     LOCAL_SESSION_CSRF_KEY
   } from "../constants.js";
@@ -21,28 +20,9 @@
 
   $: loggedIn = !!data.user;
 
-  let extendSessionStatus: ExtendSessionStatus = undefined;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  $: status = extendSessionStatus;
-
   const closeSession = async () => {
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
-  };
-
-  const dismissWarning = () => {
-    localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "true");
-    showSessionExpirationWarning.set(false);
-  };
-  const extendSession = async () => {
-    extendSessionStatus = await handleExtendCall($page.url.origin, data.user?.username);
-    localStorage.setItem(LOCAL_DISMISSED_EXPIRATION_WARNING, "false");
-    setTimeout(() => {
-      if ($showSessionExpirationWarning) {
-        $showSessionExpirationWarning = false;
-      }
-      extendSessionStatus = undefined;
-    }, 2000);
   };
 
   onMount(() => {
@@ -80,10 +60,9 @@
       {/if}
     </section>
     <slot />
-    {#if $showSessionExpirationWarning}
-      <div class="absolute right-3 top-3 z-10">
-        <ExpireWarning {status} on:dismiss={dismissWarning} on:sessionExtend={extendSession} />
-      </div>
-    {/if}
+
+    <div class="absolute right-3 top-3 z-10">
+      <NotificationWrapper notifications={notificationStore} lifespan={3000} />
+    </div>
   </div>
 </div>

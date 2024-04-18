@@ -13,6 +13,7 @@ import {
   SESSION_COOKIE
 } from "../src/constants.js";
 import { cleanup, login } from "./utils.js";
+import { NOTIFICATION_MESSAGES } from "../src/messages.js";
 
 const extractCredentials = async (
   storageState: ReturnType<BrowserContext["storageState"]>
@@ -53,11 +54,30 @@ const createContext = (
 
 test("Should logout by clicking the logout button", async ({ page, context }) => {
   await login(page);
-  await expect(page).toHaveURL("/");
   expect(await hasCredentials(context.storageState())).toBe(true);
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(page).toHaveURL("/login");
   expect(await hasCredentials(context.storageState())).toBe(false);
+});
+test("Should show notification", async ({ page }) => {
+  await login(page);
+  await page.getByRole("button", { name: "Logout" }).click();
+  await expect(
+    page.getByRole("alert").getByText(NOTIFICATION_MESSAGES.logoutSuccess)
+  ).toBeVisible();
+});
+test("Should show failure notification", async ({ page }) => {
+  await page.route(LOGOUT_ROUTE, async (route) => {
+    await route.fulfill({
+      status: 403,
+      json: {
+        message: "Error: 403"
+      }
+    });
+  });
+  await login(page);
+  await page.getByRole("button", { name: "Logout" }).click();
+  await expect(page.getByRole("alert").getByText(NOTIFICATION_MESSAGES[403])).toBeVisible();
 });
 test(`Should logout via DELETE request if ${CSRF_HEADER} header is supplied`, async ({
   page,

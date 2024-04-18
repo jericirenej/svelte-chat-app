@@ -1,9 +1,6 @@
+import { REDIRECT_AFTER_EXPIRE_DELAY } from "./constants";
+
 export const APP_NAME = "Chat App";
-export const EXPIRATION_MESSAGES = {
-  initial: "Session will expire soon.\nClick here to extend.",
-  fail: "Failed to extend session\t😭",
-  success: "Session extended\t👍"
-};
 
 export const LOGIN_MESSAGES = {
   pageTitle: `${APP_NAME} - Login`,
@@ -35,12 +32,27 @@ export const SIGNUP_MESSAGES = {
   supplyDetailsTitle: "Please supply a username, email, and password."
 };
 
-
 export const PROFILE_MESSAGES = {
   pageTitle: `${APP_NAME} - Profile`,
   deleteButton: "Delete account",
-  deleteDialogHeading: "Are you sure you want to delete your account?",
-  deleteMessage: "This action cannot be undone. All of you account information, together with stored messages will be deleted permanently!",
+  deleteDialogHeading: "Are you sure you want to DELETE your account?",
+  deleteMessage:
+    "This action cannot be undone. All of you account information, together with stored messages will be deleted permanently!",
   deleteConfirm: "Do it!"
+};
 
-}
+export const NOTIFICATION_MESSAGES = {
+  403: "Authorization failed",
+  defaultSuccess: "Success!",
+  defaultFail: "Failed!",
+  deleteAccountSuccess: "Account deletion successful.",
+  logoutSuccess: "Logged out\t👋",
+  extend: {
+    initial: "Session will expire soon.\nClick here to extend.",
+    fail: "Failed to extend session\t😭",
+    success: "Session extended\t👍",
+    redirectNotification: `Your session has expired. You will be redirected to login in ${
+      REDIRECT_AFTER_EXPIRE_DELAY / 1000
+    } seconds.`
+  }
+};
