@@ -73,7 +73,7 @@
       disabled={isLoading}
     >
       {#if content}
-        <p class="line-clamp-3 text-left" title={content} in:fade>{content}</p>
+        <p class="line-clamp-3 text-left whitespace-break-spaces" title={content} in:fade>{content}</p>
       {/if}
     </button>
   </div>
