@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
+  import { fade, scale } from "svelte/transition";
   import { toArray } from "../../../helpers";
   import type { MaybeArray, Nullish } from "../../../types";
 
@@ -29,7 +29,7 @@
 
 {#if usersTyping?.length}
   <div
-    in:fade={{ duration: 150 }}
+    in:scale={{ duration: 150 }}
     out:fade={{ duration: 70 }}
     class="flex w-fit items-baseline rounded-lg bg-slate-200 px-2 py-1"
   >
