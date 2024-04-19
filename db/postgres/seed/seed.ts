@@ -32,11 +32,10 @@ const logger = createLogger({
   format: logForm
 });
 
-const logInfo = (message: string):void => {
-  if(process.env["NO_LOG"] === "true") return;
+const logInfo = (message: string): void => {
+  if (process.env["NO_LOG"] === "true") return;
   logger.log("info", message);
-
-}
+};
 
 const createEmail = (username: string): string => `${username}@nowhere.never`;
 
@@ -247,8 +246,6 @@ export const seed = async (database = db): Promise<void> => {
     await populateUsers(trx);
     await populateChats(trx);
     const formatted = formattedTime(performance.now() - begin);
-    logInfo(`Seed completed in ${formatted}. Exiting.`);
+    logInfo(`Seed completed in ${formatted}.`);
   });
-  await database.destroy();
-  process.exit(0);
 };
