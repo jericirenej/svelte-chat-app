@@ -3,7 +3,7 @@
   import MessageDate from "./MessageDate.svelte";
 
   export const meta: Meta<MessageDate> = {
-    title: "Atomic/MessageDate",
+    title: "Molecular/MessageDate",
     component: MessageDate,
     argTypes: {
       date: { control: "date" },
