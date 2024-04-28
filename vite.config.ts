@@ -1,6 +1,6 @@
 import { createSocketServer } from "./src/lib/server/socket.global.js";
 import { sveltekit } from "@sveltejs/kit/vite";
-import type { PreviewServerForHook, ViteDevServer } from "vite";
+import type { PreviewServer, ViteDevServer } from "vite";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
       configureServer(server: ViteDevServer) {
         createSocketServer(server.httpServer);
       },
-      configurePreviewServer(server: PreviewServerForHook) {
+      configurePreviewServer(server: PreviewServer) {
         createSocketServer(server.httpServer);
       }
     }

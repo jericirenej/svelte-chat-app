@@ -31,7 +31,7 @@ export const actions = {
       value: username
     });
     if (!user) {
-      throw error(500, "Something went wrong while fetching user from the database");
+      error(500, "Something went wrong while fetching user from the database");
     }
     const { csrfToken } = await generateSessionCookieAndCsrf({ cookies, user, redisService, url });
 

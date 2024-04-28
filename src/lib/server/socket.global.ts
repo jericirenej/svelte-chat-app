@@ -1,9 +1,11 @@
-import type { Server as HttpServer } from "node:http";
 import { Server } from "socket.io";
-import type { ExtendedGlobal, SocketServer } from "../socket.types";
+import type { PreviewServer, ViteDevServer } from "vite";
 import { GlobalThisSocketServer, WEBSOCKET_PATH } from "../../constants";
+import type { ExtendedGlobal, SocketServer } from "../socket.types";
 
-export const createSocketServer = (server: HttpServer | null) => {
+export const createSocketServer = (
+  server: ViteDevServer["httpServer"] | PreviewServer["httpServer"] | null
+) => {
   if (!server) return;
   const extendedGlobal = globalThis as ExtendedGlobal;
   const existingSocket = extendedGlobal[GlobalThisSocketServer];
