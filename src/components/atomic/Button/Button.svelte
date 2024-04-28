@@ -48,7 +48,7 @@
     }
   };
 
-  const baseClasses = `lead-none disabled:cursor-not-allowed,
+  const baseClasses = `lead-none disabled:cursor-not-allowed
   disabled:opacity-75 cursor-pointer rounded border-2 border-solid
   ring-offset-2 transition duration-100 hover:shadow-sm 
   focus:outline-none focus-visible:outline-none focus:ring-1 active:scale-95 active:ring-0 disabled:active:scale-100 [&.active]:scale-95 [&.active]:ring-0 disabled:[&.active]:scale-100`;
