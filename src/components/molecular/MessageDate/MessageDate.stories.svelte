@@ -14,7 +14,7 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { startOfYesterday } from "date-fns/esm";
+  import { startOfYesterday } from "date-fns";
   import type { ComponentProps } from "svelte";
   import type { RemoveIndexSignature } from "../../../types";
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { HTMLInputTypeAttribute } from "svelte/elements.js";
+  import type { HTMLInputTypeAttribute } from "svelte/elements";
+
 
   export let name: string;
   export let type: Exclude<

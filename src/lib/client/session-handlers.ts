@@ -1,6 +1,5 @@
 import { goto, invalidateAll } from "$app/navigation";
 import type { ActionResult } from "@sveltejs/kit";
-import type { FormResult } from "sveltekit-superforms/client";
 import {
   CSRF_HEADER,
   DELETE_ACCOUNT_ROUTE,
@@ -18,7 +17,7 @@ import { socketClientSetup } from "./socket.client";
 import { notificationStore, socket } from "./stores";
 
 type FormEventType = {
-  result: ActionResult;
+  result: ActionResult<Partial<{ csrfToken: string; username: string }>>;
   formEl: HTMLFormElement;
   cancel: () => void;
 };
@@ -101,10 +100,8 @@ export const clearExpireRedirect = () => {
 };
 /** On successful result, set CSRF token in localStorage and open
  * setup web socket connection. */
-export const handleFormResult = <T extends Partial<{ csrfToken: string; username: string }>>(
-  event: FormEventType
-): number | undefined => {
-  const result = event.result as FormResult<T>;
+export const handleFormResult = (event: FormEventType): number | undefined => {
+  const result = event.result;
   const status = result.status;
   if (result.type !== "success" || !result.data) {
     return status;

@@ -17,7 +17,7 @@
   export let variant: ButtonVariant = "primary";
   export let customClasses: string | undefined = undefined;
   export let focus: boolean | undefined = undefined;
-  let ref: HTMLButtonElement | undefined = undefined;
+  let ref: HTMLButtonElement | undefined;
 
   const onFocus = async (focusVal: boolean | undefined): Promise<void> => {
     if (!focusVal) return;

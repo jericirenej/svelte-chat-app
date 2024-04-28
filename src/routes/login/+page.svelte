@@ -3,7 +3,7 @@
   import { handleFormResult } from "$lib/client/session-handlers";
   import { debounce, promisifiedTimeout } from "$lib/utils.js";
   import { onMount } from "svelte";
-  import { superForm } from "sveltekit-superforms/client";
+  import { superForm } from "sveltekit-superforms";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
@@ -11,6 +11,7 @@
   import { loginSchema } from "../../lib/client/login-signup-validators.js";
   import { LOGIN_MESSAGES } from "../../messages";
   import type { PageData } from "./$types.js";
+  import { zod } from "sveltekit-superforms/adapters";
 
   export let data: PageData;
 
@@ -20,7 +21,7 @@
   const { title: formTitle, subtitle, signup, pageTitle } = LOGIN_MESSAGES;
 
   const submitDisabledToggle = debounce(async () => {
-    const { valid } = await validate();
+    const { valid } = await validateForm();
     submitDisabled = !valid;
   }, 150);
 
@@ -29,11 +30,11 @@
     status = undefined;
   };
 
-  const { form, enhance, validate } = superForm(data.form, {
+  const { form, enhance, validateForm } = superForm(data.form, {
     onSubmit: () => {
       isLoading = true;
     },
-    validators: loginSchema,
+    validators: zod(loginSchema),
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
