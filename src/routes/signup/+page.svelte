@@ -5,7 +5,7 @@
   import { debounce, promisifiedTimeout } from "$lib/utils";
   import { onMount } from "svelte";
   import { superForm } from "sveltekit-superforms";
-  import { zod } from "sveltekit-superforms/adapters";
+  import { zodClient } from "sveltekit-superforms/adapters";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import SignupControls from "../../components/organic/SignupControls/SignupControls.svelte";
@@ -33,7 +33,7 @@
     onSubmit: () => {
       isLoading = true;
     },
-    validators: zod(signupSchema),
+    validators: zodClient(signupSchema),
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;

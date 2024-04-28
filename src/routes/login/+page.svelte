@@ -11,7 +11,7 @@
   import { loginSchema } from "../../lib/client/login-signup-validators.js";
   import { LOGIN_MESSAGES } from "../../messages";
   import type { PageData } from "./$types.js";
-  import { zod } from "sveltekit-superforms/adapters";
+  import { zodClient } from "sveltekit-superforms/adapters";
 
   export let data: PageData;
 
@@ -22,6 +22,8 @@
 
   const submitDisabledToggle = debounce(async () => {
     const { valid } = await validateForm();
+    console.log("IS VALID", valid)
+
     submitDisabled = !valid;
   }, 150);
 
@@ -34,7 +36,7 @@
     onSubmit: () => {
       isLoading = true;
     },
-    validators: zod(loginSchema),
+    validators: zodClient(loginSchema),
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
