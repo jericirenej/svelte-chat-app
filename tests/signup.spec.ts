@@ -47,10 +47,13 @@ const fillSignupForm = async (
   for (const key of typedObjectKeys(arg)) {
     const prop = arg[key];
     if (!prop) continue;
-    await page.getByPlaceholder(prop.placeholder, { exact: true }).fill(prop.value);
+    const input = page.getByPlaceholder(prop.placeholder, { exact: true });
+    await input.fill(prop.value);
+    
   }
   if (submit) {
     await page.getByRole("button", { name: "submit" }).click();
+    await page.waitForLoadState("domcontentloaded");
   }
 };
 
@@ -119,37 +122,38 @@ test("Should reject registration if a username or email already exists", async (
   const user = exampleUser(test.info(), browserName);
   const alternateUsername = `signup_x_${browserName}_${index}`,
     alternateEmail = `${alternateUsername}@nowhere.never`;
-  await fillSignupForm(page, user, true);
-
-  await page.waitForURL("/");
-  await page.getByRole("button", { name: "Logout" }).click();
-  await page.waitForURL(ROOT_ROUTE);
-  await page.goto(SIGNUP_ROUTE);
-
-  await fillSignupForm(page, user, true);
-  await expect(page.getByText(duplicateFailure)).toBeVisible();
-
-  for (const [key, value] of [
-    ["username", alternateUsername],
-    ["email", alternateEmail]
-  ] as [keyof typeof user, string][]) {
-    const attemptedUser = typedJsonClone(user);
-    attemptedUser[key].value = value;
-
-    await fillSignupForm(page, attemptedUser, true);
-    await expect(page.getByText(duplicateFailure)).toBeVisible();
-  }
-
   const anotherUser = typedJsonClone(user);
   anotherUser.username.value = alternateUsername;
   anotherUser.email.value = alternateEmail;
-  await fillSignupForm(page, anotherUser, true);
-  await expect(page.getByText(success)).toBeVisible();
+  try {
+    await fillSignupForm(page, user, true);
 
-  await db
-    .deleteFrom("user")
-    .where("username", "in", [user.username.value, anotherUser.username.value])
-    .execute();
+    await page.getByRole("button", { name: "Logout" }).click();
+    await page.waitForURL(ROOT_ROUTE);
+    await page.goto(SIGNUP_ROUTE);
+
+    await fillSignupForm(page, user, true);
+    await expect(page.getByText(duplicateFailure)).toBeVisible();
+
+    for (const [key, value] of [
+      ["username", alternateUsername],
+      ["email", alternateEmail]
+    ] as [keyof typeof user, string][]) {
+      const attemptedUser = typedJsonClone(user);
+      attemptedUser[key].value = value;
+
+      await fillSignupForm(page, attemptedUser, true);
+      await expect(page.getByText(duplicateFailure)).toBeVisible();
+    }
+
+    await fillSignupForm(page, anotherUser, true);
+    await expect(page.getByText(success)).toBeVisible();
+  } finally {
+    await db
+      .deleteFrom("user")
+      .where("username", "in", [user.username.value, anotherUser.username.value])
+      .execute();
+  }
 });
 test("Should reject registration if password verification does not match", async ({
   page,
