@@ -15,9 +15,9 @@
     <span class="invisible">{text}</span>
     {#key text}
       {#if prevAndCurrent[0]}
-        <span class="previous-entry absolute left-0 top-0">{prevAndCurrent[0]}</span>
+        <span aria-hidden class="previous-entry absolute left-0 top-0">{prevAndCurrent[0]}</span>
       {/if}
-      <span class="absolute left-0 top-0" in:fade={{ duration: 200 }}>{prevAndCurrent[1]}</span>
+      <p class="absolute left-0 top-0" in:fade={{ duration: 200 }}>{prevAndCurrent[1]}</p>
     {/key}
   </div>
 {/if}
