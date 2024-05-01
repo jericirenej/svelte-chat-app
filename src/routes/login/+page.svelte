@@ -22,7 +22,6 @@
 
   const submitDisabledToggle = debounce(async () => {
     const { valid } = await validateForm();
-    console.log("IS VALID", valid)
 
     submitDisabled = !valid;
   }, 150);

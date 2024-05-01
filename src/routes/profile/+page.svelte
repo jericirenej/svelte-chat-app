@@ -6,6 +6,7 @@
   import { PROFILE_MESSAGES } from "../../messages.js";
   import { capitalize } from "../../helpers";
   import type { PageData } from "./$types.js";
+  import { browser } from "$app/environment";
   export let data: PageData;
 
   const user = data.user as CompleteUserDto;
@@ -18,7 +19,10 @@
     }));
   const handleValue = (val: string | Date | null): string => {
     if (!val) return "Not given";
-    if (val instanceof Date) return new Intl.DateTimeFormat(navigator.language).format(val);
+    if (val instanceof Date) {
+      const locale = browser ? navigator.language : "en-US";
+      return new Intl.DateTimeFormat(locale).format(val);
+    }
     return val;
   };
   const { deleteButton, deleteDialogHeading, deleteMessage, pageTitle, deleteConfirm } =
