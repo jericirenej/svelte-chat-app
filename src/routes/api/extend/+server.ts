@@ -8,10 +8,10 @@ export const POST: RequestHandler = async ({ url, cookies, request, locals }) =>
   const currentSessionId = cookies.get(SESSION_COOKIE),
     currentCsrf = request.headers.get(CSRF_HEADER);
   if (!locals.user) {
-    error(500);
+    return error(500);
   }
   if (!currentSessionId || !currentCsrf) {
-    error(403);
+    return error(403);
   }
 
   const newSessionId = generateSessionId(locals.user.id),
@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ url, cookies, request, locals }) =>
 
   const user = await redisService.replaceSessionKey(currentSessionId, newSessionId);
   if (!user) {
-    error(500);
+    return error(500);
   }
 
   cookies.set(SESSION_COOKIE, newSessionId, {

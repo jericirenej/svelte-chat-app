@@ -60,7 +60,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
   // For non-authorized, non-get methods at non-login endpoint we throw forbidden immediately.
   if (!user && method !== "GET" && !(isLoginRoute || isSignupRoute)) {
-    error(403);
+    return error(403);
   }
 
   // Update locals and storage if necessary;
@@ -69,22 +69,22 @@ export const handle: Handle = async ({ event, resolve }) => {
   // Handle protected and unprotected routes
   if (isUnprotectedRoute) {
     if (!sessionId && isRootRoute) {
-      redirect(302, LOGIN_ROUTE);
+      return redirect(302, LOGIN_ROUTE);
     }
 
     if (sessionId && (isLoginRoute || isSignupRoute)) {
-      redirect(302, ROOT_ROUTE);
+      return redirect(302, ROOT_ROUTE);
     }
 
     return await resolve(event);
   }
   if (!user) {
-    redirect(302, LOGIN_ROUTE);
+    return redirect(302, LOGIN_ROUTE);
   }
-
   return await resolve(event);
 };
 
-export const handleError: HandleServerError = ({ event }) => {
-  if (event.route.id === null) redirect(302, "/");
+export const handleError: HandleServerError = ({ event, error }) => {
+  console.error(error);
+  if (event.route.id === null) return redirect(302, "/");
 };
