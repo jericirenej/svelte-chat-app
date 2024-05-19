@@ -62,3 +62,9 @@ export const TIME_DISPLAY_MESSAGES = {
   future: "Coming from the future...",
   minutes: (val: number) => `${val} ${val === 1 ? "minute" : "minutes"} ago`
 };
+
+export const CONVERSATION_MESSAGES = {
+  message: "Message",
+  from: "Message author",
+  publishedAt: "Sent date"
+};
