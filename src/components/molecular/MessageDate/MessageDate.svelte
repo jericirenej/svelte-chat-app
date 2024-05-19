@@ -28,6 +28,6 @@
   });
 </script>
 
-<div class="cursor-default select-none text-xs text-gray-700" title={dataObj.title}>
-  <CrossFadeText text={dataObj.display} />
+<div class="cursor-default select-none text-xs text-gray-700">
+  <CrossFadeText text={dataObj.display} title={dataObj.title} />
 </div>

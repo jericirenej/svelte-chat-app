@@ -3,35 +3,40 @@ import {
   differenceInMinutes,
   isThisMinute,
   isThisWeek,
+  isThisYear,
   isToday
 } from "date-fns";
+import { TIME_DISPLAY_MESSAGES } from "../../../messages";
 
 export type DisplayDate = Record<"display" | "title", string>;
 type HandleDateReturn = DisplayDate & { repeatIn: number | null };
+
 export const handleDate = ({ date, locale }: { date: Date; locale: string }): HandleDateReturn => {
+  const { future, minutes, now } = TIME_DISPLAY_MESSAGES;
   const title = new Intl.DateTimeFormat(locale, {
     timeStyle: "short",
     dateStyle: "medium",
     hourCycle: "h24"
   }).format(date);
-  const now = Date.now();
-  const inFuture = date.getTime() > now;
+  const currentTimestamp = Date.now();
+  const inFuture = date.getTime() > currentTimestamp;
   if (inFuture) {
     return {
-      display: "Coming from the future...",
+      display: future,
       title,
-      repeatIn: differenceInMilliseconds(date, now)
+      repeatIn: differenceInMilliseconds(date, currentTimestamp)
     };
   }
 
   const today = isToday(date);
   const isNow = today ? isThisMinute(date) : false;
-  const minuteDiff = differenceInMinutes(now, date, { roundingMethod: "floor" });
+  const minuteDiff = differenceInMinutes(currentTimestamp, date, { roundingMethod: "floor" });
   const isLessThanOneHour = !today ? false : minuteDiff < 60 ? true : false;
   const thisWeek = today ? true : isThisWeek(date);
+  const thisYear = isThisYear(date);
 
   if (isNow || isLessThanOneHour) {
-    const display = isNow ? "Now" : `${minuteDiff} ${minuteDiff === 1 ? "minute" : "minutes"} ago `;
+    const display = isNow ? now : minutes(minuteDiff);
     return { display, title, repeatIn: 6e4 };
   }
 
@@ -41,7 +46,7 @@ export const handleDate = ({ date, locale }: { date: Date; locale: string }): Ha
       minute: thisWeek ? "numeric" : undefined,
       day: !today ? "numeric" : undefined,
       month: !today ? "numeric" : undefined,
-      year: !thisWeek ? "2-digit" : undefined,
+      year: !thisYear ? "2-digit" : undefined,
       hourCycle: "h24"
     }).format(date),
     title,

@@ -56,3 +56,9 @@ export const NOTIFICATION_MESSAGES = {
     } seconds.`
   }
 };
+
+export const TIME_DISPLAY_MESSAGES = {
+  now: "Now",
+  future: "Coming from the future...",
+  minutes: (val: number) => `${val} ${val === 1 ? "minute" : "minutes"} ago`
+};
