@@ -17,7 +17,7 @@
     "sourceMap": true,
     "strict": true,
     "noImplicitAny": true,
-    "types": ["vitest/importMeta", "vite/client"]
+    "types": ["vitest/importMeta", "vite/client", "@testing-library/jest-dom"]
   },
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //
