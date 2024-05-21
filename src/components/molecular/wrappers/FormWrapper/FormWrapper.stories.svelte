@@ -1,12 +1,12 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import FormWrapper from "./FormWrapper.svelte";
+  import FormWrapperComponent from "./FormWrapper.svelte";
 
-  type StoryProps = RemoveIndexSignature<ComponentProps<FormWrapper>>;
+  type StoryProps = RemoveIndexSignature<ComponentProps<FormWrapperComponent>>;
 
   export const meta: Meta<StoryProps> = {
     title: "Molecular/FormWrapper",
-    component: FormWrapper,
+    component: FormWrapperComponent,
     argTypes: {
       subtitle: { control: "text" },
       formTitle: { control: "text" }
@@ -36,20 +36,20 @@
   {@const storyArgs = assertArgs(args)}
   {@const formArgs = formWrapperArgs(storyArgs)}
   {#if storyArgs.footer}
-    <FormWrapper {...formArgs}>
+    <FormWrapperComponent {...formArgs}>
       <div slot="form">
         <SlotFills />
       </div>
       <div slot="footer"><SlotFills isFooter={true} /></div>
-    </FormWrapper>
+    </FormWrapperComponent>
   {:else}
-    <FormWrapper {...formArgs}>
+    <FormWrapperComponent {...formArgs}>
       <div slot="form">
         <SlotFills />
       </div>
-    </FormWrapper>
+    </FormWrapperComponent>
   {/if}
 </Template>
 
-<Story name="Primary" {args} />
+<Story name="FormWrapper" {args} />
 <Story name="No footer" args={{ ...args, footer: false }} />

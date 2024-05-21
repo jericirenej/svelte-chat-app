@@ -2,11 +2,11 @@
   import type { Meta } from "@storybook/svelte";
   import { action } from "@storybook/addon-actions";
 
-  import Dialog from "./Dialog.svelte";
+  import DialogComponent from "./Dialog.svelte";
   import type { ComponentProps } from "svelte";
-  export const meta: Meta<ComponentProps<Dialog>> = {
+  export const meta: Meta<ComponentProps<DialogComponent>> = {
     title: "Organic/Dialog",
-    component: Dialog,
+    component: DialogComponent,
     argTypes: {
       open: { control: "boolean", table: { disable: true } },
       confirmAction: { table: { disable: true } },
@@ -37,7 +37,7 @@
     >
   </div>
 
-  <Dialog
+  <DialogComponent
     {...args}
     open={isOpen}
     on:close
@@ -48,7 +48,7 @@
 </Template>
 
 <Story
-  name="Primary"
+  name="Dialog"
   args={{
     open: isOpen,
     message: "Is this what you want, what you really really want?",

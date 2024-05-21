@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import CrossFadeText from "./CrossFadeText.svelte";
+  import CrossFadeTextComponent from "./CrossFadeText.svelte";
 
-  export const meta: Meta<CrossFadeText> = {
+  export const meta: Meta<CrossFadeTextComponent> = {
     title: "Atomic/CrossFadeText",
-    component: CrossFadeText,
+    component: CrossFadeTextComponent,
     argTypes: {
       text: { table: { disable: true } }
     }
@@ -22,10 +22,18 @@
 </script>
 
 <Template>
-  <div class="flex flex-col w-fit">
-    <CrossFadeText {text} />
-    <Button customClasses="mt-7" type="button" action="info" size="sm" variant="outline" display="inline-block" on:click={changeText}>Change</Button>
+  <div class="flex w-fit flex-col">
+    <CrossFadeTextComponent {text} />
+    <Button
+      customClasses="mt-7"
+      type="button"
+      action="info"
+      size="sm"
+      variant="outline"
+      display="inline-block"
+      on:click={changeText}>Change</Button
+    >
   </div>
 </Template>
 
-<Story name="Primary" />
+<Story name="CrossFadeText" />

@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import MessageDate from "./MessageDate.svelte";
+  import MessageDateComponent from "./MessageDate.svelte";
 
-  export const meta: Meta<MessageDate> = {
+  export const meta: Meta<MessageDateComponent> = {
     title: "Molecular/MessageDate",
-    component: MessageDate,
+    component: MessageDateComponent,
     argTypes: {
       date: { control: "date" },
       locale: { control: "text" }
@@ -19,16 +19,17 @@
   import type { RemoveIndexSignature } from "../../../types";
 
   const yesterday = startOfYesterday();
-  const assertArgs = (args: unknown) => args as RemoveIndexSignature<ComponentProps<MessageDate>>;
+  const assertArgs = (args: unknown) =>
+    args as RemoveIndexSignature<ComponentProps<MessageDateComponent>>;
 </script>
 
 <Template let:args>
   {@const storyArgs = assertArgs(args)}
-  <MessageDate {...storyArgs} />
+  <MessageDateComponent {...storyArgs} />
 </Template>
 
 <Story
-  name="Primary"
+  name="MessageDate"
   args={{
     date: yesterday,
     locale: "sl-SI"

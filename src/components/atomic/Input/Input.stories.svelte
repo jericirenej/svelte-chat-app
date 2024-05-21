@@ -1,13 +1,13 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import Input from "./Input.svelte";
+  import InputComponent from "./Input.svelte";
 
-  type StoryProps = RemoveIndexSignature<ComponentProps<Input>>;
+  type StoryProps = RemoveIndexSignature<ComponentProps<InputComponent>>;
   type ExpandedProps = StoryProps & { containerWidth: number };
 
   export const meta: Meta<ExpandedProps> = {
     title: "Atomic/Input",
-    component: Input,
+    component: InputComponent,
     argTypes: {
       name: { control: "text" },
       type: {
@@ -67,13 +67,13 @@
   {#if args}
     {@const { props, container } = handleArgs(args)}
     <div style:width={`${container.containerWidth}%`}>
-      <Input {...props} />
+      <InputComponent {...props} />
     </div>
   {/if}
 </Template>
 
 <Story
-  name="Primary"
+  name="Input"
   args={{
     disabled: false,
     type: "text",

@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import NotificationWrapper from "./NotificationWrapper.svelte";
+  import NotificationWrapperComponent from "./NotificationWrapper.svelte";
 
-  export const meta: Meta<NotificationWrapper> = {
+  export const meta: Meta<NotificationWrapperComponent> = {
     title: "Molecular/NotificationWrapper",
-    component: NotificationWrapper,
+    component: NotificationWrapperComponent,
     argTypes: {
       notifications: { table: { disable: true } },
       lifespan: { control: "number" }
@@ -53,14 +53,14 @@
     notifications.set(createMap());
   };
   const assertArgs = (args: unknown) =>
-    args as RemoveIndexSignature<ComponentProps<NotificationWrapper>>;
+    args as RemoveIndexSignature<ComponentProps<NotificationWrapperComponent>>;
 </script>
 
 <Template let:args>
   <StoryFieldsetWrapper labelCallback={resetNotifications} label="Reset notifications">
     {@const storyArgs = assertArgs(args)}
-    <NotificationWrapper {notifications} lifespan={storyArgs.lifespan} />
+    <NotificationWrapperComponent {notifications} lifespan={storyArgs.lifespan} />
   </StoryFieldsetWrapper>
 </Template>
 
-<Story name="Primary" args={{ lifespan: 10000 }} />
+<Story name="NotificationWrapper" args={{ lifespan: 10000 }} />

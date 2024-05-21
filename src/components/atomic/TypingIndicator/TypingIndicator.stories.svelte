@@ -1,11 +1,11 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import TypingIndicator from "./TypingIndicator.svelte";
   import type { ComponentProps } from "svelte";
+  import TypingIndicatorComponent from "./TypingIndicator.svelte";
 
-  export const meta: Meta<ComponentProps<TypingIndicator>> = {
+  export const meta: Meta<ComponentProps<TypingIndicatorComponent>> = {
     title: "Atomic/TypingIndicator",
-    component: TypingIndicator,
+    component: TypingIndicatorComponent,
     argTypes: {
       usersTyping: {
         control: "check",
@@ -21,13 +21,13 @@
   import type { RemoveIndexSignature } from "../../../types";
 
   const assertArgs = (args: unknown) => {
-    return args as RemoveIndexSignature<ComponentProps<TypingIndicator>>;
+    return args as RemoveIndexSignature<ComponentProps<TypingIndicatorComponent>>;
   };
 </script>
 
 <Template let:args>
   {@const storyArgs = assertArgs(args)}
-  <TypingIndicator {...storyArgs} />
+  <TypingIndicatorComponent {...storyArgs} />
 </Template>
 
-<Story name="Primary" args={{ usersTyping: [] }} />
+<Story name="TypingIndicator" args={{ usersTyping: [] }} />
