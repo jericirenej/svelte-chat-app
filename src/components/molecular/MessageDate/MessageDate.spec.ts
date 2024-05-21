@@ -1,4 +1,3 @@
-import "@testing-library/jest-dom/vitest";
 import { render, waitFor } from "@testing-library/svelte";
 import { add, milliseconds } from "date-fns";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
