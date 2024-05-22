@@ -66,5 +66,7 @@ export const TIME_DISPLAY_MESSAGES = {
 export const CONVERSATION_MESSAGES = {
   message: "Message",
   from: "Message author",
-  publishedAt: "Sent date"
+  publishedAt: "Sent date",
+  send: "Send message",
+  sendEmpty: "Type something to send a message 😉"
 };
