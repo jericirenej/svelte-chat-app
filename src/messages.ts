@@ -68,5 +68,6 @@ export const CONVERSATION_MESSAGES = {
   from: "Message author",
   publishedAt: "Sent date",
   send: "Send message",
-  sendEmpty: "Type something to send a message 😉"
+  sendEmpty: "Type something to send a message 😉",
+  textPlaceholder: "Write something..."
 };
