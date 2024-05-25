@@ -8,12 +8,11 @@ const { handleDate } = handler;
 describe("MessageDate", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-04-01T12:00"));
   });
   afterEach(() => {
     vi.restoreAllMocks();
   });
-
-  it("handleDate should output appropriate results", () => {});
 
   it("Should update display and title", async () => {
     const date = add(new Date(), { minutes: 1 }),
