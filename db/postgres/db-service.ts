@@ -3,8 +3,8 @@ import { error } from "@sveltejs/kit";
 import { Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { db } from "./client.js";
-import { DB, User } from "./db-types.js";
-import {
+import type { DB, User } from "./db-types.js";
+import type {
   AdminDto,
   AuthDto,
   BaseTableColumns,

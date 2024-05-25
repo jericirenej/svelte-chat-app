@@ -1,5 +1,5 @@
-import { Insertable, Selectable, Updateable } from "kysely";
-import { Admin, Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
+import type { Insertable, Selectable, Updateable } from "kysely";
+import type { Admin, Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
 
 type UpdateType<T = DB[keyof DB]> = Omit<Updateable<T>, BaseTableColumns>;
 

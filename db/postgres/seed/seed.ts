@@ -1,12 +1,12 @@
 import chalk from "chalk";
 import { add } from "date-fns";
-import { Insertable, Transaction, sql } from "kysely";
+import { type Insertable, type Transaction, sql } from "kysely";
 import { v5 as uuid5 } from "uuid";
 import { createLogger, format, transports } from "winston";
 import { genPassword } from "../../../utils/generate-password.js";
 import { db } from "../client.js";
-import { Admin, Auth, Chat, DB, Message, Participant, User } from "../db-types.js";
-import { BaseDateColumns } from "../types.js";
+import type { Admin, Auth, Chat, DB, Message, Participant, User } from "../db-types.js";
+import type { BaseDateColumns } from "../types.js";
 import MESSAGES from "./seed.messages.js";
 const BASE_UUID = "feec01c4-3e1a-4cde-9160-f114461d700e";
 
