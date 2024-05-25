@@ -69,5 +69,6 @@ export const CONVERSATION_MESSAGES = {
   publishedAt: "Sent date",
   send: "Send message",
   sendEmpty: "Type something to send a message 😉",
-  textPlaceholder: "Write something..."
+  textPlaceholder: "Write something...",
+  sendError: "Sending message failed. Please try again."
 };
