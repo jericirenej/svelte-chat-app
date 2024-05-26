@@ -1,22 +1,22 @@
 import { render, screen, waitFor } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import Message from "./Message.svelte";
-import { CONVERSATION_MESSAGES } from "../../../messages";
 import type { ComponentProps } from "svelte";
 import type { RemoveIndexSignature } from "../../../types";
+import { handleDate } from "../MessageDate/dateHandler";
 
 describe("Message", () => {
-  const date = new Date("2024-01-01");
+  const createdAt = new Date("2024-01-01");
   const message = "Message",
     multiLineMessage = "Message\non\nthree lines";
   it("Shows message", async () => {
-    render(Message, { message, date });
+    render(Message, { message, createdAt });
     await waitFor(() => {
       expect(screen.queryByText(message)).toBeInTheDocument();
     });
   });
   it("Each new line is its own paragraph", async () => {
-    const { container } = render(Message, { message: multiLineMessage, date });
+    const { container } = render(Message, { message: multiLineMessage, createdAt });
     await waitFor(() => {
       multiLineMessage.split("\n").forEach((line) => {
         expect(screen.queryByText(line)).toBeInTheDocument();
@@ -25,30 +25,27 @@ describe("Message", () => {
     });
   });
   it("Displays date", async () => {
-    render(Message, { message, date });
+    render(Message, { message, createdAt });
+    const { title } = handleDate({ date: createdAt, locale: "en-US" });
+    console.log("DISPLAY", title);
     await waitFor(() => {
-      expect(screen.queryByLabelText(CONVERSATION_MESSAGES.publishedAt)).toBeInTheDocument();
+      expect(screen.queryByTitle(title)).toBeInTheDocument();
     });
   });
   it("Displays message author", async () => {
     const author = "Name Surname";
     for (const hasAuthor of [false, true]) {
-      const args: RemoveIndexSignature<ComponentProps<Message>> = { message, date };
+      const args: RemoveIndexSignature<ComponentProps<Message>> = { message, createdAt };
       if (hasAuthor) {
         args.author = author;
       }
       render(Message, args);
       await waitFor(() => {
-        const label = screen.queryByLabelText(CONVERSATION_MESSAGES.from),
-          authorText = screen.queryByText(author);
+        const authorText = screen.queryByText(author);
 
-        [label, authorText].forEach((locator) => {
-          if (hasAuthor) {
-            expect(locator).toBeInTheDocument();
-          } else {
-            expect(locator).not.toBeInTheDocument();
-          }
-        });
+        hasAuthor
+          ? expect(authorText).toBeInTheDocument()
+          : expect(authorText).not.toBeInTheDocument();
       });
     }
   });

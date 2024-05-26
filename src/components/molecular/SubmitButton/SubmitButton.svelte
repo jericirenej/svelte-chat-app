@@ -67,7 +67,7 @@
       text-ellipsis
       whitespace-nowrap
       text-sm
-      ${submitStatus === "success" ? "text-emerald-500" : "text-red-600"}
+      ${submitStatus === "success" ? "text-emerald-600" : "text-red-600"}
 `}
     >
       {#each messages as message}

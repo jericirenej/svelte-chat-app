@@ -32,19 +32,18 @@
   const displayType = { block: "block w-full", "inline-block": "inline-block" };
   const buttonColor = {
     primary: {
-      confirm:
-        "bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-600 ring-emerald-500",
-      info: "bg-violet-500 border-violet-500 text-white hover:bg-violet-600 hover:border-violet-600 ring-violet-500",
+      confirm: "bg-emerald-600 border-emerald-600 text-white hover:brightness-95  ring-emerald-500",
+      info: "bg-violet-600 border-violet-600 text-white hover:bg-violet-600 hover:brightness-95 ring-violet-600",
       cancel: "bg-slate-500 border-slate-500 text-white hover:bg-slate-600 ring-slate-500",
       danger:
-        "bg-red-500 border-red-500 text-white hover:bg-red-600 hover:border-red-600 ring-red-500"
+        "bg-red-600 border-red-600 text-white hover:bg-red-600 hover:border-red-600 ring-red-600"
     },
     outline: {
       confirm:
-        "border-emerald-500 ring-emerald-600 text-emerald-500 hover:bg-emerald-50  ring-emerald-500",
+        "border-emerald-500 ring-emerald-600 text-emerald-600 hover:bg-emerald-50  ring-emerald-500",
       cancel: "border-slate-500 text-slate-500 hover:bg-slate-100 ring-slate-500",
-      info: "border-violet-500 text-violet-500 hover:bg-violet-100 ring-violet-500",
-      danger: "border-red-500 text-red-500 hover:bg-red-50 ring-red-500"
+      info: "border-violet-600 text-violet-600 hover:bg-violet-100 ring-violet-600",
+      danger: "border-red-600 text-red-600 hover:bg-red-50 ring-red-600"
     }
   };
 

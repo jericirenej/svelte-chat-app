@@ -16,7 +16,7 @@
   let active = false,
     isLoading = false;
 
-  const colors = { default: "bg-emerald-500", failure: "bg-red-600", secondary: "bg-violet-500" };
+  const colors = { default: "bg-emerald-600", failure: "bg-red-600", secondary: "bg-violet-600" };
   const handleClick = async () => {
     if (action && !isLoading) {
       clearTimeout(timeout);
@@ -73,7 +73,9 @@
       disabled={isLoading}
     >
       {#if content}
-        <p class="line-clamp-3 text-left whitespace-break-spaces" title={content} in:fade>{content}</p>
+        <p class="line-clamp-3 whitespace-break-spaces text-left" title={content} in:fade>
+          {content}
+        </p>
       {/if}
     </button>
   </div>

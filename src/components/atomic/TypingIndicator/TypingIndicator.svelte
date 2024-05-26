@@ -30,11 +30,11 @@
 
 {#if usersTyping?.length}
   <div
-    in:scale={{ duration: 150}}
+    in:scale={{ duration: 150 }}
     out:fade={{ duration: 70 }}
     class="flex w-fit items-baseline rounded-lg bg-slate-200 px-2 py-1"
   >
-    <span class="text-xs font-medium text-gray-500">{writing}</span>
+    <span class="text-xs font-medium text-gray-600">{writing}</span>
     <AnimatedDots />
   </div>
 {/if}

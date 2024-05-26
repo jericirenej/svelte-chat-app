@@ -10,7 +10,7 @@
     component: MessageComponent,
     argTypes: {
       message: { control: "text" },
-      date: { control: "date" },
+      createdAt: { control: "date" },
       author: { control: "text" },
       containerWidth: { control: { type: "range", min: 20, max: 100, step: 5 } }
     }
@@ -25,7 +25,7 @@
   const args: ExtendedProps = {
     message:
       "Suffragium spiritus verumtamen venia cunctatio paulatim suppellex aegre quis statua. Vapulus capillus comedo decretum acceptus statim contigo. Sequi alter aegre derelinquo causa uberrime infit vulgaris aspernatur.\nVito vester strenuus ante contabesco bibo auctor tamdiu summa. Ustulo temptatio sunt ventito. Anser angustus casus capto vae perferendis alienus audacia terebro vorax.",
-    date: sub(Date.now(), { hours: 1 }),
+    createdAt: sub(Date.now(), { hours: 1 }),
     author: "",
     containerWidth: 50
   };
@@ -35,7 +35,11 @@
 <Template let:args>
   {@const storyArgs = assertArgs(args)}
   <div style:width={`${storyArgs.containerWidth}%`}>
-    <MessageComponent author={storyArgs.author} date={storyArgs.date} message={storyArgs.message} />
+    <MessageComponent
+      author={storyArgs.author}
+      createdAt={storyArgs.createdAt}
+      message={storyArgs.message}
+    />
   </div>
 </Template>
 

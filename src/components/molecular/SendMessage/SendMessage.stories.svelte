@@ -10,8 +10,10 @@
     argTypes: {
       sendMessage: { table: { disable: true } },
       containerWidth: { control: "range" },
-      sendSuccess: { control: "boolean" }
-    }
+      sendSuccess: { control: "boolean" },
+      onInput: { table: { disable: true } }
+    },
+    args: { onInput: fn() }
   };
 </script>
 
@@ -20,6 +22,7 @@
   import type { RemoveIndexSignature } from "../../../types";
   import type { ComponentProps } from "svelte";
   import { promisifiedTimeout } from "$lib/utils";
+  import { fn } from "@storybook/test";
   let sendResult = true;
   const assertArgs = (args: unknown) => {
     const currentArgs = args as ExtendedProps;
@@ -37,7 +40,7 @@
 <Template let:args>
   {@const storyArgs = assertArgs(args)}
   <div style:width={`${storyArgs.containerWidth}%`}>
-    <SendMessageComponent {sendMessage} />
+    <SendMessageComponent {sendMessage} onInput={storyArgs.onInput} />
   </div>
 </Template>
 

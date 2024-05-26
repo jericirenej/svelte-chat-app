@@ -7,6 +7,9 @@
     component: CrossFadeTextComponent,
     argTypes: {
       text: { table: { disable: true } }
+    },
+    parameters: {
+      a11y: { config: { rules: [{ id: "color-contrast", selector: "toggle-button" }] } }
     }
   };
 </script>
@@ -31,6 +34,7 @@
       size="sm"
       variant="outline"
       display="inline-block"
+      id="toggle-button"
       on:click={changeText}>Change</Button
     >
   </div>

@@ -4,14 +4,13 @@
   import SendIcon from "../../atomic/SendIcon/SendIcon.svelte";
   import TextArea from "../../atomic/TextArea/TextArea.svelte";
   export let sendMessage: (val: string) => Promise<boolean>;
+  export let onInput: (() => unknown) | undefined = undefined;
   let value = "";
 
   let error = false;
-  const onInput = () => {
-    if (error) {
-      error = false;
-    }
-    return;
+  const handleInput = () => {
+    error = false;
+    onInput && onInput();
   };
 
   const handleClick = async () => {
@@ -26,7 +25,7 @@
 </script>
 
 <div class="relative flex flex-row items-end justify-between gap-3">
-  <TextArea bind:value {onInput} />
+  <TextArea bind:value onInput={handleInput} />
   <span class="text-blue-600">
     <SendIcon disabled={!value.length} on:click={handleClick} />
   </span>
