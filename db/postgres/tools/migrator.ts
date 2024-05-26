@@ -18,7 +18,6 @@ export class ESMFileMigrationProvider implements MigrationProvider {
   async getMigrations(): Promise<Record<string, Migration>> {
     const migrations: Record<string, Migration> = {};
 
-    
     const resolvedPath = resolveUrlPath(this.url);
     const files = await fs.readdir(resolvedPath);
     for (const fileName of files) {
@@ -89,7 +88,6 @@ export class MigrationHelper {
   }
 
   async updateSchema(): Promise<void> {
-    console.log("PATH", this.typePath);
     const { stderr, stdout } = await asyncExec(
       `npx kysely-codegen --camel-case --dialect postgres --out-file=${this.typePath}`
     );

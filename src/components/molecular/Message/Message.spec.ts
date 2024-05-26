@@ -27,7 +27,6 @@ describe("Message", () => {
   it("Displays date", async () => {
     render(Message, { message, createdAt });
     const { title } = handleDate({ date: createdAt, locale: "en-US" });
-    console.log("DISPLAY", title);
     await waitFor(() => {
       expect(screen.queryByTitle(title)).toBeInTheDocument();
     });
