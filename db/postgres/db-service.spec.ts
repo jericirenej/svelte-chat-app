@@ -31,7 +31,6 @@ import {
   type UserDto
 } from "./types.js";
 
-
 await createOrDestroyTempDb("create");
 const { db, migrationHelper } = createDbConnectionAndMigrator();
 
@@ -532,6 +531,20 @@ describe("DatabaseService", () => {
 
       expect(await service.getChatIdsForUser(participants[0])).toEqual([firstChatId, secondChatId]);
       expect(await service.getChatIdsForUser(thirdCreated.id)).toEqual([secondChatId]);
+    });
+    it("Should get chat participants", async () => {
+      const { id } = await service.createChat({
+        name: "chatName",
+        participants
+      });
+      const result = await service.getParticipantsForChat(id);
+      expect(result).toHaveLength(participants.length);
+      expect(result.map(({ id }) => id)).toEqual(participants);
+    });
+    it("Should throw when querying participants for inexisting chat", async () => {
+      await expect(() =>
+        service.getParticipantsForChat(uniqueUUID(["invalid"]))
+      ).rejects.toThrowError();
     });
     it("Should get chats", async () => {
       const otherChat = "otherChat";

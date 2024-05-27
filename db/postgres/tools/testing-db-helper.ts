@@ -29,12 +29,13 @@ export const createOrDestroyTempDb = async (
   await postgresClient.end();
 };
 
-export const createDbConnectionAndMigrator = (dbName = TEST_DB_NAME) => {
+export const createDbConnectionAndMigrator = (dbName = TEST_DB_NAME, log = false) => {
   const { Pool } = pg;
   const db = new Kysely<DB>({
     dialect: new PostgresDialect({
       pool: new Pool({ ...postgresConnection, database: dbName })
     }),
+    log: log ? ["query", "error"] : [],
     plugins: [new CamelCasePlugin()]
   });
   const migrationHelper = new MigrationHelper(

@@ -453,6 +453,16 @@ export class DatabaseService {
     return true;
   }
 
+  async getParticipantsForChat(chatId: string): Promise<UserDto[]> {
+    await this.#throwIfNotFound("chat", chatId, "Chat does not exist!");
+    return await this.db
+      .selectFrom("user as u")
+      .selectAll(["u"])
+      .innerJoin("participant as p", "p.userId", "u.id")
+      .where("p.chatId", "=", chatId)
+      .execute();
+  }
+
   async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
     const checks = await Promise.all([this.#entryExists("chat", chatId), this.#isUser(userId)]);
     if (!checks.every((check) => check)) {
@@ -470,7 +480,8 @@ export class DatabaseService {
   }
 
   async removeParticipantFromChat(chatId: string, userId: string): Promise<boolean> {
-    await this.#entryExists("chat", chatId);
+    await this.#throwIfNotFound("chat", chatId, "Chat does now exist!");
+
     const participantsQuery = await this.db
       .selectFrom("participant")
       .select("userId")
@@ -525,10 +536,7 @@ export class DatabaseService {
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
   ): Promise<MessageDto[]> {
     if (!chatId) return [];
-    const chatExists = await this.#entryExists("chat", chatId);
-    if (!chatExists) {
-      return throwHttpError(404, "Target chat does not exist!");
-    }
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
     let baseQuery = this.db
       .selectFrom("message")
       .selectAll()
@@ -585,6 +593,18 @@ export class DatabaseService {
       .where(`${table}.id`, "=", id)
       .executeTakeFirst();
     return !!entry;
+  }
+
+  async #throwIfNotFound(
+    table: keyof DB,
+    id: string | string[],
+    errMessage?: string
+  ): Promise<void> {
+    const exists = Array.isArray(id)
+      ? await this.#entriesExist(table, id)
+      : await this.#entryExists(table, id);
+    if (exists) return;
+    return throwHttpError(404, errMessage ?? "Entry does not exist!");
   }
 
   async #entriesExist(table: keyof DB, ids: string[]): Promise<boolean> {
