@@ -71,5 +71,6 @@ export const CONVERSATION_MESSAGES = {
   sendEmpty: "Type something to send a message 😉",
   textPlaceholder: "Write something...",
   sendError: "Sending message failed. Please try again.",
-  ownMessage: "You"
+  ownMessageAuthor: "You",
+  newMessagesInvisible: "New message received. Click here to show it."
 };
