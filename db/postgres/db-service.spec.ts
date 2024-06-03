@@ -818,7 +818,17 @@ describe("DatabaseService", () => {
         })
       ).rejects.toThrowError();
     });
-    it("Should return ordered slice of chat messages", async () => {
+
+    it("Returns total count of messages for chat", async () => {
+      await expect(service.getMessageCountForChat("invalid")).rejects.toThrowError();
+      for (const num of [1, 10, 20, 30]) {
+        const { id } = await service.createChat({ participants });
+        await insertMsgs(id, participants, num);
+        await expect(service.getMessageCountForChat(id)).resolves.toBe(num);
+        await service.deleteChats(firstCreated.id, id);
+      }
+    });
+    it("Should return ordered slice and total count of chat messages", async () => {
       const { id } = await service.createChat({ participants });
       const messages = await insertMsgs(id, participants, 20);
       const dateOffsets = messages.map(({ id, createdAt, updatedAt }, index) => {
@@ -852,7 +862,8 @@ describe("DatabaseService", () => {
 
       for (const { options, expected } of testCases) {
         const result = await service.getMessagesForChat(id, options);
-        expect(result.map(({ id }) => id)).toEqual(expected);
+        expect(result.total).toBe(20);
+        expect(result.messages.map(({ id }) => id)).toEqual(expected);
       }
     });
     it("Should throw when requesting messages for non existing chats", async () => {

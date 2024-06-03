@@ -15,6 +15,7 @@ import type {
   CreateUserDto,
   GetChatDto,
   GetChatsDto,
+  GetMessagesDto,
   MessageDto,
   ParticipantDto,
   SingleUserSearch,
@@ -534,8 +535,7 @@ export class DatabaseService {
   async getMessagesForChat(
     chatId: string,
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
-  ): Promise<MessageDto[]> {
-    if (!chatId) return [];
+  ): Promise<GetMessagesDto> {
     await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
     let baseQuery = this.db
       .selectFrom("message")
@@ -546,7 +546,20 @@ export class DatabaseService {
     if (options.take) {
       baseQuery = baseQuery.offset(options.skip ?? 0).limit(options.take);
     }
-    return await baseQuery.execute();
+    const messages = await baseQuery.execute();
+    return { messages, total: await this.getMessageCountForChat(chatId) };
+  }
+
+  async getMessageCountForChat(chatId: string): Promise<number> {
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+    const count = await this.db
+      .selectFrom("message")
+      .select((eb) =>
+        eb.cast<number>(eb.fn.coalesce(eb.fn.count("id"), eb.lit(0)), "integer").as("total")
+      )
+      .where("chatId", "=", chatId)
+      .executeTakeFirstOrThrow();
+    return count.total;
   }
 
   /** Message authors can toggle their message deletion status */
