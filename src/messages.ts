@@ -72,5 +72,6 @@ export const CONVERSATION_MESSAGES = {
   textPlaceholder: "Write something...",
   sendError: "Sending message failed. Please try again.",
   ownMessageAuthor: "You",
-  newMessagesInvisible: "New message received. Click here to show it."
+  newMessagesInvisible: "New message received. Click here to show it.",
+  containerLabel: "List of messages for the current chat"
 };
