@@ -11,7 +11,6 @@
         control: "check",
         options: ["Ada", "Alan", "Alonzo", "Barbara", "Charles", "Kurt"]
       }
-      // debounceTime: { type: "number" }
     }
   };
 </script>

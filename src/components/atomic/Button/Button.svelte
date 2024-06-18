@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
-  export type ButtonActions = "confirm" | "cancel" | "danger" | "info";
+  import type { ActionTypes } from "../../../types";
+  export type ButtonActions = ActionTypes;
   export type ButtonSizes = "sm" | "md" | "lg";
   export type ButtonTypes = "button" | "submit";
   export type ButtonDisplay = "inline-block" | "block";
