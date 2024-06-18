@@ -19,3 +19,5 @@ export type NotificationEntry = {
 
 export type MaybeArray<T> = T | T[];
 export type Nullish = undefined | null;
+
+export type ActionTypes = "confirm" | "cancel" | "danger" | "info";
