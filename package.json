@@ -12,7 +12,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
     "format": "prettier --plugin-search-dir . --write .",
-    "test:integration": "PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:5000/ npx playwright test",
+    "test:integration": "PW_TEST_CONNECT_WS_ENDPOINT=ws://localhost:5000/ npx playwright test",
     "playwright": "npm run test:integration",
     "playwright:ui": "PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:5000/ npx playwright test --ui-port=6007",
     "test:unit": "vitest run",
@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@playwright/test": "^1.43.1",
+    "@playwright/test": "^1.44.1",
     "@storybook/addon-a11y": "^8.1.3",
     "@storybook/addon-actions": "^8.0.9",
     "@storybook/addon-essentials": "^8.0.9",
