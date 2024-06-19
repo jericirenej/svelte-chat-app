@@ -1,4 +1,5 @@
 import { REDIRECT_AFTER_EXPIRE_DELAY } from "./constants";
+import { capitalize } from "./helpers";
 
 export const APP_NAME = "Chat App";
 
@@ -75,3 +76,5 @@ export const CONVERSATION_MESSAGES = {
   newMessagesInvisible: "New message received. Click here to show it.",
   containerLabel: "List of messages for the current chat"
 };
+
+export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;
