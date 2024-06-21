@@ -1,14 +1,13 @@
 import chalk from "chalk";
 import { add } from "date-fns";
 import { type Insertable, type Transaction, sql } from "kysely";
-import { v5 as uuid5 } from "uuid";
 import { createLogger, format, transports } from "winston";
 import { genPassword } from "../../../utils/generate-password.js";
+import { BASE_USERS, v5 } from "../../../utils/base-users.js";
 import { db } from "../client.js";
 import type { Admin, Auth, Chat, DB, Message, Participant, User } from "../db-types.js";
 import type { BaseDateColumns } from "../types.js";
 import MESSAGES from "./seed.messages.js";
-const BASE_UUID = "feec01c4-3e1a-4cde-9160-f114461d700e";
 
 type BaseCredentials = Omit<Auth, BaseDateColumns>;
 
@@ -37,76 +36,19 @@ const logInfo = (message: string): void => {
   logger.log("info", message);
 };
 
-const createEmail = (username: string): string => `${username}@nowhere.never`;
-
 const isEven = (num: number): boolean => num % 2 === 0;
 const pickUser = (num: number, user1: string, user2: string): string =>
   isEven(num) ? user1 : user2;
 
-const v5 = (...args: (string | number)[]): string => uuid5(args.join("-"), BASE_UUID);
-
 const baseCreate = new Date(2023, 0, 1, 12);
 
-export const USERS = [
-  {
-    username: "babbage" as const,
-    name: "Charles",
-    surname: "Babbage",
-    email: createEmail("babbage15")
-  },
-  {
-    username: "lovelace" as const,
-    name: "Ada",
-    surname: "Lovelace",
-    email: createEmail("lovelace"),
-    admin: "superadmin" as const
-  },
-  {
-    username: "liskov" as const,
-    name: "Barbara",
-    surname: "Liskov",
-    email: createEmail("no_substitute")
-  },
-  {
-    username: "chu_lonzo" as const,
-    name: "Alonzo",
-    surname: "Church",
-    email: createEmail("chu_lonzo")
-  },
-  {
-    username: "the_turing" as const,
-    name: "Alan",
-    surname: "Turing",
-    email: createEmail("turing_machine"),
-    admin: "admin" as const
-  },
-  {
-    username: "russel_guy" as const,
-    name: "Bertrand",
-    surname: "Russel",
-    email: createEmail("i_am_whole")
-  },
-  {
-    username: "incomplete_guy" as const,
-    name: "Kurt",
-    surname: "Gödel",
-    email: createEmail("kgodel")
-  },
-  {
-    username: "logician" as const,
-    name: "George",
-    surname: "Bool",
-    email: createEmail("gbool")
-  }
-].map((user) => {
+export const USERS = BASE_USERS.map((user) => {
   const password = `${user.username}-password`;
   const { hash, salt } = genPassword(password);
-  const id = v5("user", user.username);
   return {
     ...user,
     createdAt: baseCreate,
-    auth: { hash, salt, id },
-    id
+    auth: { hash, salt, id: user.id }
   };
 }) satisfies (Insertable<User> & { auth: BaseCredentials } & { admin?: "admin" | "superadmin" })[];
 

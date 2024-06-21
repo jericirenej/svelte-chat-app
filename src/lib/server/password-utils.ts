@@ -1,5 +1,5 @@
 import { SERVER_SECRET } from "$env/static/private";
-import { PBKDF } from "@utils";
+import { PBKDF } from "@utils/generate-password.js";
 import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 import type { AuthDto } from "../../../db/index.js";
 export const VERIFICATION_FAILURE = "User name or password did not match";

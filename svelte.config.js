@@ -15,7 +15,7 @@ const config = {
     adapter: adapter(),
     alias: {
       "@db": resolve("./db/index.ts"),
-      "@utils": resolve("./utils/index.ts")
+      "@utils/*": resolve("./utils/")
     }
   }
 };
