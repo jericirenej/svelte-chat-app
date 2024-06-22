@@ -1,4 +1,5 @@
 import type { StorybookConfig } from "@storybook/sveltekit";
+import { searchForWorkspaceRoot } from "vite";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx|svelte)"],
@@ -18,6 +19,16 @@ const config: StorybookConfig = {
   },
   core: {
     disableTelemetry: true
+  },
+  async viteFinal(config) {
+    const { mergeConfig } = await import("vite");
+    return mergeConfig(config, {
+      server: {
+        fs: {
+          allow: [searchForWorkspaceRoot(process.cwd()), "./utils"]
+        }
+      }
+    });
   }
 };
 export default config;
