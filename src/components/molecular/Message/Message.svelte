@@ -1,9 +1,11 @@
 <script lang="ts">
   import { CONVERSATION_MESSAGES } from "../../../messages";
+  import Avatar from "../../atomic/Avatar/Avatar.svelte";
   import MessageDate from "../MessageDate/MessageDate.svelte";
 
   export let message: string;
   export let author: string | undefined = undefined;
+  export let avatar: string | undefined = undefined;
   export let createdAt: Date | number;
   const { message: messageLabel } = CONVERSATION_MESSAGES;
   $: paragraphs = message.split("\n");
@@ -17,7 +19,12 @@
   </article>
   <footer class="flex items-start justify-between gap-8 text-ellipsis text-[12px] text-gray-600">
     {#if author}
-      <span class="overflow-hidden text-ellipsis whitespace-nowrap text-nowrap">{author}</span>
+      <div class="flex items-center gap-2">
+        {#if avatar}
+          <Avatar src={avatar} name={author} size={20} />
+        {/if}
+        <span class="overflow-hidden text-ellipsis whitespace-nowrap text-nowrap">{author}</span>
+      </div>
     {/if}
     <span class="ml-auto">
       <MessageDate date={createdAt} />
