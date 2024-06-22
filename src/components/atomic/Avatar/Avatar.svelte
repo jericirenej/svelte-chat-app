@@ -1,13 +1,15 @@
 <script lang="ts">
   import { avatarLabel } from "../../../messages";
+  import type { Nullish } from "../../../types";
 
-  export let size: "sm" | "md" | "lg" = "md";
-  export let src: string | undefined = undefined;
+  export let size: "sm" | "md" | "lg" | number = "md";
+  export let src: string | Nullish = undefined;
   export let name: string;
+
   const sizeMap = { sm: 30, md: 45, lg: 75 };
 
   $: alt = avatarLabel(name);
-  $: widthNum = sizeMap[size];
+  $: widthNum = typeof size === "number" ? size : sizeMap[size];
   $: width = `${widthNum}px`;
 
   $: borderRadius = `${widthNum * 0.25}px`;
