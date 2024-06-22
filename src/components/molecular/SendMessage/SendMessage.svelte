@@ -25,7 +25,7 @@
 </script>
 
 <div class="relative flex flex-row items-end justify-between gap-3">
-  <TextArea bind:value onInput={handleInput} />
+  <TextArea placeholder={CONVERSATION_MESSAGES.textPlaceholder} bind:value onInput={handleInput} />
   <span class="text-blue-600">
     <SendIcon disabled={!value.length} on:click={handleClick} />
   </span>

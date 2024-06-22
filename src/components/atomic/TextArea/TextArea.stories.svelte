@@ -12,6 +12,7 @@
     component: TextAreaComponent,
     argTypes: {
       value: { table: { disable: true } },
+      placeholder: { control: "text" },
       onInput: { action: "onInput" },
       containerWidth: { control: { type: "range", step: 5 } }
     },
@@ -30,10 +31,10 @@
 </script>
 
 <Template let:args>
-  {@const storyArgs = assertArgs(args)}
-  <div style:width={`${storyArgs.containerWidth}%`}>
-    <TextAreaComponent bind:value onInput={storyArgs.onInput} />
+  {@const { containerWidth, placeholder, onInput } = assertArgs(args)}
+  <div style:width={`${containerWidth}%`}>
+    <TextAreaComponent bind:value {placeholder} {onInput} />
   </div>
 </Template>
 
-<Story name="TextArea" />
+<Story name="TextArea" args={{ placeholder: "Write something..." }} />
