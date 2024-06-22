@@ -2,17 +2,17 @@ import { faker } from "@faker-js/faker";
 import type { MessageDto } from "../../../db/postgres";
 import type { Writable } from "svelte/store";
 import { add, sub } from "date-fns";
+import { participantMap } from "$lib/client/participant-map";
+import { byUsernames, type BaseUsernames } from "@utils/base-users";
 
 export const baseDate = sub(new Date(), { hours: 10 });
 
-type Users = "lovelace" | "turing" | "bool";
 export const chatId = "chatId";
-export const chatUsers: [Users, string][] = [
-  ["lovelace", "Ada"],
-  ["turing", "Alan"],
-  ["bool", "George"]
-];
-export const chatParticipants = new Map<Users, string>(chatUsers);
+export const chatUserNames = ["lovelace", "the_turing", "logician"] satisfies BaseUsernames[];
+const userArray = byUsernames(chatUserNames);
+export const chatUserIds = userArray.map(({ id }) => id);
+export const chatParticipants = participantMap(userArray);
+console.log(chatParticipants);
 
 export const createMessage = (userId: string, createdAt: Date): MessageDto => {
   return {
@@ -27,7 +27,7 @@ export const createMessage = (userId: string, createdAt: Date): MessageDto => {
 };
 
 export const addMessage = (store: Writable<MessageDto[]>, atBeginning = false) => {
-  const userId = chatUsers[Math.floor(Math.random() * chatUsers.length)][0];
+  const userId = userArray[Math.floor(Math.random() * chatUserNames.length)].id;
   store.update((msg) => {
     const date = atBeginning
       ? sub(msg[0]?.createdAt ?? baseDate, { minutes: 10 })

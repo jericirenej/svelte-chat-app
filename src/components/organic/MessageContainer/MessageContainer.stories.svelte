@@ -42,15 +42,16 @@
     addMessage,
     baseDate,
     chatParticipants,
+    chatUserIds,
     createMessage
   } from "../../helpers/messageHelpers";
 
-  const loggedUserId = "lovelace";
+  const loggedUserId = chatUserIds[0];
   let total: number = 0;
   const msg: MessageDto[] = [
-    createMessage("turing", baseDate),
-    createMessage("turing", add(baseDate, { minutes: 10 })),
-    createMessage("lovelace", add(baseDate, { minutes: 20 }))
+    createMessage(chatUserIds[1], baseDate),
+    createMessage(chatUserIds[1], add(baseDate, { minutes: 10 })),
+    createMessage(chatUserIds[0], add(baseDate, { minutes: 20 }))
   ];
   let messages: Writable<MessageDto[]> = writable(msg);
 

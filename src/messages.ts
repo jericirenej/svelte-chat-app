@@ -73,6 +73,7 @@ export const CONVERSATION_MESSAGES = {
   textPlaceholder: "Write something...",
   sendError: "Sending message failed. Please try again.",
   ownMessageAuthor: "You",
+  missingAuthor: "Missing user",
   newMessagesInvisible: "New message received. Click here to show it.",
   containerLabel: "List of messages for the current chat"
 };
