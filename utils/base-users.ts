@@ -57,3 +57,7 @@ export const BASE_USERS = [
     email: createEmail("gbool")
   }
 ].map((user) => ({ ...user, id: v5("user", user.username) }));
+
+export type BaseUsernames = (typeof BASE_USERS)[number]["username"];
+export const byUsernames = (names: BaseUsernames[]) =>
+  BASE_USERS.filter((u) => names.includes(u.username));
