@@ -26,7 +26,7 @@
 
 <Template let:args>
   {@const { chatLabel, containerWidth, message } = assertArgs(args)}
-  <div class="border-2" style:width={`${containerWidth}%`}>
+  <div style:width={`${containerWidth}%`}>
     <ChatPreviewComponent {chatLabel} {message} />
   </div>
 </Template>
