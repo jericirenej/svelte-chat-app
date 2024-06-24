@@ -19,7 +19,7 @@
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
   import type { RemoveIndexSignature } from "../../../types";
-  import StoryFieldsetWrapper from "../../helpers/StoryFieldsetWrapper.svelte";
+  import StoryFieldsetWrapper from "../../story-helpers/StoryFieldsetWrapper.svelte";
 
   $: show = true;
 

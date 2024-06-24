@@ -47,7 +47,7 @@
   import type { ComponentProps } from "svelte";
   import { v4 } from "uuid";
   import type { NotificationEntry, RemoveIndexSignature } from "../../../../types";
-  import StoryFieldsetWrapper from "../../../helpers/StoryFieldsetWrapper.svelte";
+  import StoryFieldsetWrapper from "../../../story-helpers/StoryFieldsetWrapper.svelte";
   const notifications = new NotificationStore();
   const resetNotifications = () => {
     notifications.set(createMap());

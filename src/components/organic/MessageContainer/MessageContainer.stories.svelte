@@ -44,7 +44,7 @@
     chatParticipants,
     chatUserIds,
     createMessage
-  } from "../../helpers/messageHelpers";
+  } from "../../story-helpers/messageHelpers";
 
   const loggedUserId = chatUserIds[0];
   let total: number = 0;

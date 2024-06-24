@@ -32,7 +32,7 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { RemoveIndexSignature } from "../../../types";
-  import { avatarTypes } from "../../helpers/avatarSrc";
+  import { avatarTypes } from "../../story-helpers/avatarSrc";
 
   const assertArgs = (args: unknown) => {
     return args as CustomProps;

@@ -24,7 +24,7 @@
   import { sub } from "date-fns";
   import type { ComponentProps } from "svelte";
   import type { RemoveIndexSignature } from "../../../types";
-  import { avatarTypes, type AvatarTypeKeys } from "../../helpers/avatarSrc";
+  import { avatarTypes, type AvatarTypeKeys } from "../../story-helpers/avatarSrc";
   const args: ExtendedProps = {
     message:
       "Suffragium spiritus verumtamen venia cunctatio paulatim suppellex aegre quis statua. Vapulus capillus comedo decretum acceptus statim contigo. Sequi alter aegre derelinquo causa uberrime infit vulgaris aspernatur.\nVito vester strenuus ante contabesco bibo auctor tamdiu summa. Ustulo temptatio sunt ventito. Anser angustus casus capto vae perferendis alienus audacia terebro vorax.",
