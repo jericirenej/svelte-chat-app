@@ -20,17 +20,21 @@
         {
           chatId: "chatWithTwoParticipants",
           chatLabel: "Linda Lovelace",
-          message: "I think so too!"
+          message: "I think so too!",
+
+          unreadMessages: 0
         },
         {
           chatId: "chatWithMultipleParticipants",
           chatLabel: "Linda Lovelace, Alan Turing",
-          message: "Well that's never going to work..."
+          message: "Well that's never going to work...",
+          unreadMessages: 10
         },
         {
           chatId: "labelledChat",
           chatLabel: "On the meaning of life",
-          message: "That might be complicated, I think"
+          message: "That might be complicated, I think",
+          unreadMessages: 120
         }
       ],
       containerWidth: 50

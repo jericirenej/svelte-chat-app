@@ -75,7 +75,8 @@ export const CONVERSATION_MESSAGES = {
   ownMessageAuthor: "You",
   missingAuthor: "Missing user",
   newMessagesInvisible: "New message received. Click here to show it.",
-  containerLabel: "List of messages for the current chat"
+  containerLabel: "List of messages for the current chat",
+  unreadMessages: "Number of unread messages in this chat"
 };
 
 export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;

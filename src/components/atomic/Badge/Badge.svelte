@@ -7,10 +7,10 @@
   export let num: number;
   export let label: string;
   const statusToColor: Record<ActionTypes, string> = {
-    cancel: "bg-slate-500",
-    confirm: "bg-emerald-600",
-    info: "bg-violet-600",
-    danger: "bg-red-600"
+    cancel: "border-slate-500 text-slate-500",
+    confirm: "border-emerald-600 text-emerald-600",
+    info: "border-violet-600 text-violet-600",
+    danger: "border-red-600 text-red-600"
   };
 
   $: prefix = num.toString().length > 2 ? "+" : "";
@@ -19,12 +19,12 @@
 
 {#if num > 0}
   {#key num}
-    <div
+    <span
       in:scale={{ duration: 500, start: 1.2, easing: quintOut, opacity: 1 }}
-      class={`${statusToColor[status]} flex aspect-square w-fit min-w-[3ch] max-w-[10ch] cursor-default items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full  p-2 text-xs text-white`}
+      class={`${statusToColor[status]} inline-block cursor-default rounded-md border-2 px-2 text-xs`}
       title={label}
     >
-      <span>{prefix}{truncatedNum}</span>
-    </div>
+      {prefix}{truncatedNum}
+    </span>
   {/key}
 {/if}
