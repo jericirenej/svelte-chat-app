@@ -1,15 +1,17 @@
-import type { UserDto } from "../../../db/postgres";
+import type { User, UserDto } from "../../../db/postgres";
 import { CONVERSATION_MESSAGES } from "../../messages";
+
+export const getNameOrUsername = ({
+  name,
+  username,
+  surname
+}: Pick<UserDto, "username" | "name" | "surname">): string =>
+  name && surname ? `${name} ${surname}` : username;
 
 export const participantMap = (
   chatParticipants: Pick<UserDto, "name" | "surname" | "username" | "id">[]
 ): Map<string, string> => {
-  return new Map(
-    chatParticipants.map(({ name, surname, id, username }) => [
-      id,
-      name && surname ? `${name} ${surname}` : username
-    ])
-  );
+  return new Map(chatParticipants.map((user) => [user.id, getNameOrUsername(user)]));
 };
 
 export const getParticipant = (
