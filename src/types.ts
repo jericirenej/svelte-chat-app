@@ -21,3 +21,5 @@ export type MaybeArray<T> = T | T[];
 export type Nullish = undefined | null;
 
 export type ActionTypes = "confirm" | "cancel" | "danger" | "info";
+
+export type EntitySize = "xs" | "sm" | "base" | "lg" | "xl" | number;

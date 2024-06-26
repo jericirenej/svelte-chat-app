@@ -2,23 +2,18 @@
   import { avatarLabel } from "../../../messages";
   import type { Nullish } from "../../../types";
 
-  export let size: "sm" | "md" | "lg" | number = "md";
+  export let size: number;
   export let src: string | Nullish = undefined;
   export let name: string;
 
-  const sizeMap = { sm: 30, md: 45, lg: 75 };
-
   $: alt = avatarLabel(name);
-  $: widthNum = typeof size === "number" ? size : sizeMap[size];
-  $: width = `${widthNum}px`;
-
-  $: borderRadius = `${widthNum * 0.25}px`;
+  $: width = `${size}px`;
 </script>
 
 <div
-  class="flex aspect-square items-center justify-center bg-gradient-to-br from-slate-500 to-slate-900 text-xs"
+  class="flex aspect-square items-center justify-center bg-gradient-to-br from-slate-500 to-slate-900"
   style:width
-  style:border-radius={borderRadius}
+  style:border-radius="25%"
 >
   {#if src}
     <img class="object-cover" style:width {alt} {src} style:border-radius="inherit" />
