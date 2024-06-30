@@ -10,6 +10,7 @@
     containerWidth: number;
     sizeVariant: Exclude<EntitySize, "number"> | undefined;
     sizeNumber: number | undefined;
+    slotContent: boolean;
   };
 
   export const meta: Meta<CustomProps> = {
@@ -20,6 +21,7 @@
       avatar: { table: { disable: true } },
       avatarType: { control: "radio", options: ["empty", "transparentBg", "full"] },
       containerWidth: { control: { type: "range", max: 100, min: 10, step: 5 } },
+      slotContent: { control: "boolean" },
       ...sizeArgTypes
     }
   };
@@ -32,18 +34,22 @@
   const args: Omit<CustomProps, "avatar" | "sizeVariant" | "sizeNumber"> = {
     avatarType: "empty",
     name: "Linda Lovelace",
-    containerWidth: 20
+    containerWidth: 20,
+    slotContent: false
   };
 </script>
 
 <Template let:args>
-  {@const { avatarType, containerWidth, name, sizeNumber, sizeVariant } = assertArgs(args)}
+  {@const { avatarType, containerWidth, name, sizeNumber, sizeVariant, slotContent } =
+    assertArgs(args)}
   <div style:width={`${containerWidth}%`}>
     <UserEntityComponent
       avatar={avatarTypes[avatarType]}
       {name}
       size={sizeVariant ?? sizeNumber ?? "base"}
-    />
+    >
+      {#if slotContent}<span>X</span>{/if}</UserEntityComponent
+    >
   </div>
 </Template>
 

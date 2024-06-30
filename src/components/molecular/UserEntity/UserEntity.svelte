@@ -1,11 +1,11 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
-  import type { EntitySize } from "../../../types";
+  import type { EntitySize, Nullish } from "../../../types";
   import Avatar from "../../atomic/Avatar/Avatar.svelte";
   import { sizeMap } from "../../story-helpers/sizeHandler";
 
   export let name: string;
-  export let avatar: string | undefined;
+  export let avatar: string | Nullish;
   export let size: EntitySize = "xs";
 
   let span: HTMLSpanElement | undefined;
@@ -22,13 +22,18 @@
   });
 </script>
 
-<div class="flex items-center gap-2">
-  <div>
-    <Avatar {name} src={avatar} size={avatarSize} />
+<div class="flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <div>
+      <Avatar {name} src={avatar} size={avatarSize} />
+    </div>
+    <span
+      bind:this={span}
+      style:font-size={textSizeStyle}
+      class={`overflow-hidden text-ellipsis whitespace-nowrap ${textSize}`}>{name}</span
+    >
   </div>
-  <span
-    bind:this={span}
-    style:font-size={textSizeStyle}
-    class={`overflow-hidden text-ellipsis whitespace-nowrap ${textSize}`}>{name}</span
-  >
+  <!-- Add additional elements, like delete controls, etc. to the
+   current entity. -->
+  <slot />
 </div>

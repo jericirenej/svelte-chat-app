@@ -80,3 +80,5 @@ export const CONVERSATION_MESSAGES = {
 };
 
 export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;
+
+export const ENTITY_LIST = { remove: "Remove" };
