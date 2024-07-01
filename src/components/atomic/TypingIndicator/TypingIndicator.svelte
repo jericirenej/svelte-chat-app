@@ -5,7 +5,6 @@
   import AnimatedDots from "../AnimatedDots/AnimatedDots.svelte";
 
   export let usersTyping: MaybeArray<string> | Nullish = null;
-  // export let debounceTime = 200;
 
   const handleUsers = (users: typeof usersTyping): string => {
     const userArr = toArray(users).filter(Boolean) as string[];
