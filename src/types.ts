@@ -23,3 +23,4 @@ export type Nullish = undefined | null;
 export type ActionTypes = "confirm" | "cancel" | "danger" | "info";
 
 export type EntitySize = "xs" | "sm" | "base" | "lg" | "xl" | number;
+export type Entity = { name: string; avatar: string | Nullish; id: string };

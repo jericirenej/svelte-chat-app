@@ -1,9 +1,9 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
   import type { ComponentProps } from "svelte";
-  import UserEntityComponent from "./UserEntity.svelte";
   import type { EntitySize, RemoveIndexSignature } from "../../../types";
   import { avatarTypes } from "../../story-helpers/avatarSrc";
+  import UserEntityComponent from "./UserEntity.svelte";
 
   type CustomProps = RemoveIndexSignature<ComponentProps<UserEntityComponent>> & {
     avatarType: keyof typeof avatarTypes;
@@ -17,35 +17,34 @@
     title: "Molecular/UserEntity",
     component: UserEntityComponent,
     argTypes: {
-      name: { control: "text" },
-      avatar: { table: { disable: true } },
+      entity: { control: "object", table: { disable: true } },
       avatarType: { control: "radio", options: ["empty", "transparentBg", "full"] },
       containerWidth: { control: { type: "range", max: 100, min: 10, step: 5 } },
       slotContent: { control: "boolean" },
       ...sizeArgTypes
-    }
+    },
+    args: { handleSelect: fn() }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
+  import { fn } from "@storybook/test";
   import { sizeArgTypes } from "../../story-helpers/sizeHandler";
-  const assertArgs = (args: unknown) => args as Omit<CustomProps, "avatar">;
-  const args: Omit<CustomProps, "avatar" | "sizeVariant" | "sizeNumber"> = {
-    avatarType: "empty",
-    name: "Linda Lovelace",
+  const assertArgs = (args: unknown) => args as CustomProps;
+  const args = {
     containerWidth: 20,
     slotContent: false
   };
 </script>
 
 <Template let:args>
-  {@const { avatarType, containerWidth, name, sizeNumber, sizeVariant, slotContent } =
+  {@const { containerWidth, sizeVariant, sizeNumber, slotContent, avatarType, handleSelect } =
     assertArgs(args)}
-  <div style:width={`${containerWidth}%`}>
+  <div class="border-[1px] border-neutral-300" style:width={`${containerWidth}%`}>
     <UserEntityComponent
-      avatar={avatarTypes[avatarType]}
-      {name}
+      {handleSelect}
+      entity={{ name: "Linda Lovelace", avatar: avatarTypes[avatarType], id: "id" }}
       size={sizeVariant ?? sizeNumber ?? "base"}
     >
       {#if slotContent}<span>X</span>{/if}</UserEntityComponent

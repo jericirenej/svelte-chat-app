@@ -1,12 +1,12 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
-  import type { EntitySize, Nullish } from "../../../types";
+  import type { EntitySize, Entity } from "../../../types";
   import Avatar from "../../atomic/Avatar/Avatar.svelte";
   import { sizeMap } from "../../story-helpers/sizeHandler";
 
-  export let name: string;
-  export let avatar: string | Nullish;
+  export let entity: Entity;
   export let size: EntitySize = "xs";
+  export let handleSelect: (id: string) => unknown;
 
   let span: HTMLSpanElement | undefined;
   const getSize = () => {
@@ -23,16 +23,20 @@
 </script>
 
 <div class="flex items-center justify-between">
-  <div class="flex items-center gap-2">
+  <button
+    type="button"
+    class="flex min-w-0 flex-grow items-center gap-2"
+    on:click={() => handleSelect(entity.id)}
+  >
     <div>
-      <Avatar {name} src={avatar} size={avatarSize} />
+      <Avatar name={entity.name} src={entity.avatar} size={avatarSize} />
     </div>
     <span
       bind:this={span}
       style:font-size={textSizeStyle}
-      class={`overflow-hidden text-ellipsis whitespace-nowrap ${textSize}`}>{name}</span
+      class={`overflow-hidden text-ellipsis whitespace-nowrap ${textSize}`}>{entity.name}</span
     >
-  </div>
+  </button>
   <!-- Add additional elements, like delete controls, etc. to the
    current entity. -->
   <slot />

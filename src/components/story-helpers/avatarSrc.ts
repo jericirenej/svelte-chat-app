@@ -7,3 +7,8 @@ export const avatarTypes = {
 };
 
 export type AvatarTypeKeys = keyof typeof avatarTypes;
+
+export const assignAvatar = (num: number) => {
+  const avatarIndices: AvatarTypeKeys[] = ["empty", "full", "transparentBg"];
+  return avatarTypes[avatarIndices[(num + 1) % avatarIndices.length]];
+};
