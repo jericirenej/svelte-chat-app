@@ -4,7 +4,8 @@
   import { handleFormResult } from "$lib/client/session-handlers";
   import { debounce, promisifiedTimeout } from "$lib/utils";
   import { onMount } from "svelte";
-  import { superForm } from "sveltekit-superforms/client";
+  import { superForm } from "sveltekit-superforms";
+  import { zodClient } from "sveltekit-superforms/adapters";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import SignupControls from "../../components/organic/SignupControls/SignupControls.svelte";
@@ -20,7 +21,7 @@
   let status: 200 | 400 | 409 | 500 | undefined = undefined;
 
   const submitDisabledToggle = debounce(async () => {
-    const { valid } = await validate();
+    const { valid } = await validateForm();
     submitDisabled = !valid;
   }, 150);
   const handleInput = () => {
@@ -28,11 +29,11 @@
     status = undefined;
   };
 
-  const { form, enhance, validate } = superForm(data.form, {
+  const { form, enhance, validateForm } = superForm(data.form, {
     onSubmit: () => {
       isLoading = true;
     },
-    validators: signupSchema,
+    validators: zodClient(signupSchema),
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;

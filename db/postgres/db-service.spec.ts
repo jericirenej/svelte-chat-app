@@ -31,7 +31,6 @@ import {
   type UserDto
 } from "./types.js";
 
-
 await createOrDestroyTempDb("create");
 const { db, migrationHelper } = createDbConnectionAndMigrator();
 
@@ -533,6 +532,20 @@ describe("DatabaseService", () => {
       expect(await service.getChatIdsForUser(participants[0])).toEqual([firstChatId, secondChatId]);
       expect(await service.getChatIdsForUser(thirdCreated.id)).toEqual([secondChatId]);
     });
+    it("Should get chat participants", async () => {
+      const { id } = await service.createChat({
+        name: "chatName",
+        participants
+      });
+      const result = await service.getParticipantsForChat(id);
+      expect(result).toHaveLength(participants.length);
+      expect(result.map(({ id }) => id)).toEqual(participants);
+    });
+    it("Should throw when querying participants for inexisting chat", async () => {
+      await expect(() =>
+        service.getParticipantsForChat(uniqueUUID(["invalid"]))
+      ).rejects.toThrowError();
+    });
     it("Should get chats", async () => {
       const otherChat = "otherChat";
       const { id: firstChatId } = await service.createChat({ name: chatName, participants });
@@ -721,21 +734,26 @@ describe("DatabaseService", () => {
     });
     it("Should remove chat, if only a single participant remains", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
-      for (const participant of participants) {
+      for (const [participant, index] of participants.map((p, i) => [p, i] as const)) {
+        const isLast = index === participants.length - 1;
         await service.removeParticipantFromChat(id, participant);
+        const chat = await db
+          .selectFrom("chat")
+          .selectAll()
+          .where("id", "=", id)
+          .executeTakeFirst();
+        const participantCount = await db
+          .selectFrom("participant")
+          .where("userId", "in", participants)
+          .execute();
+        if (!isLast) {
+          expect(chat).not.toBeUndefined();
+          expect(participantCount).toHaveLength(participants.length - 1 - index);
+          continue;
+        }
+        expect(chat).toBeUndefined();
+        expect(participantCount).toHaveLength(0);
       }
-      const chatRemoved = await db
-        .selectFrom("chat")
-        .selectAll()
-        .where("id", "=", id)
-        .executeTakeFirst();
-      expect(chatRemoved).toBeUndefined();
-
-      const noParticipants = await db
-        .selectFrom("participant")
-        .where("userId", "in", participants)
-        .execute();
-      expect(noParticipants.length).toBe(0);
     });
     it("Should reject participant remove if chat does not exist or participant is not a member", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
@@ -805,7 +823,17 @@ describe("DatabaseService", () => {
         })
       ).rejects.toThrowError();
     });
-    it("Should return ordered slice of chat messages", async () => {
+
+    it("Returns total count of messages for chat", async () => {
+      await expect(service.getMessageCountForChat("invalid")).rejects.toThrowError();
+      for (const num of [1, 10, 20, 30]) {
+        const { id } = await service.createChat({ participants });
+        await insertMsgs(id, participants, num);
+        await expect(service.getMessageCountForChat(id)).resolves.toBe(num);
+        await service.deleteChats(firstCreated.id, id);
+      }
+    });
+    it("Should return ordered slice and total count of chat messages", async () => {
       const { id } = await service.createChat({ participants });
       const messages = await insertMsgs(id, participants, 20);
       const dateOffsets = messages.map(({ id, createdAt, updatedAt }, index) => {
@@ -839,7 +867,8 @@ describe("DatabaseService", () => {
 
       for (const { options, expected } of testCases) {
         const result = await service.getMessagesForChat(id, options);
-        expect(result.map(({ id }) => id)).toEqual(expected);
+        expect(result.total).toBe(20);
+        expect(result.messages.map(({ id }) => id)).toEqual(expected);
       }
     });
     it("Should throw when requesting messages for non existing chats", async () => {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { HTMLInputTypeAttribute } from "svelte/elements.js";
+  import type { HTMLInputTypeAttribute } from "svelte/elements";
 
   export let name: string;
   export let type: Exclude<
@@ -20,7 +20,9 @@
     node.type = type;
   };
 
-  $: showPlaceholder = ["text", "input", "email", "number", "tel", "password"].includes(type);
+  $: showPlaceholder = ["text", "input", "email", "number", "tel", "password", "search"].includes(
+    type
+  );
 </script>
 
 <div class="relative bg-inherit">

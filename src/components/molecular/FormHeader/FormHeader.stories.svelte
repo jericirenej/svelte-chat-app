@@ -1,12 +1,12 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import FormHeader from "./FormHeader.svelte";
+  import FormHeaderComponent from "./FormHeader.svelte";
   type ExtendedProps = RemoveIndexSignature<
-    ComponentProps<FormHeader> & { containerWidth: number }
+    ComponentProps<FormHeaderComponent> & { containerWidth: number }
   >;
   export const meta: Meta<ExtendedProps> = {
     title: "Molecular/FormHeader",
-    component: FormHeader,
+    component: FormHeaderComponent,
     argTypes: {
       formTitle: { control: "text" },
       subtitle: { control: "text" },
@@ -31,8 +31,8 @@
 <Template let:args>
   {@const storyArgs = assertArgs(args)}
   <div class="border" style:width={`${storyArgs.containerWidth}%`}>
-    <FormHeader formTitle={storyArgs.formTitle} subtitle={storyArgs.subtitle} />
+    <FormHeaderComponent formTitle={storyArgs.formTitle} subtitle={storyArgs.subtitle} />
   </div>
 </Template>
 
-<Story name="Primary" {args}></Story>
+<Story name="FormHeader" {args}></Story>

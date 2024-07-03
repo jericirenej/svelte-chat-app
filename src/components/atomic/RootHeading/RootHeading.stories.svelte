@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import RootHeading from "./RootHeading.svelte";
+  import RootHeadingComponent from "./RootHeading.svelte";
 
-  export const meta: Meta<RootHeading> = {
+  export const meta: Meta<RootHeadingComponent> = {
     title: "Atomic/RootHeading",
-    component: RootHeading,
+    component: RootHeadingComponent,
     argTypes: {
       heading: { control: "text" },
       showIcon: { control: "boolean" }
@@ -15,9 +15,9 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { ComponentProps } from "svelte";
-  const args: ComponentProps<RootHeading> = { heading: "Chat App", showIcon: true };
+  const args: ComponentProps<RootHeadingComponent> = { heading: "Chat App", showIcon: true };
 </script>
 
-<Template let:args><RootHeading {...args} /></Template>
+<Template let:args><RootHeadingComponent {...args} /></Template>
 
-<Story name="Primary" {args} />
+<Story name="RootHeading" {args} />

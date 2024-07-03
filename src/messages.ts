@@ -1,4 +1,5 @@
 import { REDIRECT_AFTER_EXPIRE_DELAY } from "./constants";
+import { capitalize } from "./helpers";
 
 export const APP_NAME = "Chat App";
 
@@ -55,4 +56,33 @@ export const NOTIFICATION_MESSAGES = {
       REDIRECT_AFTER_EXPIRE_DELAY / 1000
     } seconds.`
   }
+};
+
+export const TIME_DISPLAY_MESSAGES = {
+  now: "Now",
+  future: "Coming from the future...",
+  minutes: (val: number) => `${val} ${val === 1 ? "minute" : "minutes"} ago`
+};
+
+export const CONVERSATION_MESSAGES = {
+  message: "Message",
+  from: "Message author",
+  publishedAt: "Sent date",
+  send: "Send message",
+  sendEmpty: "Type something to send a message 😉",
+  textPlaceholder: "Write something...",
+  sendError: "Sending message failed. Please try again.",
+  ownMessageAuthor: "You",
+  missingAuthor: "Missing user",
+  newMessagesInvisible: "New message received. Click here to show it.",
+  containerLabel: "List of messages for the current chat",
+  unreadMessages: "Number of unread messages in this chat"
+};
+
+export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;
+
+export const ENTITY_LIST = {
+  remove: "Remove",
+  searchLabel: "User search",
+  searchPlaceholder: "Search for users"
 };

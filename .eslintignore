@@ -18,3 +18,4 @@ svelte.config.js
 dist
 db/environment.example.ts
 prodServer.ts
+vitest-setup.*

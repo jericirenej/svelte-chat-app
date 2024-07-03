@@ -7,7 +7,7 @@ import { SESSION_COOKIE } from "../../constants";
 export const assertSessionCookie = (cookies: Cookies): string => {
   const chatSessionId = cookies.get(SESSION_COOKIE);
   if (!chatSessionId) {
-    throw error(400, "No session id!");
+    return error(400, "No session id!");
   }
   return chatSessionId;
 };

@@ -27,4 +27,4 @@
   <LoginControls {...args} />
 </Template>
 
-<Story name="Primary" {args}/>
+<Story name="Login" {args} />

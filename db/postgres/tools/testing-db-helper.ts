@@ -1,7 +1,7 @@
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect } from "kysely";
 import pg from "pg";
 import env from "../../environment.js";
-import { DB } from "../db-types.js";
+import type { DB } from "../db-types.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./migrator.js";
 const postgresConnection = {
   database: env.POSTGRES_POSTGRES_DB,
@@ -29,12 +29,13 @@ export const createOrDestroyTempDb = async (
   await postgresClient.end();
 };
 
-export const createDbConnectionAndMigrator = (dbName = TEST_DB_NAME) => {
+export const createDbConnectionAndMigrator = (dbName = TEST_DB_NAME, log = false) => {
   const { Pool } = pg;
   const db = new Kysely<DB>({
     dialect: new PostgresDialect({
       pool: new Pool({ ...postgresConnection, database: dbName })
     }),
+    log: log ? ["query", "error"] : [],
     plugins: [new CamelCasePlugin()]
   });
   const migrationHelper = new MigrationHelper(

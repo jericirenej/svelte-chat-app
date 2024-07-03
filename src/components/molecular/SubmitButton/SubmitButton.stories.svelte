@@ -1,13 +1,13 @@
 <script context="module" lang="ts">
   import type { ComponentProps } from "svelte";
   import type { Meta } from "@storybook/svelte";
-  import SubmitButton from "./SubmitButton.svelte";
-  type StoryProps = RemoveIndexSignature<ComponentProps<SubmitButton>>;
-  type CompleteArgs =StoryProps & { containerWidth: number };
+  import SubmitButtonComponent from "./SubmitButton.svelte";
+  type StoryProps = RemoveIndexSignature<ComponentProps<SubmitButtonComponent>>;
+  type CompleteArgs = StoryProps & { containerWidth: number };
 
   export const meta: Meta<CompleteArgs> = {
     title: "Molecular/SubmitButton",
-    component: SubmitButton,
+    component: SubmitButtonComponent,
     argTypes: {
       isLoading: { control: "boolean" },
       text: { control: "text" },
@@ -37,17 +37,17 @@
   <div class="flex flex-col gap-3" style:width={`${getContainerWidth(args)}px`}>
     <fieldset class="border border-l-gray-400 p-7">
       <legend class="text-xs uppercase tracking-wide">Inline-block</legend>
-      <SubmitButton {...submitArgs} />
+      <SubmitButtonComponent {...submitArgs} />
     </fieldset>
     <fieldset class="border border-l-gray-400 p-7">
       <legend class="text-xs uppercase tracking-wide">Block</legend>
-      <SubmitButton {...submitArgs} config={{ display: "block" }} />
+      <SubmitButtonComponent {...submitArgs} config={{ display: "block" }} />
     </fieldset>
   </div>
 </Template>
 
 <Story
-  name="primary"
+  name="SubmitButton"
   args={{
     isLoading: false,
     text: "Login",

@@ -15,7 +15,7 @@ import {
   verifyUser
 } from "./password-utils.js";
 
-import { genPassword } from "@utils";
+import { genPassword } from "@utils/generate-password.js";
 import type { AuthDto } from "../../../db/index.js";
 
 vi.mock("node:crypto", async () => {

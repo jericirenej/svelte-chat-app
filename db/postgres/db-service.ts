@@ -3,8 +3,8 @@ import { error } from "@sveltejs/kit";
 import { Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { db } from "./client.js";
-import { DB, User } from "./db-types.js";
-import {
+import type { DB, User } from "./db-types.js";
+import type {
   AdminDto,
   AuthDto,
   BaseTableColumns,
@@ -15,6 +15,7 @@ import {
   CreateUserDto,
   GetChatDto,
   GetChatsDto,
+  GetMessagesDto,
   MessageDto,
   ParticipantDto,
   SingleUserSearch,
@@ -453,6 +454,16 @@ export class DatabaseService {
     return true;
   }
 
+  async getParticipantsForChat(chatId: string): Promise<UserDto[]> {
+    await this.#throwIfNotFound("chat", chatId, "Chat does not exist!");
+    return await this.db
+      .selectFrom("user as u")
+      .selectAll(["u"])
+      .innerJoin("participant as p", "p.userId", "u.id")
+      .where("p.chatId", "=", chatId)
+      .execute();
+  }
+
   async addParticipantToChat(chatId: string, userId: string): Promise<ParticipantDto> {
     const checks = await Promise.all([this.#entryExists("chat", chatId), this.#isUser(userId)]);
     if (!checks.every((check) => check)) {
@@ -470,7 +481,8 @@ export class DatabaseService {
   }
 
   async removeParticipantFromChat(chatId: string, userId: string): Promise<boolean> {
-    await this.#entryExists("chat", chatId);
+    await this.#throwIfNotFound("chat", chatId, "Chat does now exist!");
+
     const participantsQuery = await this.db
       .selectFrom("participant")
       .select("userId")
@@ -523,12 +535,8 @@ export class DatabaseService {
   async getMessagesForChat(
     chatId: string,
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
-  ): Promise<MessageDto[]> {
-    if (!chatId) return [];
-    const chatExists = await this.#entryExists("chat", chatId);
-    if (!chatExists) {
-      return throwHttpError(404, "Target chat does not exist!");
-    }
+  ): Promise<GetMessagesDto> {
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
     let baseQuery = this.db
       .selectFrom("message")
       .selectAll()
@@ -538,7 +546,20 @@ export class DatabaseService {
     if (options.take) {
       baseQuery = baseQuery.offset(options.skip ?? 0).limit(options.take);
     }
-    return await baseQuery.execute();
+    const messages = await baseQuery.execute();
+    return { messages, total: await this.getMessageCountForChat(chatId) };
+  }
+
+  async getMessageCountForChat(chatId: string): Promise<number> {
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+    const count = await this.db
+      .selectFrom("message")
+      .select((eb) =>
+        eb.cast<number>(eb.fn.coalesce(eb.fn.count("id"), eb.lit(0)), "integer").as("total")
+      )
+      .where("chatId", "=", chatId)
+      .executeTakeFirstOrThrow();
+    return count.total;
   }
 
   /** Message authors can toggle their message deletion status */
@@ -585,6 +606,18 @@ export class DatabaseService {
       .where(`${table}.id`, "=", id)
       .executeTakeFirst();
     return !!entry;
+  }
+
+  async #throwIfNotFound(
+    table: keyof DB,
+    id: string | string[],
+    errMessage?: string
+  ): Promise<void> {
+    const exists = Array.isArray(id)
+      ? await this.#entriesExist(table, id)
+      : await this.#entryExists(table, id);
+    if (exists) return;
+    return throwHttpError(404, errMessage ?? "Entry does not exist!");
   }
 
   async #entriesExist(table: keyof DB, ids: string[]): Promise<boolean> {

@@ -8,7 +8,7 @@ export const DELETE: RequestHandler = async ({ cookies, locals }) => {
   const socketServer = locals.socketServer;
   const user = await redisService.getSession(chatSessionId);
   if (!user) {
-    throw error(500, "Could not correlate session id to user!");
+    return error(500, "Could not correlate session id to user!");
   }
   await dbService.removeUser(user.id, user.id);
 

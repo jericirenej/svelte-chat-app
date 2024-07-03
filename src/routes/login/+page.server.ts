@@ -1,19 +1,20 @@
 import { generateSessionCookieAndCsrf } from "$lib/server/authenticate.js";
 import { dbService, redisService } from "@db";
 import { error, fail } from "@sveltejs/kit";
-import { setError, superValidate } from "sveltekit-superforms/server";
+import { setError, superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
 import { loginSchema } from "../../lib/client/login-signup-validators.js";
 import { VERIFICATION_FAILURE, verifyUser } from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
-  const form = await superValidate(loginSchema);
+  const form = await superValidate(zod(loginSchema));
   return { form };
 };
 
 export const actions = {
   default: async ({ request, cookies, url }) => {
-    const form = await superValidate(request, loginSchema);
+    const form = await superValidate(request, zod(loginSchema));
 
     if (!form.valid) {
       return fail(400, { form });
@@ -31,7 +32,7 @@ export const actions = {
       value: username
     });
     if (!user) {
-      throw error(500, "Something went wrong while fetching user from the database");
+      error(500, "Something went wrong while fetching user from the database");
     }
     const { csrfToken } = await generateSessionCookieAndCsrf({ cookies, user, redisService, url });
 

@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
-  import FormFooter from "./FormFooter.svelte";
+  import FormFooterComponent from "./FormFooter.svelte";
 
-  export const meta: Meta<FormFooter> = {
+  export const meta: Meta<FormFooterComponent> = {
     title: "Molecular/FormFooter",
-    component: FormFooter,
+    component: FormFooterComponent,
     argTypes: {
       link: { control: "text" },
       label: { control: "text" }
@@ -21,7 +21,7 @@
 </script>
 
 <Template let:args>
-  <FormFooter {...args} />
+  <FormFooterComponent {...args} />
 </Template>
 
-<Story name="Primary"/>
+<Story name="FormFooter" />

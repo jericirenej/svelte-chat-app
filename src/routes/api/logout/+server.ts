@@ -13,7 +13,7 @@ export const DELETE: RequestHandler = async ({ cookies, url, locals }) => {
   }
   const logout = await logoutUser(redisService, chatSessionId);
   if (!logout) {
-    throw error(500, "Error while performing logout!");
+    return error(500, "Error while performing logout!");
   }
 
   return new Response(null, { status: 200 });

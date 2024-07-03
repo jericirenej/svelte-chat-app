@@ -1,5 +1,5 @@
-import { Insertable, Selectable, Updateable } from "kysely";
-import { Admin, Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
+import type { Insertable, Selectable, Updateable } from "kysely";
+import type { Admin, Auth, Chat, DB, Message, Participant, User } from "./db-types.js";
 
 type UpdateType<T = DB[keyof DB]> = Omit<Updateable<T>, BaseTableColumns>;
 
@@ -19,6 +19,7 @@ export type UpdateAuthDto = Required<UpdateType<Auth>>;
 export type AdminDto = Selectable<Admin>;
 
 export type MessageDto = Selectable<Message>;
+export type GetMessagesDto = { messages: MessageDto[]; total: number };
 export type CreateMessageDto = Omit<Insertable<Message>, BaseTableColumns>;
 export type ParticipantDto = Selectable<Participant>;
 

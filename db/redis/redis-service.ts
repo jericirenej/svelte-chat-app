@@ -1,6 +1,6 @@
 import env from "../environment.js";
 import { jsonReplacer, jsonReviver } from "../helpers/json-helpers.js";
-import { CompleteUserDto } from "../postgres/types.js";
+import type { CompleteUserDto } from "../postgres/types.js";
 import { clientConnection, redisClient, type RedisClient } from "./client.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
@@ -13,7 +13,7 @@ export class RedisService {
   readonly sessionSocketPrefix = REDIS_SESSION_SOCKET_PREFIX;
   readonly separator = REDIS_DEFAULT_SEPARATOR;
   #ttl = REDIS_DEFAULT_TTL;
-  constructor(private client:RedisClient){}
+  constructor(private client: RedisClient) {}
 
   set ttl(num: number) {
     this.#ttl = num;
@@ -21,7 +21,6 @@ export class RedisService {
   get ttl(): number {
     return this.#ttl;
   }
-
 
   /** Create or update a session entry */
   async setSession(sessionId: string, user: CompleteUserDto): Promise<CompleteUserDto> {
