@@ -72,11 +72,6 @@ describe("MigrationHelper", () => {
     expect(spyOnAsyncExec).toHaveBeenLastCalledWith(codeGenExec);
     spyOnAsyncExec.mockRestore();
   });
-  it("closeConnection should call db.destroy", async () => {
-    const spyOnDestroy = vi.spyOn(db, "destroy");
-    await migrator.closeConnection();
-    expect(spyOnDestroy).toHaveBeenCalledOnce();
-  });
   it("Calling handleArgs with 'create' keyword and migration name should create migration", async () => {
     const spyOnCopy = vi.mocked(copyFile);
     const fullArgs = ["", "", "create", migrationName];

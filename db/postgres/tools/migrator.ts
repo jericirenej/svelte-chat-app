@@ -80,10 +80,8 @@ export class MigrationHelper {
       if (!args.includes(this.skipTypeUpdateOption)) {
         await this.updateSchema();
       }
-      await this.closeConnection();
     } catch (err) {
       console.warn(err instanceof Error ? err.message : err);
-      await this.closeConnection();
     }
   }
 
@@ -97,10 +95,6 @@ export class MigrationHelper {
     if (stdout) {
       console.log(stdout);
     }
-  }
-
-  async closeConnection(): Promise<void> {
-    await this.db.destroy();
   }
 
   #resultHandler({ results, error }: MigrationResultSet): void {

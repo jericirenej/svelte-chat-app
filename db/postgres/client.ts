@@ -6,7 +6,7 @@ import type { DB } from "./db-types.js";
 const { Pool } = pg;
 export const dialect = new PostgresDialect({
   pool: new Pool({
-    database: "chat",
+    database: env.POSTGRES_DB,
     host: env.POSTGRES_HOST,
     user: env.POSTGRES_USER,
     password: env.POSTGRES_PASSWORD,
