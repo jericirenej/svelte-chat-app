@@ -31,7 +31,8 @@ const logger = createLogger({
   format: logForm
 });
 
-const logInfo = (message: string): void => {
+const logInfo = (message: string, log = true): void => {
+  if (!log) return;
   if (process.env["NO_LOG"] === "true") return;
   logger.log("info", message);
 };
@@ -105,7 +106,7 @@ const CHATS = [
   }
 ] satisfies ChatSchema[];
 
-const populateUsers = async (trx: Transaction<DB>): Promise<void> => {
+const populateUsers = async (trx: Transaction<DB>, log = true): Promise<void> => {
   const userData: Insertable<User>[] = USERS.map(
     ({ createdAt, id, name, surname, username, email }) => ({
       createdAt,
@@ -132,15 +133,15 @@ const populateUsers = async (trx: Transaction<DB>): Promise<void> => {
       superAdmin: admin === "superadmin"
     })
   );
-  logInfo("Inserting users");
+  logInfo("Inserting users", log);
   await trx.insertInto("user").values(userData).execute();
-  logInfo("Inserting auth data");
+  logInfo("Inserting auth data", log);
   await trx.insertInto("auth").values(authData).execute();
-  logInfo("Inserting admin data");
+  logInfo("Inserting admin data", log);
   await trx.insertInto("admin").values(adminData).execute();
 };
 
-const populateChats = async (trx: Transaction<DB>): Promise<void> => {
+const populateChats = async (trx: Transaction<DB>, log = true): Promise<void> => {
   const chatData: Insertable<Chat>[] = [],
     participantData: Insertable<Participant>[] = [],
     messageData: Insertable<Message>[] = [];
@@ -170,24 +171,24 @@ const populateChats = async (trx: Transaction<DB>): Promise<void> => {
       })
     );
   });
-  logInfo("Inserting chats");
+  logInfo("Inserting chats", log);
   await trx.insertInto("chat").values(chatData).execute();
-  logInfo("Inserting participants");
+  logInfo("Inserting participants", log);
   await trx.insertInto("participant").values(participantData).execute();
-  logInfo("Inserting messages");
+  logInfo("Inserting messages", log);
   await trx.insertInto("message").values(messageData).execute();
 };
 
-export const seed = async (database = db): Promise<void> => {
+export const seed = async (database = db, log = true): Promise<void> => {
   await database.transaction().execute(async (trx) => {
     const begin = performance.now();
-    logInfo("Starting seed");
-    logInfo("Clearing database");
+    logInfo("Starting seed", log);
+    logInfo("Clearing database", log);
     await sql`DELETE FROM public.user;`.execute(trx);
     await sql`DELETE FROM public.chat;`.execute(trx);
-    await populateUsers(trx);
-    await populateChats(trx);
+    await populateUsers(trx, log);
+    await populateChats(trx, log);
     const formatted = formattedTime(performance.now() - begin);
-    logInfo(`Seed completed in ${formatted}.`);
+    logInfo(`Seed completed in ${formatted}.`, log);
   });
 };
