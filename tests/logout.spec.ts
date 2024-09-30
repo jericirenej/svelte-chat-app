@@ -1,7 +1,6 @@
 import {
   expect,
   request,
-  test,
   type APIRequestContext,
   type BrowserContext,
   type Cookie
@@ -12,8 +11,9 @@ import {
   LOGOUT_ROUTE,
   SESSION_COOKIE
 } from "../src/constants.js";
-import { cleanup, login } from "./utils.js";
 import { NOTIFICATION_MESSAGES } from "../src/messages.js";
+import { test } from "./fixtures";
+import { cleanup, login } from "./utils.js";
 
 const extractCredentials = async (
   storageState: ReturnType<BrowserContext["storageState"]>
@@ -51,7 +51,9 @@ const createContext = (
     }
   });
 };
-
+test.beforeEach(async ({ seedDB }) => {
+  await seedDB();
+});
 test("Should logout by clicking the logout button", async ({ page, context }) => {
   await login(page);
   expect(await hasCredentials(context.storageState())).toBe(true);

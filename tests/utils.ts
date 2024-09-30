@@ -1,7 +1,8 @@
-import type { BrowserContext, Locator, Page } from "@playwright/test";
+import type { BrowserContext, Locator, Page, TestInfo } from "@playwright/test";
 import { redisService } from "../db/index.js";
 import { USERS, type AvailableUsers } from "../db/postgres/seed/seed.js";
-import { SESSION_COOKIE } from "../src/constants.js";
+import { TestingDatabases } from "../db/postgres/tools/testing-db-helper.js";
+import { LOGIN_ROUTE, ROOT_ROUTE, SESSION_COOKIE } from "../src/constants.js";
 import { LOGIN_MESSAGES } from "../src/messages.js";
 
 const defaultUser: AvailableUsers = "lovelace",
@@ -15,11 +16,6 @@ export const userHashMap = USERS.reduce(
   {} as Record<AvailableUsers, (typeof USERS)[number]>
 );
 
-const shouldWaitForRoot = (user: string, password: string): boolean => {
-  if (!(user in userHashMap)) return false;
-  return password === `${user}-password`;
-};
-
 export const cleanup = async (context: BrowserContext): Promise<void> => {
   const cookies = await context.cookies();
   const sessionCookie = cookies.filter(({ name }) => name === SESSION_COOKIE);
@@ -29,8 +25,9 @@ export const cleanup = async (context: BrowserContext): Promise<void> => {
 };
 
 export const clickAndFillLocator = async (locator: Locator, val: string): Promise<void> => {
-  await locator.click();
+  await locator.click({ delay: 30 });
   await locator.fill(val);
+  await locator.press("Tab");
 };
 
 export const login = async (
@@ -40,8 +37,10 @@ export const login = async (
   waitForRoot = true
 ): Promise<void> => {
   if (!page.url().includes("login")) {
-    await page.goto("/login");
+    await page.goto(LOGIN_ROUTE);
   }
+  await page.waitForURL(LOGIN_ROUTE);
+  await page.waitForLoadState("networkidle");
   const userField = page.getByPlaceholder(LOGIN_MESSAGES.usernamePlaceholder),
     passwordField = page.getByPlaceholder(LOGIN_MESSAGES.passwordPlaceholder);
   for (const [field, val] of [
@@ -52,11 +51,14 @@ export const login = async (
   }
   const button = page.getByRole("button", { name: "SUBMIT" });
   await button.click();
-  if (waitForRoot && shouldWaitForRoot(user, password)) {
-    await page.waitForURL("/");
+  if (waitForRoot) {
+    await page.waitForURL(ROOT_ROUTE);
   }
 };
 
 export const typedObjectKeys = <T extends Record<string, unknown>>(arg: T): (keyof T)[] =>
   Object.keys(arg);
 
+export const e2eDatabases = new TestingDatabases();
+export const dbName = (info: TestInfo | number) =>
+  `chat_test_${typeof info === "number" ? info : info.parallelIndex + 1}`;

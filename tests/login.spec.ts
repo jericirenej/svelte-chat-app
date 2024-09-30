@@ -1,7 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 import type { AvailableUsers } from "../db/postgres/seed/seed.js";
 import { LOGIN_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
+import { test } from "./fixtures";
 import { clickAndFillLocator, login } from "./utils.js";
 
 const user: AvailableUsers = "babbage",
@@ -18,7 +19,14 @@ const {
   usernamePlaceholder
 } = LOGIN_MESSAGES;
 
-test("App should redirect to login if not authenticated", async ({ page, browserName }) => {
+test.beforeEach(async ({ seedDB }) => {
+  await seedDB();
+});
+test("App should redirect to login if not authenticated", async ({
+  page,
+  browserName,
+  baseURL
+}) => {
   const urls = ["/", "/profile", "random/page"];
   for (const url of urls) {
     await page.goto(url);
