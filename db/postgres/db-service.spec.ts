@@ -67,7 +67,7 @@ describe("DatabaseService", () => {
   };
 
   beforeAll(async () => {
-    db = await testingDatabases.getOrCreateDB("test_db");
+    db = await testingDatabases.createTestDB("test_db");
     service = new DatabaseService(db);
   });
   afterAll(async () => {
