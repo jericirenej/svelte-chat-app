@@ -46,7 +46,7 @@ describe("MigrationHelper", () => {
   vi.setSystemTime(time);
 
   beforeEach(() => {
-    migrator = new MigrationHelper(db, mockMigrator, typePath);
+    migrator = new MigrationHelper(mockMigrator, typePath);
     spyOnAsyncExec = vi
       .spyOn(utils, "asyncExec")
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
