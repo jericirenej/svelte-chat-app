@@ -1,4 +1,4 @@
-import { seed } from "./seed.js";
-
-await seed();
+import { db } from "../client.js";
+import { seed } from "./default-seed.js";
+await seed(db, true);
 process.exit(0);
