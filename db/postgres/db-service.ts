@@ -36,9 +36,12 @@ type EntityCheckObj = {
 const throwHttpError = (code: number, message: string) => {
   throw error(code, { message });
 };
-export class DatabaseService {
+export class DatabaseService implements AsyncDisposable {
   readonly BASE_PREVIEW_LIMIT = 2;
   constructor(protected db: Kysely<DB>) {}
+  async [Symbol.asyncDispose]() {
+    await this.db.destroy();
+  }
 
   /* ----- USER AND CREDENTIALS ----- */
 

@@ -1,7 +1,6 @@
 import { promises as fs } from "fs";
 import { copyFile } from "fs/promises";
 import {
-  Kysely,
   Migrator,
   NO_MIGRATIONS,
   type Migration,
@@ -53,13 +52,12 @@ export class MigrationHelper {
     up: this.migrateUp.bind(this),
     down: this.migrateDown.bind(this),
     to: this.migrateTo.bind(this),
-    clear: this.#clear.bind(this),
+    clear: this.clear.bind(this),
     create: this.createMigration.bind(this),
-    reset: this.#reset.bind(this)
+    reset: this.reset.bind(this)
   };
 
   constructor(
-    private db: Kysely<unknown>,
     private migrator: Migrator,
     typePath: string
   ) {
@@ -80,10 +78,8 @@ export class MigrationHelper {
       if (!args.includes(this.skipTypeUpdateOption)) {
         await this.updateSchema();
       }
-      await this.closeConnection();
     } catch (err) {
       console.warn(err instanceof Error ? err.message : err);
-      await this.closeConnection();
     }
   }
 
@@ -97,10 +93,6 @@ export class MigrationHelper {
     if (stdout) {
       console.log(stdout);
     }
-  }
-
-  async closeConnection(): Promise<void> {
-    await this.db.destroy();
   }
 
   #resultHandler({ results, error }: MigrationResultSet): void {
@@ -155,12 +147,12 @@ export class MigrationHelper {
   async migrateDown(): Promise<MigrationResultSet> {
     return await this.migrator.migrateDown();
   }
-  async #clear(): Promise<MigrationResultSet> {
+  async clear(): Promise<MigrationResultSet> {
     return await this.migrator.migrateTo(NO_MIGRATIONS);
   }
 
-  async #reset(): Promise<MigrationResultSet> {
-    await this.#clear();
+  async reset(): Promise<MigrationResultSet> {
+    await this.clear();
     return await this.migrateToLatest();
   }
 

@@ -1,6 +1,6 @@
 import { assertSessionCookie, closeSocket, logoutUser } from "$lib/server/disconnect-user.js";
 import { secureCookieEval } from "$lib/utils.js";
-import { redisService } from "@db";
+import { redisService } from "@db/redis";
 import { error, type RequestHandler } from "@sveltejs/kit";
 import { SESSION_COOKIE } from "../../../constants.js";
 

@@ -1,5 +1,6 @@
 import { secureCookieEval } from "$lib/utils.js";
-import { RedisService, redisService, type CompleteUserDto } from "@db";
+import { type RedisService, redisService } from "@db/redis";
+import type { CompleteUserDto } from "@db/postgres";
 import type { Cookies } from "@sveltejs/kit";
 import { SESSION_COOKIE } from "../../constants.js";
 import {

@@ -44,17 +44,12 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
   playwright:
-    image: mcr.microsoft.com/playwright:v1.44.1-jammy
+    image: mcr.microsoft.com/playwright:v1.47.2
     restart: always
     container_name: "playwright-e2e"
     init: true
     ipc: host
-    command:
-      [
-        "/bin/sh",
-        -c,
-        "cd /home/pwuser && npx -y playwright@1.44.1 run-server --port 5000"
-      ]
+    command: [ "/bin/sh", -c, "cd /home/pwuser && npx -y playwright@1.47.2 run-server --port 5000" ]
     network_mode: host
 
 volumes:

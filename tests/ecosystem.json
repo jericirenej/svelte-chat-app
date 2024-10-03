@@ -1,0 +1,32 @@
+{
+  "apps": [
+    {
+      "name": "server-1",
+      "script": "npx vite dev --port 5173",
+      "env": {
+        "POSTGRES_DB": "chat_test_1"
+      }
+    },
+    {
+      "name": "server-2",
+      "script": "npx vite dev --port 5174",
+      "env": {
+        "POSTGRES_DB": "chat_test_2"
+      }
+    },
+    {
+      "name": "server-3",
+      "script": "npx vite dev --port 5175",
+      "env": {
+        "POSTGRES_DB": "chat_test_3"
+      }
+    },
+    {
+      "name": "server-4",
+      "script": "npx vite dev --port 5176",
+      "env": {
+        "POSTGRES_DB": "chat_test_4"
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { authenticateUserHTTP } from "$lib/server/authenticate.js";
 import { error, redirect, type Handle, type HandleServerError } from "@sveltejs/kit";
-import type { CompleteUserDto } from "@db";
+import type { CompleteUserDto } from "@db/postgres/types.js";
 import {
   CSRF_HEADER,
   GlobalThisSocketServer,

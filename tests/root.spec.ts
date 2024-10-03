@@ -1,7 +1,8 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
-import type { AvailableUsers } from "../db/postgres/seed/seed.js";
-import { login, userHashMap } from "./utils.js";
+import { expect, type Locator, type Page } from "@playwright/test";
+import type { AvailableUsers } from "@utils/users.js";
 import { PROFILE_ROUTE, ROOT_ROUTE } from "../src/constants.js";
+import { test } from "./fixtures";
+import { login, userHashMap } from "./utils.js";
 
 const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
   return {
@@ -10,7 +11,8 @@ const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
   };
 };
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, seedDB }) => {
+  await seedDB();
   await login(page);
 });
 

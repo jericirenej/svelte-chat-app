@@ -3,12 +3,12 @@ import type { MessageDto } from "../../../db/postgres";
 import type { Writable } from "svelte/store";
 import { add, sub } from "date-fns";
 import { participantMap } from "$lib/client/participant-map";
-import { byUsernames, type BaseUsernames } from "@utils/base-users";
+import { byUsernames, type AvailableUsers } from "@utils/users";
 
 export const baseDate = sub(new Date(), { hours: 10 });
 
 export const chatId = "chatId";
-export const chatUserNames = ["lovelace", "the_turing", "logician"] satisfies BaseUsernames[];
+export const chatUserNames = ["lovelace", "the_turing", "logician"] satisfies AvailableUsers[];
 const userArray = byUsernames(chatUserNames);
 export const chatUserIds = userArray.map(({ id }) => id);
 export const chatParticipants = participantMap(userArray);

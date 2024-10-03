@@ -1,29 +1,18 @@
 import { devices, type PlaywrightTestConfig } from "@playwright/test";
 
+export const WORKERS = 4,
+  BASE_PORT = 5173;
+
 const config: PlaywrightTestConfig = {
-  webServer: {
-    command: "npm run build && npm run preview",
-    url: "http://localhost:4173",
-  },
   globalSetup: "./tests/global.setup",
   globalTeardown: "./tests/global.teardown",
   testDir: "tests",
-  workers: 8,
+  workers: WORKERS,
   retries: 1,
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] }
-    },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] }
-    }
-  ],
-  use: {
-    baseURL:"http://localhost:4173"
-  },
-  testMatch: /(.+\.)?(test|spec)\.[jt]s/
+  timeout: 15e3,
+  projects: [{ name: "chrome", use: { ...devices["Desktop Chrome"] } }],
+
+  testMatch: /(.+\.)?spec\.ts/
 };
 
 export default config;

@@ -5,6 +5,7 @@ import { createSocketServer } from "./src/lib/server/socket.global.js";
 import { svelteTesting } from "@testing-library/svelte/vite";
 
 export default defineConfig({
+  esbuild: { target: "es2022" },
   plugins: [
     sveltekit(),
     svelteTesting(),
@@ -18,6 +19,7 @@ export default defineConfig({
       }
     }
   ],
+
   test: {
     environmentMatchGlobs: [
       ["src/components/**/*.spec.ts", "happy-dom"],

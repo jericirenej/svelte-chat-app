@@ -13,7 +13,7 @@ import {
   vi
 } from "vitest";
 import { DatabaseService } from "./db-service.js";
-import { createDbConnectionAndMigrator, createOrDestroyTempDb } from "./tools/testing-db-helper.js";
+import { TestingDatabases } from "./tools/testing.database.service.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
   CompleteUserDto,
@@ -30,12 +30,13 @@ import {
   type UpdateUserDto,
   type UserDto
 } from "./types.js";
-
-await createOrDestroyTempDb("create");
-const { db, migrationHelper } = createDbConnectionAndMigrator();
+import { Kysely } from "kysely";
+import type { DB } from "./db-types.js";
 
 describe("DatabaseService", () => {
+  const testingDatabases = new TestingDatabases();
   let service: DatabaseService;
+  let db: Kysely<DB>;
   const firstUser: CreateUserDto = {
     username: "new_user_123",
     name: "Name",
@@ -66,12 +67,11 @@ describe("DatabaseService", () => {
   };
 
   beforeAll(async () => {
-    await migrationHelper.migrateToLatest();
+    db = await testingDatabases.createTestDB("test_db");
     service = new DatabaseService(db);
   });
   afterAll(async () => {
-    await db.destroy();
-    await createOrDestroyTempDb("destroy");
+    await testingDatabases.cleanup();
   });
   describe("Users", () => {
     const userProps = ["username", "avatar", "email", "name", "surname"] satisfies (keyof Omit<

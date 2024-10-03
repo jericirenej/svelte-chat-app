@@ -10,7 +10,7 @@
     removeCallback: boolean;
   };
 
-  const entitiesArr = BASE_USERS.map(({ id, name, surname }, index) => ({
+  const entitiesArr = USERS_WITH_ID.map(({ id, name, surname }, index) => ({
     id,
     name: `${name} ${surname}`,
     avatar: assignAvatar(index)
@@ -40,7 +40,7 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { BASE_USERS } from "@utils/base-users";
+  import { USERS_WITH_ID } from "@utils/users";
   import Button from "../../atomic/Button/Button.svelte";
   import { fn } from "@storybook/test";
   import { assignAvatar } from "../../story-helpers/avatarSrc";

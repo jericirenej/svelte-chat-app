@@ -23,7 +23,7 @@
   const submitDisabledToggle = debounce(async () => {
     const { valid } = await validateForm();
     submitDisabled = !valid;
-  }, 150);
+  }, 50);
   const handleInput = () => {
     submitDisabledToggle();
     status = undefined;

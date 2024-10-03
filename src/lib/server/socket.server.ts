@@ -1,5 +1,6 @@
 import type { SocketServer } from "$lib/socket.types";
-import { dbService, redisService } from "@db";
+import { dbService } from "@db/postgres/db-service";
+import { redisService } from "@db/redis";
 import { CSRF_HEADER, SESSION_COOKIE, EXPIRE_SESSION_WARNING_BUFFER } from "../../constants";
 import { authenticateUserWS } from "./authenticate";
 

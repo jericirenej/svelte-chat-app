@@ -1,5 +1,6 @@
 import { generateSessionCookieAndCsrf } from "$lib/server/authenticate.js";
-import { dbService, redisService } from "@db";
+import { redisService } from "@db/redis";
+import { dbService } from "@db/postgres/db-service.js";
 import { error, fail } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";

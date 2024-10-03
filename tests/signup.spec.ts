@@ -1,11 +1,11 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
+import { expect, type Page, type TestInfo } from "@playwright/test";
+import { LOGIN_ROUTE, ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
+import { test } from "./fixtures";
 
-import { createDbConnectionAndMigrator } from "../db/postgres/tools/testing-db-helper";
 import { typedJsonClone } from "../db/postgres/tools/utils";
-import { typedObjectKeys } from "./utils";
 import { PASSWORD_MIN, USERNAME_MIN } from "../src/lib/client/login-signup-validators";
+import { typedObjectKeys } from "./utils";
 
 const {
   title,
@@ -44,26 +44,29 @@ const fillSignupForm = async (
   arg: Partial<ReturnType<typeof exampleUser>>,
   submit = false
 ) => {
+  // eslint-disable-next-line playwright/no-networkidle
+  await page.waitForLoadState("networkidle");
   for (const key of typedObjectKeys(arg)) {
     const prop = arg[key];
     if (!prop) continue;
     const input = page.getByPlaceholder(prop.placeholder, { exact: true });
     await input.fill(prop.value);
-    
+    await input.press("Tab");
   }
   if (submit) {
-    await page.getByRole("button", { name: "submit" }).click();
+    const btn = page.getByRole("button", { name: "submit" });
+    await btn.focus();
+    await btn.click();
     await page.waitForLoadState("domcontentloaded");
   }
 };
-
-const { db } = createDbConnectionAndMigrator("chat");
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, clearDB }) => {
+  await clearDB();
   await page.goto(SIGNUP_ROUTE);
 });
 
-test.afterAll(async () => {
-  await db.destroy();
+test.afterAll(async ({ seedAll }) => {
+  await seedAll();
 });
 test("Should allow direct navigation", async ({ page, browserName }) => {
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
@@ -104,14 +107,14 @@ test("Should navigate to login", async ({ page }) => {
 test("Should register new user and redirect", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName);
 
-  await fillSignupForm(page, user);
+  await fillSignupForm(page, user, false);
   const submitButton = page.getByRole("button", { name: "submit" });
+  await submitButton.focus();
   await expect(submitButton).toBeEnabled();
   await submitButton.click();
   await expect(page.getByText(success)).toBeVisible();
   await page.waitForURL("/");
   await expect(page).toHaveURL("/");
-  await db.deleteFrom("user").where("username", "=", user.username.value).execute();
 });
 
 test("Should reject registration if a username or email already exists", async ({
@@ -120,40 +123,34 @@ test("Should reject registration if a username or email already exists", async (
 }) => {
   const index = test.info().parallelIndex;
   const user = exampleUser(test.info(), browserName);
-  const alternateUsername = `signup_x_${browserName}_${index}`,
+  const alternateUsername = `signup_x_${browserName}_${index + 1}`,
     alternateEmail = `${alternateUsername}@nowhere.never`;
   const anotherUser = typedJsonClone(user);
   anotherUser.username.value = alternateUsername;
   anotherUser.email.value = alternateEmail;
-  try {
-    await fillSignupForm(page, user, true);
+  await fillSignupForm(page, user, true);
 
-    await page.getByRole("button", { name: "Logout" }).click();
-    await page.waitForURL(ROOT_ROUTE);
-    await page.goto(SIGNUP_ROUTE);
+  await page.getByRole("button", { name: "Logout" }).click();
+  await page.waitForURL(LOGIN_ROUTE);
+  await page.goto(SIGNUP_ROUTE);
+  await page.waitForURL(SIGNUP_ROUTE);
 
-    await fillSignupForm(page, user, true);
+  await fillSignupForm(page, user, true);
+  await expect(page.getByText(duplicateFailure)).toBeVisible();
+
+  for (const [key, value] of [
+    ["username", alternateUsername],
+    ["email", alternateEmail]
+  ] as [keyof typeof user, string][]) {
+    const attemptedUser = typedJsonClone(user);
+    attemptedUser[key].value = value;
+
+    await fillSignupForm(page, attemptedUser, true);
     await expect(page.getByText(duplicateFailure)).toBeVisible();
-
-    for (const [key, value] of [
-      ["username", alternateUsername],
-      ["email", alternateEmail]
-    ] as [keyof typeof user, string][]) {
-      const attemptedUser = typedJsonClone(user);
-      attemptedUser[key].value = value;
-
-      await fillSignupForm(page, attemptedUser, true);
-      await expect(page.getByText(duplicateFailure)).toBeVisible();
-    }
-
-    await fillSignupForm(page, anotherUser, true);
-    await expect(page.getByText(success)).toBeVisible();
-  } finally {
-    await db
-      .deleteFrom("user")
-      .where("username", "in", [user.username.value, anotherUser.username.value])
-      .execute();
   }
+
+  await fillSignupForm(page, anotherUser, true);
+  await expect(page.getByText(success)).toBeVisible();
 });
 test("Should reject registration if password verification does not match", async ({
   page,
@@ -181,7 +178,6 @@ test("Should allow registration with blank optional fields", async ({ page, brow
   await button.click();
   await expect(page).toHaveURL(ROOT_ROUTE);
   const username = user.username?.value;
-  username && (await db.deleteFrom("user").where("username", "=", username).execute());
 });
 test("Should disallow submit if fields are too long", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName);
