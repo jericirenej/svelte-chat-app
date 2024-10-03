@@ -1,6 +1,7 @@
 import { signupSchema } from "$lib/client/login-signup-validators";
 import { generateSessionCookieAndCsrf } from "$lib/server/authenticate";
-import { dbService, redisService } from "@db";
+import { redisService } from "@db/redis";
+import { dbService } from "@db/postgres/db-service";
 import { fail, type Actions } from "@sveltejs/kit";
 import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";

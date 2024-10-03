@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import type { AvailableUsers } from "../db/postgres/seed/seed.js";
+import type { AvailableUsers } from "@utils/users.js";
 import type { CreateUserDto } from "../db/postgres/types.js";
 import { CSRF_HEADER, DELETE_ACCOUNT_ROUTE, LOGIN_ROUTE, PROFILE_ROUTE } from "../src/constants.js";
 import { NOTIFICATION_MESSAGES, PROFILE_MESSAGES } from "../src/messages.js";
@@ -36,7 +36,7 @@ test("Should display appropriate fields and data", async ({ page, locale }) => {
     ["Surname", target.surname],
     ["CreatedAt", dateFormat.format(target.createdAt)],
     ["UpdatedAt", dateFormat.format(target.createdAt)],
-    ["Role", target.admin ?? "user"]
+    ["Role", target.role ?? "user"]
   ];
 
   for (const [label, value] of data) {

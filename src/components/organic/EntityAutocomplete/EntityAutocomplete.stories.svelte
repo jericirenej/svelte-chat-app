@@ -24,7 +24,7 @@
 
       searchUsers: async (term: string) =>
         Promise.resolve(
-          BASE_USERS.filter((u) =>
+          USERS_WITH_ID.filter((u) =>
             [u.username, u.name, u.surname]
               .map((val) => val.toLowerCase())
               .some((val) => !!term && val.includes(term.toLowerCase()))
@@ -40,7 +40,7 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { BASE_USERS } from "@utils/base-users";
+  import { USERS_WITH_ID } from "@utils/users";
   import type { RemoveIndexSignature } from "../../../types";
   import { assignAvatar } from "../../story-helpers/avatarSrc";
   const width = (arg: number) => `${arg}%`;

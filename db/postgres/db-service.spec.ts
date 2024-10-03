@@ -13,7 +13,7 @@ import {
   vi
 } from "vitest";
 import { DatabaseService } from "./db-service.js";
-import { TestingDatabases } from "./tools/testing-db-helper.js";
+import { TestingDatabases } from "./tools/testing.database.service.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
   CompleteUserDto,
@@ -31,7 +31,7 @@ import {
   type UserDto
 } from "./types.js";
 import { Kysely } from "kysely";
-import { DB } from "./db-types.js";
+import type { DB } from "./db-types.js";
 
 describe("DatabaseService", () => {
   const testingDatabases = new TestingDatabases();

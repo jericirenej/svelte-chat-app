@@ -34,3 +34,10 @@ export type ChatOrderProperties = {
   direction: "asc" | "desc";
 };
 export type GetChatsDto = { chatIds: string | string[] } & Partial<ChatOrderProperties>;
+
+type SingleOne<T> = T extends infer S ? { [K in keyof S]: S[K] } : never;
+type NoneOf<T> = SingleOne<{ [K in keyof T]?: never }>;
+
+export type XOR<T> =
+  | NoneOf<T>
+  | { [K in keyof T]: SingleOne<Pick<T, K>> & NoneOf<Omit<T, K>> }[keyof T];

@@ -1,4 +1,4 @@
-import type { User, UserDto } from "../../../db/postgres";
+import type { UserDto } from "../../../db/postgres";
 import { CONVERSATION_MESSAGES } from "../../messages";
 
 export const getNameOrUsername = ({

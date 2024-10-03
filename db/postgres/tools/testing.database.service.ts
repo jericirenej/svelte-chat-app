@@ -2,7 +2,7 @@ import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from "kysely"
 import pg from "pg";
 import env from "../../environment.js";
 import type { DB } from "../db-types.js";
-import { seed } from "../seed/seed.js";
+import { seed } from "../seed/default-seed.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./migrator.js";
 import { DatabaseService } from "../db-service.js";
 const postgresConnection = {

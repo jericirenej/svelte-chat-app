@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
 /* eslint-disable no-empty-pattern */
 import { test as base } from "@playwright/test";
-import type { DatabaseService } from "../db/postgres/db-service";
+import type { DatabaseService } from "@db/postgres/db-service";
 import { BASE_PORT, WORKERS } from "../playwright.config";
 import { dbName, e2eDatabases } from "./utils";
 

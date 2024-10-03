@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import type { AvailableUsers } from "../db/postgres/seed/seed.js";
+import type { AvailableUsers } from "@utils/users.js";
 import { LOGIN_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { test } from "./fixtures";

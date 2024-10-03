@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import type { AvailableUsers } from "../db/postgres/seed/seed.js";
+import type { AvailableUsers } from "@utils/users.js";
 import { PROFILE_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 import { test } from "./fixtures";
 import { login, userHashMap } from "./utils.js";

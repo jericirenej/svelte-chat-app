@@ -1,19 +1,19 @@
 import type { BrowserContext, Locator, Page, TestInfo } from "@playwright/test";
-import { redisService } from "../db/index.js";
-import { USERS, type AvailableUsers } from "../db/postgres/seed/seed.js";
-import { TestingDatabases } from "../db/postgres/tools/testing-db-helper.js";
+import { USERS_WITH_ID, type AvailableUsers } from "@utils/users.js";
+import { redisService } from "@db/redis";
+import { TestingDatabases } from "@db/postgres/tools/testing.database.service.js";
 import { LOGIN_ROUTE, ROOT_ROUTE, SESSION_COOKIE } from "../src/constants.js";
 import { LOGIN_MESSAGES } from "../src/messages.js";
 
 const defaultUser: AvailableUsers = "lovelace",
   defaultPassword: `${AvailableUsers}-password` = "lovelace-password";
 
-export const userHashMap = USERS.reduce(
+export const userHashMap = USERS_WITH_ID.reduce(
   (acc, curr) => {
     acc[curr.username] = curr;
     return acc;
   },
-  {} as Record<AvailableUsers, (typeof USERS)[number]>
+  {} as Record<AvailableUsers, (typeof USERS_WITH_ID)[number]>
 );
 
 export const cleanup = async (context: BrowserContext): Promise<void> => {
