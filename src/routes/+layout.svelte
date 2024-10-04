@@ -4,21 +4,30 @@
   import { socketClientSetup } from "$lib/client/socket.client";
   import { notificationStore, showSessionExpirationWarning, socket } from "$lib/client/stores";
   import { onMount } from "svelte";
-  import { fly } from "svelte/transition";
+  import { fly, fade } from "svelte/transition";
 
   import "../app.css";
-  
+
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
-  import {
-    LOCAL_KEYS,
-    LOCAL_SESSION_CSRF_KEY
-  } from "../constants.js";
+  import { LOCAL_KEYS, LOCAL_SESSION_CSRF_KEY } from "../constants.js";
   import type { LayoutData } from "./$types";
 
   export let data: LayoutData;
+  let minWidth: string, maxWidth: string;
+  const setWidth = (loggedIn: boolean) => {
+    if (loggedIn) {
+      maxWidth = "300px";
+      setTimeout(() => {
+        minWidth = "250px";
+      }, 300);
+      return;
+    }
+    minWidth = "0px";
+    maxWidth = "0px";
+  };
 
-  $: loggedIn = !!data.user;
+  $: setWidth(!!data.user);
 
   const closeSession = async () => {
     await handleLogoutCall();
@@ -32,7 +41,6 @@
       });
       return;
     }
-
     const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
     if (!csrf) return;
     socket.set(socketClientSetup($page.url.origin, csrf));
@@ -45,13 +53,13 @@
   >
     <section
       transition:fly={{ duration: 300, y: -400 }}
-      class={`sidebar h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 transition-max-width duration-300 ${
-        loggedIn ? "min-w-[200px] max-w-[250px]" : "max-w-0"
-      }`}
+      class="sidebar h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 transition-max-width duration-500"
+      style:min-width={minWidth}
+      style:max-width={maxWidth}
     >
-      {#if loggedIn}
+      {#if data.user}
         <nav>
-          <section>
+          <section in:fade>
             <NavIcons routeId={$page.route.id} handleLogout={closeSession} />
           </section>
         </nav>
