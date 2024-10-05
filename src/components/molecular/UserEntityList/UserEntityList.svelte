@@ -1,10 +1,9 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
-  import UserEntity from "../UserEntity/UserEntity.svelte";
-  import Icon from "@iconify/svelte";
-  import CancelIcon from "@iconify/icons-iconoir/cancel";
   import { ENTITY_LIST } from "../../../messages";
   import type { Entity } from "../../../types";
+  import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
+  import UserEntity from "../UserEntity/UserEntity.svelte";
 
   const duration = 20;
   export let entities: Entity[];
@@ -23,10 +22,7 @@
     >
       <UserEntity {entity} {handleSelect} size="base">
         {#if removeAction}
-          <button type="button" class="cursor-pointer" on:click={() => removeAction(entity.id)}>
-            <span class="sr-only">{ENTITY_LIST.remove}</span>
-            <Icon icon={CancelIcon} />
-          </button>
+          <DeleteButton on:click={() => removeAction(entity.id)} label={ENTITY_LIST.remove} />
         {/if}
       </UserEntity>
     </li>

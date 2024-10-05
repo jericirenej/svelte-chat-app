@@ -37,7 +37,6 @@
       class={`overflow-hidden text-ellipsis whitespace-nowrap ${textSize}`}>{entity.name}</span
     >
   </button>
-  <!-- Add additional elements, like delete controls, etc. to the
-   current entity. -->
+  <!-- Add additional elements, like delete controls, etc. -->
   <slot />
 </div>
