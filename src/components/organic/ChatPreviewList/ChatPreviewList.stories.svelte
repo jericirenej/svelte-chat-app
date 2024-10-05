@@ -2,6 +2,8 @@
   import type { Meta } from "@storybook/svelte";
   import type { ComponentProps } from "svelte";
   import ChatPreviewListComponent from "./ChatPreviewList.svelte";
+  import { fn } from "@storybook/test";
+
   import type { RemoveIndexSignature } from "../../../types";
 
   type Props = RemoveIndexSignature<ComponentProps<ChatPreviewListComponent>> & {
@@ -37,7 +39,9 @@
           unreadMessages: 120
         }
       ],
-      containerWidth: 50
+      containerWidth: 50,
+      onDelete: fn(),
+      onActive: fn()
     }
   };
 </script>
@@ -48,9 +52,9 @@
 </script>
 
 <Template let:args>
-  {@const { containerWidth, chatPreviewList } = assertArgs(args)}
+  {@const { containerWidth, ...rest } = assertArgs(args)}
   <div style:width={`${containerWidth}%`}>
-    <ChatPreviewListComponent {chatPreviewList} />
+    <ChatPreviewListComponent {...rest} />
   </div>
 </Template>
 

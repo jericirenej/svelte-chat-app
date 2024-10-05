@@ -7,6 +7,7 @@
   type Props = RemoveIndexSignature<ComponentProps<ChatPreviewComponent>> & {
     containerWidth: number;
     showContainerBorder: boolean;
+    click: (ev: MouseEvent) => unknown;
   };
 
   export const meta: Meta<Props> = {
@@ -17,26 +18,40 @@
       message: { control: "text" },
       unreadMessages: { control: "number" },
       containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } },
-
       showContainerBorder: { control: "boolean" }
-    }
+    },
+    args: { click: fn(), onDelete: fn() }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
+  import { fn } from "@storybook/test";
   const assertArgs = (args: unknown) => args as Props;
 </script>
 
 <Template let:args>
-  {@const { chatLabel, containerWidth, message, unreadMessages, showContainerBorder } =
-    assertArgs(args)}
+  {@const {
+    chatLabel,
+    containerWidth,
+    message,
+    unreadMessages,
+    showContainerBorder,
+    click,
+    onDelete: deleteCb
+  } = assertArgs(args)}
   <div
     style:outline-width={showContainerBorder ? "1px" : "0px"}
     class="outline-dashed outline-neutral-500"
     style:width={`${containerWidth}%`}
   >
-    <ChatPreviewComponent {chatLabel} {message} {unreadMessages} />
+    <ChatPreviewComponent
+      on:click={click}
+      onDelete={deleteCb}
+      {chatLabel}
+      {message}
+      {unreadMessages}
+    />
   </div>
 </Template>
 <Story

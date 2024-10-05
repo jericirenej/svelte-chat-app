@@ -86,3 +86,5 @@ export const ENTITY_LIST = {
   searchLabel: "User search",
   searchPlaceholder: "Search for users"
 };
+
+export const CHAT_PREVIEW_MESSAGES = { remove: "Remove chat" };
