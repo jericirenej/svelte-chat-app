@@ -16,6 +16,7 @@ import { DatabaseService } from "./db-service.js";
 import { TestingDatabases } from "./tools/testing.database.service.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
+  ChatUserDto,
   CompleteUserDto,
   CreateMessageDto,
   GetChatDto,
@@ -425,7 +426,8 @@ describe("DatabaseService", () => {
       secondCreated: CompleteUserDto,
       thirdCreated: CompleteUserDto,
       participants: string[],
-      allUserIds: string[];
+      allUserIds: string[],
+      chatParticipantArr: ChatUserDto[];
     const chatName = "chatName";
     const genMessage = () => faker.lorem.words({ min: 1, max: 10 });
     const insertMsgs = async (
@@ -445,6 +447,13 @@ describe("DatabaseService", () => {
       firstCreated = await service.addUser(firstUser);
       secondCreated = await service.addUser(secondUser);
       thirdCreated = await service.addUser(thirdUser);
+      chatParticipantArr = [firstCreated, secondCreated, thirdCreated].map((u) => ({
+        id: u.id,
+        username: u.username,
+        name: u.name,
+        surname: u.surname,
+        avatar: u.avatar
+      }));
       participants = [firstCreated.id, secondCreated.id];
       allUserIds = [firstCreated.id, secondCreated.id, thirdCreated.id];
     });
@@ -456,9 +465,8 @@ describe("DatabaseService", () => {
     });
     it("Should create chat and participant entries", async () => {
       const createChat: CreateChatDto = { name: chatName, participants };
-
       const { id, participants: returnedParticipants } = await service.createChat(createChat);
-      expect(returnedParticipants).toEqual(participants);
+      expect(returnedParticipants).toEqual(chatParticipantArr.slice(0, 2));
 
       const chatQuery = await db
         .selectFrom("chat")
@@ -514,7 +522,7 @@ describe("DatabaseService", () => {
       const returnedChat = await service.getChat(id);
       expect(returnedChat).not.toBeUndefined();
       expect(returnedChat?.name).toBe(chatName);
-      expect(returnedChat?.participants).toEqual(allParticipants);
+      expect(returnedChat?.participants).toEqual(chatParticipantArr);
     });
     it("Should return undefined for inexisting chats", async () => {
       const { id } = await service.createChat({ name: chatName, participants });

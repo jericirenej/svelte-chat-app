@@ -27,7 +27,11 @@ export type ChatDto = Selectable<Chat>;
 export type CreateChatDto = Omit<Insertable<Chat>, BaseTableColumns> & {
   participants: string[];
 };
-export type GetChatDto = ChatDto & { participants: string[]; messages: MessageDto[] };
+export type ChatUserDto = Omit<User, BaseDateColumns | "email" | "id"> & { id: string };
+export type GetChatDto = ChatDto & {
+  participants: ChatUserDto[];
+  messages: MessageDto[];
+};
 
 export type ChatOrderProperties = {
   property: "name" | "createdAt" | "message" | "participants";
