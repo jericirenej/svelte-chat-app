@@ -339,7 +339,8 @@ export class DatabaseService implements AsyncDisposable {
           .select(["id", "username", "name", "surname", "avatar"])
           .where("id", "in", participants)
           .execute(),
-        messages: []
+        messages: [],
+        totalMessages: 0
       };
     });
     return chat;
@@ -396,7 +397,18 @@ export class DatabaseService implements AsyncDisposable {
             .selectAll()
             .whereRef("m.chatId", "=", "c.id")
             .limit(this.BASE_PREVIEW_LIMIT)
-        ).as("messages")
+        ).as("messages"),
+
+        eb.fn
+          .coalesce(
+            eb
+              .selectFrom("message as m2")
+              .select((eb) => eb.fn.countAll<number>().as("messageCount"))
+              .whereRef("m2.chatId", "=", "c.id")
+              .groupBy("m2.chatId"),
+            eb.lit(0)
+          )
+          .as("totalMessages")
       ]);
   }
 
@@ -502,6 +514,20 @@ export class DatabaseService implements AsyncDisposable {
     return true;
   }
 
+  async setParticipantChatAccess(chatId: string, userId: string): Promise<void> {
+    await this.#throwIfNotFound("chat", chatId);
+    const isParticipant = await this.#isParticipant(chatId, userId);
+    if (!isParticipant) {
+      return throwHttpError(404, "User is not participant of target chat!");
+    }
+    const now = new Date();
+    await this.db
+      .updateTable("participant")
+      .set({ chatLastAccess: now, updatedAt: now })
+      .where((eb) => eb.and([eb("chatId", "=", chatId), eb("userId", "=", userId)]))
+      .execute();
+  }
+
   /* ----- MESSAGES ----- */
 
   /* Currently, no updating (editing) of messages possible. 
@@ -560,6 +586,27 @@ export class DatabaseService implements AsyncDisposable {
       .where("chatId", "=", chatId)
       .executeTakeFirstOrThrow();
     return count.total;
+  }
+
+  async getUnreadMessagesForParticipant(chatId: string, userId: string): Promise<number> {
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+    if (!(await this.#isParticipant(chatId, userId))) {
+      return throwHttpError(400, "User is not participant of target chat!");
+    }
+    const { chatLastAccess } = await this.db
+      .selectFrom("participant")
+      .select("chatLastAccess")
+      .where((eb) => eb.and([eb("chatId", "=", chatId), eb("userId", "=", userId)]))
+      .executeTakeFirstOrThrow();
+    let query = this.db
+      .selectFrom("message")
+      .select((eb) => eb.cast<number>(eb.fn.countAll(), "integer").as("unread"))
+      .where("chatId", "=", chatId);
+    if (chatLastAccess) {
+      query = query.where("createdAt", ">", chatLastAccess);
+    }
+    const { unread } = await query.executeTakeFirstOrThrow();
+    return unread;
   }
 
   /** Message authors can toggle their message deletion status */

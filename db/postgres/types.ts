@@ -31,6 +31,7 @@ export type ChatUserDto = Omit<User, BaseDateColumns | "email" | "id"> & { id: s
 export type GetChatDto = ChatDto & {
   participants: ChatUserDto[];
   messages: MessageDto[];
+  totalMessages: number;
 };
 
 export type ChatOrderProperties = {

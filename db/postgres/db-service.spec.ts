@@ -33,6 +33,7 @@ import {
 } from "./types.js";
 import { Kysely } from "kysely";
 import type { DB } from "./db-types.js";
+import { add } from "date-fns";
 
 describe("DatabaseService", () => {
   const testingDatabases = new TestingDatabases();
@@ -457,7 +458,11 @@ describe("DatabaseService", () => {
       participants = [firstCreated.id, secondCreated.id];
       allUserIds = [firstCreated.id, secondCreated.id, thirdCreated.id];
     });
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
     afterEach(async () => {
+      vi.useRealTimers();
       await db.deleteFrom("chat").execute();
     });
     afterAll(async () => {
@@ -515,6 +520,23 @@ describe("DatabaseService", () => {
       for (const { chatId, userId } of testCases) {
         await expect(service.addParticipantToChat(chatId, userId)).rejects.toThrowError();
       }
+    });
+    it("Updates chatLastAccessed", async () => {
+      const { id } = await service.createChat({ name: chatName, participants });
+      const getParticipant = async () =>
+        db
+          .selectFrom("participant")
+          .selectAll()
+          .where((eb) => eb.and([eb("chatId", "=", id), eb("userId", "=", participants[0])]))
+          .executeTakeFirstOrThrow();
+      const initial = await getParticipant();
+      expect(initial.chatLastAccess).toBeNull();
+      const date = new Date("2025-01-01T12:00:00");
+      vi.setSystemTime(date);
+      await service.setParticipantChatAccess(id, participants[0]);
+      const updated = await getParticipant();
+      expect(updated.chatLastAccess).toEqual(date);
+      expect(updated.updatedAt).toEqual(date);
     });
     it("Should get chat", async () => {
       const allParticipants = [...participants, thirdCreated.id];
@@ -831,7 +853,6 @@ describe("DatabaseService", () => {
         })
       ).rejects.toThrowError();
     });
-
     it("Returns total count of messages for chat", async () => {
       await expect(service.getMessageCountForChat("invalid")).rejects.toThrowError();
       for (const num of [1, 10, 20, 30]) {
@@ -918,6 +939,41 @@ describe("DatabaseService", () => {
 
       await expect(service.toggleMessageDelete(adminId, messageId)).rejects.toThrowError();
       await expect(service.toggleMessageDelete(thirdCreated.id, messageId)).rejects.toThrowError();
+    });
+    it("Returns number of unread messages", async () => {
+      const base = new Date("2024-01-01T12:00:00");
+      console.log("BASE", base);
+      const { id: chatId } = await service.createChat({ name: chatName, participants });
+      // Update created and update manually, since postgres is running independently.
+      await db.updateTable("chat").set({ createdAt: base, updatedAt: base }).execute();
+
+      const userId = participants[0];
+      const minuteInterval = 10;
+      const messages = ["first", "second", "third"];
+      for (const [message, index] of messages.map((val, i) => [val, i] as const)) {
+        vi.setSystemTime(add(base, { minutes: index * minuteInterval }));
+        const now = new Date();
+        const { id } = await service.createMessage({ chatId, userId, message });
+        // We have to manually change creation dates, since postgres is running independently
+        await db
+          .updateTable("message")
+          .set({ createdAt: now, updatedAt: now })
+          .where("id", "=", id)
+          .execute();
+      }
+
+      for (const { time, expected } of [
+        { time: -1, expected: messages.length },
+        { time: minuteInterval - 1, expected: messages.length - 1 },
+        { time: minuteInterval, expected: messages.length - 2 },
+        { time: minuteInterval * 2, expected: 0 }
+      ]) {
+        vi.setSystemTime(add(base, { minutes: time }));
+        await service.setParticipantChatAccess(chatId, userId);
+        await expect(service.getUnreadMessagesForParticipant(chatId, userId)).resolves.toBe(
+          expected
+        );
+      }
     });
   });
 });
