@@ -76,6 +76,7 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .addColumn("userId", "uuid", (col) =>
       col.notNull().references("user.id").onUpdate("cascade").onDelete("cascade")
     )
+    .addColumn("chatLastAccess", "timestamp", (col) => col.defaultTo(null))
     .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addUniqueConstraint("unique_participant_chat", ["userId", "chatId"])
