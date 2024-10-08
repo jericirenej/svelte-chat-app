@@ -1,6 +1,8 @@
 import { randomUUID } from "crypto";
 
 import { faker } from "@faker-js/faker";
+import { add } from "date-fns";
+import { Kysely } from "kysely";
 import {
   afterAll,
   afterEach,
@@ -13,6 +15,7 @@ import {
   vi
 } from "vitest";
 import { DatabaseService } from "./db-service.js";
+import type { DB } from "./db-types.js";
 import { TestingDatabases } from "./tools/testing.database.service.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
 import {
@@ -31,9 +34,6 @@ import {
   type UpdateUserDto,
   type UserDto
 } from "./types.js";
-import { Kysely } from "kysely";
-import type { DB } from "./db-types.js";
-import { add } from "date-fns";
 
 describe("DatabaseService", () => {
   const testingDatabases = new TestingDatabases();
@@ -895,13 +895,22 @@ describe("DatabaseService", () => {
       ];
 
       for (const { options, expected } of testCases) {
-        const result = await service.getMessagesForChat(id, options);
+        const result = await service.getMessagesForChatParticipant(id, participants[0], options);
         expect(result.total).toBe(20);
         expect(result.messages.map(({ id }) => id)).toEqual(expected);
       }
     });
-    it("Should throw when requesting messages for non existing chats", async () => {
-      await expect(service.getMessagesForChat(randomUUID())).rejects.toThrowError();
+    it("Throws when requesting messages for non existing chats", async () => {
+      await expect(
+        service.getMessagesForChatParticipant(randomUUID(), participants[0])
+      ).rejects.toThrowError();
+    });
+    it("Throws for messages requested by non-participants", async () => {
+      const { id } = await service.createChat({ participants });
+      await insertMsgs(id, participants, 2);
+      await expect(
+        service.getMessagesForChatParticipant(id, thirdCreated.id)
+      ).rejects.toThrowError();
     });
     it("Should allow message delete status toggle", async () => {
       const { id: chatId } = await service.createChat({ participants });
@@ -942,7 +951,6 @@ describe("DatabaseService", () => {
     });
     it("Returns number of unread messages", async () => {
       const base = new Date("2024-01-01T12:00:00");
-      console.log("BASE", base);
       const { id: chatId } = await service.createChat({ name: chatName, participants });
       // Update created and update manually, since postgres is running independently.
       await db.updateTable("chat").set({ createdAt: base, updatedAt: base }).execute();

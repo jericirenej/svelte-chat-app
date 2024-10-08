@@ -558,11 +558,22 @@ export class DatabaseService implements AsyncDisposable {
     return createdMessage;
   }
 
-  async getMessagesForChat(
+  async getMessagesForChatParticipant(
     chatId: string,
+    userId: string,
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
   ): Promise<GetMessagesDto> {
     await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+    if (!(await this.#isParticipant(chatId, userId))) {
+      return throwHttpError(403, "Not a chat participant!");
+    }
+    return this.#getMessagesForChat(chatId, options);
+  }
+
+  async #getMessagesForChat(
+    chatId: string,
+    options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
+  ): Promise<GetMessagesDto> {
     let baseQuery = this.db
       .selectFrom("message")
       .selectAll()
@@ -591,7 +602,7 @@ export class DatabaseService implements AsyncDisposable {
   async getUnreadMessagesForParticipant(chatId: string, userId: string): Promise<number> {
     await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
     if (!(await this.#isParticipant(chatId, userId))) {
-      return throwHttpError(400, "User is not participant of target chat!");
+      return throwHttpError(403, "Not a chat participant of target chat!");
     }
     const { chatLastAccess } = await this.db
       .selectFrom("participant")
