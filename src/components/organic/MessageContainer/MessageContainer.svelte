@@ -74,7 +74,7 @@
   tabindex="0"
   role="group"
   aria-label={CONVERSATION_MESSAGES.containerLabel}
-  class="relative h-full overflow-y-scroll scroll-smooth"
+  class="relative h-full overflow-y-auto scroll-smooth"
   on:scroll={handleScroll}
   bind:this={div}
 >
