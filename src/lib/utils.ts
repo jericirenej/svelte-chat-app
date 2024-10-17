@@ -1,3 +1,4 @@
+import type { ChatUserDto } from "@db/postgres";
 export const promisifiedTimeout = async (timeout: number) =>
   new Promise((resolve) => setTimeout(resolve, timeout));
 
@@ -50,3 +51,8 @@ export const throttle = <F extends (...args: any[]) => ReturnType<F>>(
 
 export const secureCookieEval = (url: URL): boolean =>
   url.hostname === "localhost" || url.protocol === "https";
+
+export const participantName = ({ name, surname, username }: ChatUserDto): string => {
+  const val = [name, surname].filter(Boolean).join(" ");
+  return val ? val : username;
+};
