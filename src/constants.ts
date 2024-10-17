@@ -1,7 +1,8 @@
-export const ROOT_ROUTE = "/";
-export const LOGIN_ROUTE = "/login";
-export const SIGNUP_ROUTE = "/signup";
-export const PROFILE_ROUTE = "/profile";
+export const ROOT_ROUTE = "/",
+  LOGIN_ROUTE = "/login",
+  SIGNUP_ROUTE = "/signup",
+  PROFILE_ROUTE = "/profile",
+  CHAT_ROUTE = "/chat";
 /** This s a list of **exact** routes on which no authentication is required.
  * All other routes should perform a check for `sessionId` cookie and and `X-CRSF` header. */
 export const UNPROTECTED_ROUTES = [LOGIN_ROUTE, SIGNUP_ROUTE];
@@ -21,3 +22,4 @@ export const REDIRECT_AFTER_EXPIRE_DELAY = 5e3;
 export const LOCAL_SESSION_CSRF_KEY = "csrfToken";
 export const LOCAL_EXPIRE_REDIRECT = "redirectAfterExpire";
 export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_EXPIRE_REDIRECT];
+export const MESSAGE_TAKE = 20;
