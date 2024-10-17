@@ -1,10 +1,15 @@
+<script context="module" lang="ts">
+  export type SendOnInput = (() => unknown) | undefined;
+  export type SendMessageHandler = (val: string) => Promise<boolean>;
+</script>
+
 <script lang="ts">
   import { fade } from "svelte/transition";
   import { CONVERSATION_MESSAGES } from "../../../messages";
   import SendIcon from "../../atomic/SendIcon/SendIcon.svelte";
   import TextArea from "../../atomic/TextArea/TextArea.svelte";
-  export let sendMessage: (val: string) => Promise<boolean>;
-  export let onInput: (() => unknown) | undefined = undefined;
+  export let sendMessage: SendMessageHandler;
+  export let onInput: SendOnInput = undefined;
   let value = "";
 
   let error = false;
