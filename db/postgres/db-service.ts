@@ -15,7 +15,7 @@ import type {
   CreateUserDto,
   GetChatDto,
   GetChatsDto,
-  GetMessagesDto,
+  MessagesDto,
   MessageDto,
   ParticipantDto,
   SingleUserSearch,
@@ -403,7 +403,7 @@ export class DatabaseService implements AsyncDisposable {
           .coalesce(
             eb
               .selectFrom("message as m2")
-              .select((eb) => eb.fn.countAll<number>().as("messageCount"))
+              .select((eb) => eb.cast<number>(eb.fn.countAll(), "integer").as("messageCount"))
               .whereRef("m2.chatId", "=", "c.id")
               .groupBy("m2.chatId"),
             eb.lit(0)
@@ -562,7 +562,7 @@ export class DatabaseService implements AsyncDisposable {
     chatId: string,
     userId: string,
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
-  ): Promise<GetMessagesDto> {
+  ): Promise<MessagesDto> {
     await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
     if (!(await this.#isParticipant(chatId, userId))) {
       return throwHttpError(403, "Not a chat participant!");
@@ -573,7 +573,7 @@ export class DatabaseService implements AsyncDisposable {
   async #getMessagesForChat(
     chatId: string,
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
-  ): Promise<GetMessagesDto> {
+  ): Promise<MessagesDto> {
     let baseQuery = this.db
       .selectFrom("message")
       .selectAll()
