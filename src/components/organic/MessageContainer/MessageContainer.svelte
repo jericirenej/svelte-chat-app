@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+  export type MessageLoadPrevious = () => unknown;
+</script>
+
 <script lang="ts">
   import { debounce } from "$lib/utils";
   import arrowDown from "@iconify/icons-humbleicons/arrow-down";
@@ -12,7 +16,7 @@
   export let messages: MessageDto[];
   export let total: number;
   export let participants: Map<string, string>;
-  export let loadPrevious: () => unknown;
+  export let loadPrevious: MessageLoadPrevious;
 
   const SCROLL_BUFFER = 50;
 
@@ -74,15 +78,13 @@
   tabindex="0"
   role="group"
   aria-label={CONVERSATION_MESSAGES.containerLabel}
-  class="relative h-full overflow-y-auto scroll-smooth"
+  class="h-full overflow-y-auto scroll-smooth"
   on:scroll={handleScroll}
   bind:this={div}
 >
-  <EmitInView inViewHandler={handlePreviousLoad} />
-  <MessageList {loggedUserId} {messages} {participants} />
   {#if alertMessage}
     <button
-      class="fixed right-8 top-6 inline-block aspect-square cursor-pointer rounded-full bg-green-600 text-3xl font-thin text-white shadow-sm"
+      class="sticky right-3 top-0 ml-auto block aspect-square cursor-pointer rounded-full bg-green-600 text-3xl font-thin text-white shadow-sm"
       title={CONVERSATION_MESSAGES.newMessagesInvisible}
       transition:fade={{ duration: 100 }}
       on:click={handleNotification}
@@ -90,4 +92,6 @@
       <Icon class="p-1" icon={arrowDown} />
     </button>
   {/if}
+  <EmitInView inViewHandler={handlePreviousLoad} />
+  <MessageList {loggedUserId} {messages} {participants} />
 </div>

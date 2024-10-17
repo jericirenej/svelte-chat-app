@@ -3,6 +3,7 @@
   import type { ChatPreviewProp } from "./types";
 
   export let chatPreviewList: ChatPreviewProp[];
+  export let chatUnreadList!: Record<string, number>;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export let onDelete: (_id: string) => unknown;
   export let onActive: (_id: string) => unknown;
@@ -15,7 +16,7 @@
 </script>
 
 <ul>
-  {#each chatPreviewList as { chatLabel, message, unreadMessages, chatId } (chatId)}
+  {#each chatPreviewList as { chatLabel, message, chatId } (chatId)}
     <li
       class="border-b-[1px] border-t-[1px] py-4 pl-0 pr-2 hover:bg-neutral-200 hover:bg-opacity-50"
       class:active={active === chatId}
@@ -33,7 +34,7 @@
           }}
           {chatLabel}
           {message}
-          {unreadMessages}
+          unreadMessages={chatUnreadList[chatId]}
         />
       </div>
     </li>

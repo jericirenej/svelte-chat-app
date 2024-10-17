@@ -10,35 +10,45 @@
     containerWidth: number;
   };
 
+  const chatPreviewList = [
+    {
+      chatId: "chatWithTwoParticipants",
+      chatLabel: "Linda Lovelace",
+      message: "I think so too!"
+    },
+
+    {
+      chatId: "chatWithMultipleParticipants",
+      chatLabel: "Linda Lovelace, Alan Turing",
+      message: "Well that's never going to work..."
+    },
+    {
+      chatId: "labelledChat",
+      chatLabel: "On the meaning of life",
+      message: "That might be complicated, I think"
+    }
+  ];
+  const chatUnreadList = [0, 10, 120].reduce(
+    (acc, curr, i) => {
+      const id = chatPreviewList[i].chatId;
+      acc[id] = curr;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
   export const meta: Meta<Props> = {
     title: "Organic/ChatPreviewList",
     component: ChatPreviewListComponent,
     argTypes: {
       chatPreviewList: { table: { disable: true } },
-      containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } }
+      containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } },
+      onDelete: { table: { disable: true } },
+      onActive: { table: { disable: true } }
     },
     args: {
-      chatPreviewList: [
-        {
-          chatId: "chatWithTwoParticipants",
-          chatLabel: "Linda Lovelace",
-          message: "I think so too!",
-
-          unreadMessages: 0
-        },
-        {
-          chatId: "chatWithMultipleParticipants",
-          chatLabel: "Linda Lovelace, Alan Turing",
-          message: "Well that's never going to work...",
-          unreadMessages: 10
-        },
-        {
-          chatId: "labelledChat",
-          chatLabel: "On the meaning of life",
-          message: "That might be complicated, I think",
-          unreadMessages: 120
-        }
-      ],
+      chatPreviewList,
+      chatUnreadList,
       containerWidth: 50,
       onDelete: fn(),
       onActive: fn()
