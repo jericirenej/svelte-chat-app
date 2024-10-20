@@ -11,7 +11,7 @@
   export let transitionsEnabled: boolean = true;
 </script>
 
-<ul class="flex flex-col gap-7 overflow-x-hidden">
+<ul class="flex flex-col-reverse gap-7 overflow-x-hidden">
   {#each messages as { userId, createdAt, message, id } (id)}
     {@const self = userId === loggedUserId}
     <li
