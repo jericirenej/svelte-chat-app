@@ -16,10 +16,16 @@
   export let sendMessage: SendMessageHandler;
   export let onInput: SendOnInput;
   export let loadPrevious: MessageLoadPrevious;
+  let value = "";
+
+  export const resetMessage = () => {
+    value = "";
+  };
+
   $: participants = new Map(data.participants.map((p) => [p.id, participantName(p)]));
 </script>
 
-<div class="flex h-full w-full flex-col justify-between gap-4 overflow-y-auto px-4">
+<div class="flex h-full w-full flex-col justify-between gap-4 overflow-y-auto">
   <MessageContainer
     messages={data.messages}
     loggedUserId={userId}
@@ -31,6 +37,8 @@
     <div class="absolute bottom-[115%] right-16">
       <TypingIndicator {usersTyping} />
     </div>
-    <SendMessage {sendMessage} {onInput} />
+    <div class="pr-2">
+      <SendMessage {sendMessage} {onInput} bind:value />
+    </div>
   </div>
 </div>

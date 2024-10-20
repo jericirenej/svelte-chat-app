@@ -66,6 +66,11 @@
     const typedArgs = args as ExtendedProps;
     return typedArgs;
   };
+
+  let resetMessage: (() => void) | undefined;
+  const resetMessageHandler = () => {
+    resetMessage && resetMessage();
+  };
 </script>
 
 <Template let:args>
@@ -75,6 +80,7 @@
     handleAdd={() => {
       handleAdd(messages, $data.total);
     }}
+    resetMessage={resetMessageHandler}
   >
     <ChatContainerComponent
       userId={loggedUserId}
@@ -94,6 +100,7 @@
       loadPrevious={() => {
         handleAdd(messages, $data.total, true);
       }}
+      bind:resetMessage
     />
   </ChatStoryWrapper>
 </Template>

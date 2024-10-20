@@ -51,10 +51,12 @@ export const addMessage = (store: Writable<MessageDto[]>, atBeginning = false) =
       ? sub(msg[0]?.createdAt ?? baseDate, { minutes: 10 })
       : add(lastMessage.createdAt, { minutes: 10 });
     const newMessage = createMessage(userId, date);
+    // Messages are received from newest to oldest so we
+    // have to unshift for new messages and push for older ones
     if (atBeginning) {
-      msg.unshift(newMessage);
-    } else {
       msg.push(newMessage);
+    } else {
+      msg.unshift(newMessage);
     }
     return msg;
   });

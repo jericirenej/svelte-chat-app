@@ -10,7 +10,7 @@
   import TextArea from "../../atomic/TextArea/TextArea.svelte";
   export let sendMessage: SendMessageHandler;
   export let onInput: SendOnInput = undefined;
-  let value = "";
+  export let value = "";
 
   let error = false;
   const handleInput = () => {
@@ -18,7 +18,7 @@
     onInput && onInput();
   };
 
-  const handleClick = async () => {
+  const handleSubmit = async () => {
     const response = await sendMessage(value);
     if (response) {
       value = "";
@@ -30,9 +30,14 @@
 </script>
 
 <div class="relative flex flex-row items-end justify-between gap-3">
-  <TextArea placeholder={CONVERSATION_MESSAGES.textPlaceholder} bind:value onInput={handleInput} />
+  <TextArea
+    placeholder={CONVERSATION_MESSAGES.textPlaceholder}
+    bind:value
+    onInput={handleInput}
+    submitEvent={handleSubmit}
+  />
   <span class="text-blue-600">
-    <SendIcon disabled={!value.length} on:click={handleClick} />
+    <SendIcon disabled={!value.length} on:click={handleSubmit} />
   </span>
   {#if error}
     <small class="text absolute -bottom-5 left-1 text-red-600" transition:fade={{ duration: 150 }}
