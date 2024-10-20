@@ -1,4 +1,4 @@
-import { dbService } from "@db/postgres";
+import { dbService, type CompleteUserDto } from "@db/postgres";
 import { json, redirect, type RequestHandler } from "@sveltejs/kit";
 import { MESSAGE_TAKE, ROOT_ROUTE } from "../../../../constants";
 import type { ParticipantData, SingleChatData } from "../../../../types";
@@ -19,7 +19,8 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
   try {
     const messages = await dbService.getMessagesForChatParticipant(chatId, user.id, {
       take: take ?? MESSAGE_TAKE,
-      skip
+      skip,
+      direction: "desc"
     });
     const participantsFull = await dbService.getParticipantsForChat(chatId);
     const participants: ParticipantData[] = participantsFull.map(
@@ -31,4 +32,15 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
   } catch {
     redirect(302, ROOT_ROUTE);
   }
+};
+
+export const POST: RequestHandler = async ({ params, locals, request }) => {
+  const body = (await request.json()) as { message: string };
+  const { id: userId } = locals.user as CompleteUserDto;
+  const message = await dbService.createMessage({
+    chatId: params.chatId as string,
+    userId,
+    message: body.message
+  });
+  return json(message);
 };
