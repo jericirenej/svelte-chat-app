@@ -396,6 +396,7 @@ export class DatabaseService implements AsyncDisposable {
             .selectFrom("message as m")
             .selectAll()
             .whereRef("m.chatId", "=", "c.id")
+            .orderBy("m.createdAt desc")
             .limit(this.BASE_PREVIEW_LIMIT)
         ).as("messages"),
 
@@ -578,8 +579,8 @@ export class DatabaseService implements AsyncDisposable {
       .selectFrom("message")
       .selectAll()
       .where("chatId", "=", chatId)
-      .orderBy("createdAt", options.direction ?? "desc");
-
+      // Newest chats on top by default
+      .orderBy(`createdAt ${options.direction ?? "desc"}`);
     if (options.take) {
       baseQuery = baseQuery.offset(options.skip ?? 0).limit(options.take);
     }
