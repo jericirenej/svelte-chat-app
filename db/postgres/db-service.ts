@@ -510,7 +510,10 @@ export class DatabaseService implements AsyncDisposable {
     if (participants.length === 1) {
       await this.db.deleteFrom("chat").where("id", "=", chatId).execute();
     } else {
-      await this.db.deleteFrom("participant").where("userId", "=", userId).execute();
+      await this.db
+        .deleteFrom("participant")
+        .where((eb) => eb.and([eb("userId", "=", userId), eb("chatId", "=", chatId)]))
+        .execute();
     }
     return true;
   }

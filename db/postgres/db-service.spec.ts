@@ -745,22 +745,20 @@ describe("DatabaseService", () => {
     });
     it("Should remove participant from chat", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
+      const { id: secondId } = await service.createChat({ participants });
       expect(await service.removeParticipantFromChat(id, participants[0])).toBe(true);
 
-      const participantRemoved = await db
+      const removedParticipant = await db
         .selectFrom("participant")
         .selectAll()
         .where("userId", "=", participants[0])
-        .executeTakeFirst();
+        .execute();
 
-      expect(participantRemoved).toBeUndefined();
+      expect(removedParticipant).toHaveLength(1);
+      expect(removedParticipant[0].chatId).toBe(secondId);
 
-      const chatRemains = await db
-        .selectFrom("chat")
-        .selectAll()
-        .where("id", "=", id)
-        .executeTakeFirst();
-      expect(chatRemains).not.toBeUndefined();
+      const remainingChats = await db.selectFrom("chat").selectAll().execute();
+      expect(remainingChats).toHaveLength(2);
     });
     it("Should remove chat, if only a single participant remains", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
