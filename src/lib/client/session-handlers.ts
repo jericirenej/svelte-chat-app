@@ -1,20 +1,19 @@
 import { goto, invalidateAll } from "$app/navigation";
 import type { ActionResult } from "@sveltejs/kit";
 import {
-  CSRF_HEADER,
   DELETE_ACCOUNT_ROUTE,
   EXPIRE_SESSION_WARNING_BUFFER,
   EXTEND_SESSION_ROUTE,
   LOCAL_EXPIRE_REDIRECT,
   LOCAL_KEYS,
-  LOCAL_SESSION_CSRF_KEY,
   LOGIN_ROUTE,
   LOGOUT_ROUTE,
   REDIRECT_AFTER_EXPIRE_DELAY
 } from "../../constants";
 import { NOTIFICATION_MESSAGES } from "../../messages";
+import { csrfHeader, getCSRFLocal, setCSRFLocal } from "./csrf-handlers";
 import { socketClientSetup } from "./socket.client";
-import { notificationStore, socket } from "./stores";
+import { clearStores, notificationStore, socket } from "./stores";
 
 type FormEventType = {
   result: ActionResult<Partial<{ csrfToken: string; username: string }>>;
@@ -69,14 +68,6 @@ const handleNotification = async ({
   notificationStore.addNotification({ content, lifespan, type: "failure" });
 };
 
-export const setCSRFLocal = (csrfToken: string | undefined): boolean => {
-  if (!csrfToken) return false;
-  localStorage.setItem(LOCAL_SESSION_CSRF_KEY, csrfToken);
-  return true;
-};
-
-export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
-
 export const setRedirectAfterExpire = () => {
   const timeout = setTimeout(() => {
     notificationStore.addNotification({
@@ -116,8 +107,6 @@ export const handleFormResult = (event: FormEventType): number | undefined => {
   return result.status;
 };
 
-const csrfHeader = (csrf: string) => ({ [CSRF_HEADER]: csrf });
-
 const extendCall = (csrf: string) =>
   fetch(EXTEND_SESSION_ROUTE, { method: "POST", headers: { ...csrfHeader(csrf) } });
 
@@ -148,7 +137,7 @@ const handleRequestAndCloseSession = async (
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
-  socket.set(undefined);
+  clearStores();
   return response;
 };
 

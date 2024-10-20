@@ -31,6 +31,7 @@ export type LayoutChatData = ChatPreviewProp & {
   totalMessages: number;
   unreadMessages: number;
 };
+export type LayoutChatStore = Omit<LayoutChatData, "unreadMessages">;
 export type ParticipantData = Omit<UserDto, "email" | "createdAt" | "updatedAt">;
 export type SingleChatData = {
   participants: ParticipantData[];

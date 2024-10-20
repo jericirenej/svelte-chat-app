@@ -50,7 +50,6 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
     }
 
     const user = await authenticateUserWS({ sessionId, csrfToken });
-
     if (!user) {
       socket.emit("error", "Authentication failed. Disconnecting.");
       socket.disconnect(true);
@@ -58,6 +57,7 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
     }
 
     await removeDuplicatedSocketIfExists(socketServer, sessionId);
+
     await redisService.setSocketSession(sessionId, socket.id);
 
     const sessionTTL = await redisService.getSessionTTL(sessionId);
@@ -79,6 +79,21 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
       socket.to([...socket.rooms]).emit("participantOnline", user.username, false);
       console.log(`Socket ${socket.id} disconnected`);
       socket.disconnect(true);
+    });
+    socket.on("messagePush", (message) => {
+      if (!socket.rooms.has(message.chatId)) {
+        console.warn("Tried to send message to chat, but chat room does not exist");
+        return;
+      }
+      socket.broadcast.to(message.chatId).emit("messagePush", message);
+    });
+
+    socket.on("userTyping", (args) => {
+      if (!socket.rooms.has(args.chatId)) {
+        console.warn("Tried to send typing update to chat, but chat room does not exist");
+        return;
+      }
+      socket.broadcast.to(args.chatId).emit("userTyping", args);
     });
   });
 };

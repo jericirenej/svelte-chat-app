@@ -5,7 +5,7 @@ vi.mock("node:crypto", async () => {
   return { ...original };
 });
 
-import { afterEach, beforeEach, describe, expect, it, vi, type SpyInstance } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import {
   VERIFICATION_FAILURE,
   generateCsrfToken,
@@ -47,8 +47,8 @@ describe("verifyUser", () => {
       return Promise.resolve(undefined);
     }
   };
-  let spyOnConsole: SpyInstance,
-    spyOnCredentials: SpyInstance<[username: string], Promise<AuthDto | undefined>>;
+  let spyOnConsole: MockInstance,
+    spyOnCredentials: MockInstance<(username: string) => Promise<AuthDto | undefined>>;
   beforeEach(() => {
     spyOnConsole = vi.spyOn(console, "log").mockImplementation((message?: unknown) => {});
     spyOnCredentials = vi.spyOn(mockDbService, "getCredentials");

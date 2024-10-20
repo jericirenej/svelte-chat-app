@@ -1,25 +1,30 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { handleLogoutCall } from "$lib/client/session-handlers";
-  import { socketClientSetup } from "$lib/client/socket.client";
-  import { notificationStore, showSessionExpirationWarning, socket } from "$lib/client/stores";
-  import { onMount } from "svelte";
-  import { fly, fade } from "svelte/transition";
-
+  import {
+    notificationStore,
+    showSessionExpirationWarning,
+    unreadChatMessages,
+    chatPreviews
+  } from "$lib/client/stores";
+  import { fade, fly } from "svelte/transition";
   import "../app.css";
 
+  import { goto } from "$app/navigation";
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
-  import { LOCAL_KEYS, LOCAL_SESSION_CSRF_KEY } from "../constants.js";
+  import ChatPreviewList from "../components/organic/ChatPreviewList/ChatPreviewList.svelte";
+  import { CHAT_ROUTE } from "../constants.js";
   import type { LayoutData } from "./$types";
-
+  import { onMount } from "svelte";
+  import { LayoutClientHandlers } from "$lib/client/layout-handlers";
   export let data: LayoutData;
   let minWidth: string, maxWidth: string;
   const setWidth = (loggedIn: boolean) => {
     if (loggedIn) {
-      maxWidth = "300px";
+      maxWidth = "max(500px, 25%)";
       setTimeout(() => {
-        minWidth = "250px";
+        minWidth = "350px";
       }, 300);
       return;
     }
@@ -33,23 +38,15 @@
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
   };
-
   onMount(() => {
-    if (!data.user) {
-      LOCAL_KEYS.forEach((key) => {
-        localStorage.removeItem(key);
-      });
-      return;
-    }
-    const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
-    if (!csrf) return;
-    socket.set(socketClientSetup($page.url.origin, csrf));
+    LayoutClientHandlers.initiateSocket(data);
+    LayoutClientHandlers.setPreviewAndUnreadOnLoad(data);
   });
 </script>
 
 <div class="flex h-screen w-screen items-center justify-center overflow-hidden bg-neutral-400">
   <div
-    class="app relative flex h-[95vh] w-[95vw] max-w-[1500px] overflow-y-auto rounded-md bg-white"
+    class="app relative flex h-[95vh] w-[95vw] max-w-[1900px] overflow-y-auto rounded-md bg-white"
   >
     <section
       transition:fly={{ duration: 300, y: -400 }}
@@ -57,14 +54,26 @@
       style:min-width={minWidth}
       style:max-width={maxWidth}
     >
-      {#if data.user}
-        <nav>
+      <nav>
+        {#if data.user}
           <section in:fade>
             <NavIcons routeId={$page.route.id} handleLogout={closeSession} />
           </section>
-        </nav>
-      {:else}
-        <nav></nav>
+        {/if}
+      </nav>
+      {#if $chatPreviews.length}
+        <div class="mt-5">
+          <ChatPreviewList
+            chatPreviewList={$chatPreviews}
+            chatUnreadList={$unreadChatMessages}
+            onActive={(id) => {
+              void goto(`${CHAT_ROUTE}/${id}`);
+            }}
+            onDelete={(id) => {
+              console.log("Delete:", id);
+            }}
+          />
+        </div>
       {/if}
     </section>
     <slot />

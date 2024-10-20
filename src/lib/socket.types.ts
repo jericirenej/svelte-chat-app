@@ -1,15 +1,20 @@
 import type { Server, Socket as ServerSocket } from "socket.io";
 import type { Socket } from "socket.io-client";
 import type { GlobalThisSocketServer } from "../constants";
+import type { MessageDto } from "@db/postgres";
 export type ServerToClientEvents = {
   basicEmit: (a: string) => void;
   participantOnline: (username: string, online: boolean) => void;
   sessionExpirationWarning: () => void;
   error: (a: string) => void;
+  messagePush: (message: MessageDto) => void;
+  userTyping: (arg: { userId: string; chatId: string; status: boolean }) => void;
 };
 
 export type ClientToServerEvents = {
-hello: () => void;
+  hello: () => void;
+  messagePush: (message: MessageDto) => void;
+  userTyping: (arg: { userId: string; chatId: string; status: boolean }) => void;
 };
 
 export type InterServerEvents = {
