@@ -744,14 +744,14 @@ describe("DatabaseService", () => {
       expect(await service.getChat(firstChatId)).not.toBeUndefined();
     });
     it("Should remove participant from chat", async () => {
-      const { id } = await service.createChat({ name: chatName, participants });
+      const { id } = await service.createChat({ name: chatName, participants: allUserIds });
       const { id: secondId } = await service.createChat({ participants });
-      expect(await service.removeParticipantFromChat(id, participants[0])).toBe(true);
+      expect(await service.removeParticipantFromChat(id, allUserIds[0])).toBe(true);
 
       const removedParticipant = await db
         .selectFrom("participant")
         .selectAll()
-        .where("userId", "=", participants[0])
+        .where("userId", "=", allUserIds[0])
         .execute();
 
       expect(removedParticipant).toHaveLength(1);
@@ -760,10 +760,11 @@ describe("DatabaseService", () => {
       const remainingChats = await db.selectFrom("chat").selectAll().execute();
       expect(remainingChats).toHaveLength(2);
     });
-    it("Should remove chat, if only a single participant remains", async () => {
+    it("Should remove chat, if only two participants remain", async () => {
+      const participants = allUserIds;
       const { id } = await service.createChat({ name: chatName, participants });
       for (const [participant, index] of participants.map((p, i) => [p, i] as const)) {
-        const isLast = index === participants.length - 1;
+        const lastTwo = index === participants.length - 2;
         await service.removeParticipantFromChat(id, participant);
         const chat = await db
           .selectFrom("chat")
@@ -774,13 +775,14 @@ describe("DatabaseService", () => {
           .selectFrom("participant")
           .where("userId", "in", participants)
           .execute();
-        if (!isLast) {
+        if (!lastTwo) {
           expect(chat).not.toBeUndefined();
           expect(participantCount).toHaveLength(participants.length - 1 - index);
           continue;
         }
         expect(chat).toBeUndefined();
         expect(participantCount).toHaveLength(0);
+        break;
       }
     });
     it("Should reject participant remove if chat does not exist or participant is not a member", async () => {
