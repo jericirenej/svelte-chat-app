@@ -1,7 +1,7 @@
 import { devices, type PlaywrightTestConfig } from "@playwright/test";
 
 export const WORKERS = 4,
-  BASE_PORT = 5173;
+  BASE_PORT = 5174;
 
 const config: PlaywrightTestConfig = {
   globalSetup: "./tests/global.setup",
