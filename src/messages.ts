@@ -47,6 +47,7 @@ export const NOTIFICATION_MESSAGES = {
   defaultSuccess: "Success!",
   defaultFail: "Failed!",
   deleteAccountSuccess: "Account deletion successful.",
+  leftChatSuccess: "Left chat",
   logoutSuccess: "Logged out\t👋",
   extend: {
     initial: "Session will expire soon.\nClick here to extend.",
@@ -76,7 +77,8 @@ export const CONVERSATION_MESSAGES = {
   missingAuthor: "Missing user",
   newMessagesInvisible: "New message received. Click here to show it.",
   containerLabel: "List of messages for the current chat",
-  unreadMessages: "Number of unread messages in this chat"
+  unreadMessages: "Number of unread messages in this chat",
+  leaveChat: "Leave chat"
 };
 
 export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;
@@ -86,5 +88,3 @@ export const ENTITY_LIST = {
   searchLabel: "User search",
   searchPlaceholder: "Search for users"
 };
-
-export const CHAT_PREVIEW_MESSAGES = { remove: "Remove chat" };

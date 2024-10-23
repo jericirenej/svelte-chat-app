@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CHAT_PREVIEW_MESSAGES, CONVERSATION_MESSAGES } from "../../../messages";
+  import { CONVERSATION_MESSAGES } from "../../../messages";
   import Badge from "../../atomic/Badge/Badge.svelte";
   import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
 
@@ -35,6 +35,6 @@
     </div>
   </div>
   <div class="absolute right-0 top-[2px]">
-    <DeleteButton label={CHAT_PREVIEW_MESSAGES.remove} on:click={onDelete} />
+    <DeleteButton label={CONVERSATION_MESSAGES.leaveChat} on:click={onDelete} />
   </div>
 </div>
