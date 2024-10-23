@@ -360,6 +360,15 @@ export class DatabaseService implements AsyncDisposable {
     return this.#chatOrderByQuery(query, { direction, property }).execute();
   }
 
+  async chatExists(chatId: string): Promise<boolean> {
+    const result = await this.db
+      .selectFrom("chat")
+      .select("id")
+      .where("id", "=", chatId)
+      .executeTakeFirst();
+    return !!result;
+  }
+
   async getChatIdsForUser(userId: string): Promise<string[]> {
     const chatIds = await this.db
       .selectFrom("participant")

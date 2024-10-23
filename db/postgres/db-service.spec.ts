@@ -682,6 +682,11 @@ describe("DatabaseService", () => {
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
     });
+    it("Returns boolean for chat existence", async () => {
+      const { id } = await service.createChat({ participants });
+      await expect(service.chatExists(id)).resolves.toBeTruthy();
+      await expect(service.chatExists(uniqueUUID(["inexistent"]))).resolves.toBeFalsy();
+    });
     it("Should allow admins to directly delete a single chat", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({ participants });
