@@ -1,5 +1,5 @@
 import { dbService, type CompleteUserDto } from "@db/postgres";
-import { json, redirect, type RequestHandler } from "@sveltejs/kit";
+import { error, json, redirect, type RequestHandler } from "@sveltejs/kit";
 import { MESSAGE_TAKE, ROOT_ROUTE } from "../../../../constants";
 import type { ParticipantData, SingleChatData } from "../../../../types";
 
@@ -43,4 +43,14 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
     message: body.message
   });
   return json(message);
+};
+
+export const DELETE: RequestHandler = async ({ params, locals }) => {
+  const { id: userId } = locals.user as CompleteUserDto;
+  const chatId = params.chatId;
+  if (!chatId || !userId) {
+    return error(400, "Chat id or user id missing");
+  }
+  const success = await dbService.removeParticipantFromChat(chatId, userId);
+  return json({ success });
 };
