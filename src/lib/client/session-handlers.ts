@@ -13,7 +13,7 @@ import {
 import { NOTIFICATION_MESSAGES } from "../../messages";
 import { csrfHeader, getCSRFLocal, setCSRFLocal } from "./csrf-handlers";
 import { socketClientSetup } from "./socket.client";
-import { clearStores, notificationStore, socket } from "./stores";
+import { clearChatRelatedStores, notificationStore, socket } from "./stores";
 
 type FormEventType = {
   result: ActionResult<Partial<{ csrfToken: string; username: string }>>;
@@ -21,7 +21,7 @@ type FormEventType = {
   cancel: () => void;
 };
 
-const handleNotification = async ({
+export const handleNotification = async ({
   response,
   successCodes = [200, 201],
   successMsg = NOTIFICATION_MESSAGES.defaultSuccess,
@@ -39,11 +39,12 @@ const handleNotification = async ({
   notificationOnNull?: boolean;
 }): Promise<void> => {
   if (!response) {
-    notificationOnNull &&
+    if (notificationOnNull) {
       notificationStore.addNotification({
         content: defaultFailMsg,
         type: "failure"
       });
+    }
     return;
   }
   if (successCodes.includes(response.status)) {
@@ -91,7 +92,7 @@ export const clearExpireRedirect = () => {
 };
 /** On successful result, set CSRF token in localStorage and open
  * setup web socket connection. */
-export const handleFormResult = (event: FormEventType): number | undefined => {
+export const handleLoginResult = (event: FormEventType): number | undefined => {
   const result = event.result;
   const status = result.status;
   if (result.type !== "success" || !result.data) {
@@ -137,7 +138,7 @@ const handleRequestAndCloseSession = async (
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
-  clearStores();
+  clearChatRelatedStores();
   return response;
 };
 

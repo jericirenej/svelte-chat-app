@@ -2,22 +2,24 @@
   import { page } from "$app/stores";
   import { handleLogoutCall } from "$lib/client/session-handlers";
   import {
+    chatPreviews,
     notificationStore,
     showSessionExpirationWarning,
     unreadChatMessages,
-    chatPreviews
+    usersTyping
   } from "$lib/client/stores";
   import { fade, fly } from "svelte/transition";
   import "../app.css";
 
   import { goto } from "$app/navigation";
+  import { layoutOnMountHandler } from "$lib/client/layout-handlers";
+  import { removeChat, setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
+  import { onMount } from "svelte";
   import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
   import ChatPreviewList from "../components/organic/ChatPreviewList/ChatPreviewList.svelte";
   import { CHAT_ROUTE } from "../constants.js";
   import type { LayoutData } from "./$types";
-  import { onMount } from "svelte";
-  import { LayoutClientHandlers } from "$lib/client/layout-handlers";
   export let data: LayoutData;
   let minWidth: string, maxWidth: string;
   const setWidth = (loggedIn: boolean) => {
@@ -38,9 +40,13 @@
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
   };
+  const handleChatDelete = async (chatId: string) => {
+    if (!data.user) return;
+    await removeChat(chatId, data.user.id);
+  };
   onMount(() => {
-    LayoutClientHandlers.initiateSocket(data);
-    LayoutClientHandlers.setPreviewAndUnreadOnLoad(data);
+    layoutOnMountHandler(data);
+    setPreviewAndUnreadOnLoad(data);
   });
 </script>
 
@@ -69,9 +75,8 @@
             onActive={(id) => {
               void goto(`${CHAT_ROUTE}/${id}`);
             }}
-            onDelete={(id) => {
-              console.log("Delete:", id);
-            }}
+            usersTyping={$usersTyping}
+            onDelete={handleChatDelete}
           />
         </div>
       {/if}

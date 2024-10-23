@@ -1,11 +1,15 @@
 import type { SocketClient } from "$lib/socket.types";
-import { writable, type Writable } from "svelte/store";
+import { derived, writable, type Writable } from "svelte/store";
 import { v4 } from "uuid";
-import { type LayoutChatStore, type NotificationEntry, type SingleChatData } from "../../types";
+import {
+  type LayoutChats,
+  type NotificationEntry,
+  type ParticipantData,
+  type SingleChatData,
+  type UnreadChatMessages,
+  type UsersTyping
+} from "../../types";
 
-export const socket: Writable<SocketClient | undefined> = writable(undefined);
-
-export const showSessionExpirationWarning = writable(false);
 export class NotificationStore {
   #store = writable(new Map<string, NotificationEntry>());
 
@@ -31,14 +35,40 @@ export class NotificationStore {
     });
   }
 }
+
+export const socket: Writable<SocketClient | undefined> = writable(undefined);
+export const showSessionExpirationWarning = writable(false);
 export const notificationStore = new NotificationStore();
 
-export const unreadChatMessages = writable<Record<string, number>>({});
-export const chats = writable<Record<string, SingleChatData>>({});
-export const usersTyping = writable<Record<string, Set<string> | undefined>>({});
-export const chatPreviews = writable<LayoutChatStore[]>([]);
+export const unreadChatMessages = writable<UnreadChatMessages>({});
+export const chatPreviews = writable<LayoutChats[]>([]);
+export const chats = writable<Record<string, SingleChatData | undefined>>({});
+export const userMap = derived(
+  chatPreviews,
+  ($chatPreviews, _set, update) => {
+    update((map) => {
+      $chatPreviews
+        .map(({ participants }) => participants)
+        .flatMap((participants) => {
+          return participants.map((p) => [p.id, p] as [string, ParticipantData]);
+        })
+        .forEach(([id, p]) => {
+          if (map.has(id)) return;
+          map.set(id, p);
+        });
+      return map;
+    });
+    /* return new Map(
+      Object.values($chats)
+        .filter((c): c is SingleChatData => !!c)
+        .flatMap(({ participants }) => participants.map((p) => [p.id, p]))
+    ); */
+  },
+  new Map<string, ParticipantData>()
+);
+export const usersTyping = writable<UsersTyping>({});
 
-export const clearStores = () => {
+export const clearChatRelatedStores = () => {
   unreadChatMessages.set({});
   chats.set({});
   usersTyping.set({});

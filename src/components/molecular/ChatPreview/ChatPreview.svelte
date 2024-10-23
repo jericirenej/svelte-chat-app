@@ -3,12 +3,11 @@
   import Badge from "../../atomic/Badge/Badge.svelte";
   import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
 
-  /** This can be either a chat title or
-   * a list of chat participants that does
-   * not include the current user. */
   export let chatLabel: string;
   export let message: string;
+  export let labelOverride: string | undefined = undefined;
   export let unreadMessages: number;
+  $: previewMessage = labelOverride ? labelOverride : message;
   export let onDelete: () => unknown;
 </script>
 
@@ -26,9 +25,14 @@
       >{chatLabel}</span
     >
     <div class="flex min-w-0 justify-between gap-4">
-      <p title={message} class="test-sm overflow-hidden text-ellipsis whitespace-nowrap">
-        {message}
+      <p
+        title={previewMessage}
+        class="overflow-hidden text-ellipsis whitespace-nowrap text-sm"
+        class:override={!!labelOverride}
+      >
+        {previewMessage}
       </p>
+
       {#if unreadMessages > 0}
         <Badge label={CONVERSATION_MESSAGES.unreadMessages} num={unreadMessages} />
       {/if}
@@ -38,3 +42,19 @@
     <DeleteButton label={CONVERSATION_MESSAGES.leaveChat} on:click={onDelete} />
   </div>
 </div>
+
+<style lang="css">
+  .override {
+    opacity: 0.3;
+    animation: strobe 0.5s alternate infinite;
+  }
+
+  @keyframes strobe {
+    from {
+      opacity: 0.45;
+    }
+    to {
+      opacity: 0.75;
+    }
+  }
+</style>

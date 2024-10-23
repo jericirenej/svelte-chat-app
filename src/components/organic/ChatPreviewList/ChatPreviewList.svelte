@@ -1,9 +1,12 @@
 <script lang="ts">
+  import type { UsersTyping } from "../../../types";
   import ChatPreview from "../../molecular/ChatPreview/ChatPreview.svelte";
   import type { ChatPreviewProp } from "./types";
 
   export let chatPreviewList: ChatPreviewProp[];
   export let chatUnreadList!: Record<string, number>;
+  export let usersTyping: UsersTyping;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export let onDelete: (_id: string) => unknown;
   export let onActive: (_id: string) => unknown;
@@ -34,6 +37,7 @@
           }}
           {chatLabel}
           {message}
+          labelOverride={usersTyping[chatId]?.label}
           unreadMessages={chatUnreadList[chatId]}
         />
       </div>

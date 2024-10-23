@@ -1,6 +1,6 @@
 <script lang="ts">
   import { participantName } from "$lib/utils";
-  import type { MaybeArray, Nullish, SingleChatData } from "../../../types";
+  import type { SingleChatData } from "../../../types";
   import TypingIndicator from "../../atomic/TypingIndicator/TypingIndicator.svelte";
   import SendMessage, {
     type SendMessageHandler,
@@ -12,7 +12,7 @@
 
   export let userId: string;
   export let data: SingleChatData;
-  export let usersTyping: MaybeArray<string> | Nullish = undefined;
+  export let usersTyping: string | undefined = undefined;
   export let sendMessage: SendMessageHandler;
   export let onInput: SendOnInput;
   export let loadPrevious: MessageLoadPrevious;

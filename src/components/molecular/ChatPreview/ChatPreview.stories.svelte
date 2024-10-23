@@ -17,6 +17,7 @@
       chatLabel: { control: "text" },
       message: { control: "text" },
       unreadMessages: { control: "number" },
+      labelOverride: { control: "text" },
       containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } },
       showContainerBorder: { control: "boolean" }
     },
@@ -38,6 +39,7 @@
     unreadMessages,
     showContainerBorder,
     click,
+    labelOverride,
     onDelete: deleteCb
   } = assertArgs(args)}
   <div
@@ -51,6 +53,7 @@
       {chatLabel}
       {message}
       {unreadMessages}
+      {labelOverride}
     />
   </div>
 </Template>
@@ -61,6 +64,7 @@
     message: "Some message",
     unreadMessages: 0,
     containerWidth: 50,
-    showContainerBorder: true
+    showContainerBorder: true,
+    labelOverride: undefined
   }}
 />

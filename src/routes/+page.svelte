@@ -2,9 +2,16 @@
   import { fade } from "svelte/transition";
   import RootHeading from "../components/atomic/RootHeading/RootHeading.svelte";
   import type { PageData } from "./$types.js";
+  import { onMount } from "svelte";
+  import { setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
 
   export let data: PageData;
+
   $: name = data.user?.name ?? data.user?.username;
+
+  onMount(() => {
+    setPreviewAndUnreadOnLoad(data);
+  });
 </script>
 
 <svelte:head>

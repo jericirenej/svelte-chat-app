@@ -95,5 +95,12 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
       }
       socket.broadcast.to(args.chatId).emit("userTyping", args);
     });
+    socket.on("participantLeftChat", (chatId, participantId) => {
+      if (!socket.rooms.has(chatId)) {
+        console.warn("Tried to send typing update to chat, but chat room does not exist");
+        return;
+      }
+      socket.broadcast.to(chatId).emit("participantLeftChat", chatId, participantId);
+    });
   });
 };

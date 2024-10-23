@@ -16,6 +16,7 @@
 </script>
 
 <script lang="ts">
+  import { handleUsers } from "$lib/client/typing-users-handler";
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { RemoveIndexSignature } from "../../../types";
 
@@ -26,7 +27,7 @@
 
 <Template let:args>
   {@const storyArgs = assertArgs(args)}
-  <TypingIndicatorComponent {...storyArgs} />
+  <TypingIndicatorComponent usersTyping={handleUsers(storyArgs.usersTyping)} />
 </Template>
 
 <Story name="TypingIndicator" args={{ usersTyping: [] }} />
