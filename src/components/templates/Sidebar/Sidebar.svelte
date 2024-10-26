@@ -10,6 +10,8 @@
   import NavIcons from "../../molecular/NavIcons/NavIcons.svelte";
   import ChatPreviewList from "../../organic/ChatPreviewList/ChatPreviewList.svelte";
   import type { ChatPreviewProp } from "../../organic/ChatPreviewList/types";
+  import Dialog from "../../organic/Dialog/Dialog.svelte";
+  import { CONVERSATION_MESSAGES } from "../../../messages";
 
   export let showNav: boolean;
   export let chatPreviewList: ChatPreviewProp[];
@@ -21,6 +23,8 @@
   export let handleChatDelete: (chatId: string) => Promise<void>;
 
   let min: string, max: string;
+  let showLeaveChatDialog = false,
+    leaveChatTarget: string | null = null;
 
   const setWidth = (showNav: boolean) => {
     if (showNav) {
@@ -32,6 +36,11 @@
     }
     min = "0px";
     max = "0px";
+  };
+
+  const showDialogForChatLeave = (chatId: string) => {
+    leaveChatTarget = chatId;
+    showLeaveChatDialog = true;
   };
 
   $: setWidth(showNav);
@@ -57,8 +66,25 @@
         {chatUnreadList}
         {usersTyping}
         onActive={onActivateHandler}
-        onDelete={handleChatDelete}
+        onDelete={showDialogForChatLeave}
       />
     </div>
   {/if}
 </section>
+
+<Dialog
+  bind:open={showLeaveChatDialog}
+  confirmAction={async () => {
+    if (leaveChatTarget) {
+      await handleChatDelete(leaveChatTarget);
+      leaveChatTarget = null;
+    }
+  }}
+>
+  <h1 class="mb-3 text-center text-lg font-semibold">
+    {CONVERSATION_MESSAGES.leaveChat}
+  </h1>
+  <p>
+    {CONVERSATION_MESSAGES.leaveChatMessage}
+  </p>
+</Dialog>

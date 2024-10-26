@@ -7,7 +7,7 @@ export const LOGIN_MESSAGES = {
   pageTitle: `${APP_NAME} - Login`,
   title: "Sign in",
   subtitle: "...and start chatting!",
-  signup: "Not registered? Create an account!",
+  signup: "Not registered yet? Create an account!",
   supplyDetailsTitle: "Please supply a username and password.",
   usernamePlaceholder: "Enter your username",
   passwordPlaceholder: "Enter your password",
@@ -78,7 +78,8 @@ export const CONVERSATION_MESSAGES = {
   newMessagesInvisible: "New message received. Click here to show it.",
   containerLabel: "List of messages for the current chat",
   unreadMessages: "Number of unread messages in this chat",
-  leaveChat: "Leave chat"
+  leaveChat: "Leave chat",
+  leaveChatMessage: "Are you sure you want to leave the chat?"
 };
 
 export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;

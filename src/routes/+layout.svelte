@@ -1,22 +1,22 @@
 <script lang="ts">
   import {
+    chatPreviews,
     notificationStore,
     showSessionExpirationWarning,
-    chatPreviews,
-    usersTyping,
-    unreadChatMessages
+    unreadChatMessages,
+    usersTyping
   } from "$lib/client/stores";
   import "../app.css";
 
+  import { goto } from "$app/navigation";
   import { layoutOnMountHandler } from "$lib/client/layout-handlers";
   import { removeChat, setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
+  import { handleLogoutCall } from "$lib/client/session-handlers";
   import { onMount } from "svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
   import Sidebar from "../components/templates/Sidebar/Sidebar.svelte";
-  import type { LayoutData } from "./$types";
-  import { handleLogoutCall } from "$lib/client/session-handlers";
   import { CHAT_ROUTE } from "../constants";
-  import { goto } from "$app/navigation";
+  import type { LayoutData } from "./$types";
   export let data: LayoutData;
 
   const handleChatDelete = async (chatId: string) => {
