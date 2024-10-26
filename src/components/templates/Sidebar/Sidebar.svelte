@@ -3,21 +3,21 @@
 </script>
 
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import { handleLogoutCall } from "$lib/client/session-handlers";
-  import {
-    chatPreviews,
-    showSessionExpirationWarning,
-    unreadChatMessages,
-    usersTyping
-  } from "$lib/client/stores";
+
   import { fade, fly } from "svelte/transition";
-  import { CHAT_ROUTE } from "../../../constants";
+  import type { UnreadChatMessages, UsersTyping } from "../../../types";
   import NavIcons from "../../molecular/NavIcons/NavIcons.svelte";
   import ChatPreviewList from "../../organic/ChatPreviewList/ChatPreviewList.svelte";
+  import type { ChatPreviewProp } from "../../organic/ChatPreviewList/types";
 
   export let showNav: boolean;
+  export let chatPreviewList: ChatPreviewProp[];
+  export let chatUnreadList: UnreadChatMessages;
+  export let usersTyping: UsersTyping;
+
+  export let onActivateHandler: (chatId: string) => void;
+  export let handleLogout: () => Promise<void>;
   export let handleChatDelete: (chatId: string) => Promise<void>;
 
   let min: string, max: string;
@@ -34,10 +34,6 @@
     max = "0px";
   };
 
-  const closeSession = async () => {
-    await handleLogoutCall();
-    $showSessionExpirationWarning = false;
-  };
   $: setWidth(showNav);
 </script>
 
@@ -50,19 +46,17 @@
   <nav>
     {#if showNav}
       <section in:fade>
-        <NavIcons routeId={$page.route.id} handleLogout={closeSession} />
+        <NavIcons routeId={$page.route.id} {handleLogout} />
       </section>
     {/if}
   </nav>
-  {#if $chatPreviews.length}
+  {#if chatPreviewList.length}
     <div class="mt-5">
       <ChatPreviewList
-        chatPreviewList={$chatPreviews}
-        chatUnreadList={$unreadChatMessages}
-        onActive={(id) => {
-          void goto(`${CHAT_ROUTE}/${id}`);
-        }}
-        usersTyping={$usersTyping}
+        {chatPreviewList}
+        {chatUnreadList}
+        {usersTyping}
+        onActive={onActivateHandler}
         onDelete={handleChatDelete}
       />
     </div>
