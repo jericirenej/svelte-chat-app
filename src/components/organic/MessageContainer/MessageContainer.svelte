@@ -13,6 +13,7 @@
   import EmitInView from "../../atomic/EmitInView/EmitInView.svelte";
   import MessageList from "../../molecular/MessageList/MessageList.svelte";
   export let loggedUserId: string;
+  export let chatId: string;
   export let messages: MessageDto[];
   export let total: number;
   export let participants: Map<string, string>;
@@ -24,6 +25,21 @@
   let previousLoaded = false;
   let alertMessage = false;
   let msgCount = 0;
+  let showEmit: boolean;
+  let smoothScroll = false;
+
+  let timeout: ReturnType<typeof setTimeout>;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const resetSmoothScroll = (_chatId: string) => {
+    clearTimeout(timeout);
+    smoothScroll = false;
+    timeout = setTimeout(() => {
+      smoothScroll = true;
+    }, 50);
+  };
+
+  $: resetSmoothScroll(chatId);
 
   const isContentInvisible = (div: HTMLDivElement) => {
     return div.scrollTop < div.scrollHeight - div.offsetHeight - SCROLL_BUFFER;
@@ -65,7 +81,6 @@
   };
 
   $: onMessageAdd(messages.length);
-  let showEmit: boolean;
 
   afterUpdate(() => {
     if (shouldScroll()) {
@@ -87,13 +102,13 @@
   tabindex="0"
   role="group"
   aria-label={CONVERSATION_MESSAGES.containerLabel}
-  class="h-full overflow-y-auto scroll-smooth"
+  class={`h-full overflow-y-auto ${smoothScroll ? "scroll-smooth" : ""}`}
   on:scroll={handleScroll}
   bind:this={div}
 >
   {#if alertMessage}
     <button
-      class="sticky right-3 top-0 ml-auto block aspect-square cursor-pointer rounded-full bg-green-600 text-3xl font-thin text-white shadow-sm"
+      class="sticky right-3 top-1 ml-auto block aspect-square cursor-pointer rounded-full bg-green-600 text-3xl font-thin text-white shadow-sm"
       title={CONVERSATION_MESSAGES.newMessagesInvisible}
       transition:fade={{ duration: 100 }}
       on:click={handleNotification}

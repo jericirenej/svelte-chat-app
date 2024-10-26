@@ -19,7 +19,8 @@
       loggedUserId: { table: { disable: true } },
       containerWidth: { control: { type: "range", min: 0, max: 100, step: 5 } },
       initialTotal: { type: "number" },
-      containerHeight: { control: "number" }
+      containerHeight: { control: "number" },
+      chatId: { table: { disable: true } }
     },
 
     args: baseContainerArgs
@@ -66,6 +67,7 @@
       participants={chatParticipants}
       {loggedUserId}
       messages={$messages}
+      chatId={$messages[0].chatId}
     />
   </ChatStoryWrapper>
 </Template>

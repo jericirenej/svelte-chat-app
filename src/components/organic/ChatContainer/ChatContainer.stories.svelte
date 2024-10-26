@@ -29,7 +29,8 @@
       usersTyping: {
         control: "check",
         options: ["Ada", "Alan", "Alonzo", "Barbara", "Charles", "Kurt"]
-      }
+      },
+      chatId: { table: { disable: true } }
     },
 
     args: { ...baseContainerArgs, onInput: fn() }
@@ -69,7 +70,7 @@
 
   let resetMessage: (() => void) | undefined;
   const resetMessageHandler = () => {
-    resetMessage && resetMessage();
+    if (resetMessage) resetMessage();
   };
 </script>
 
@@ -85,6 +86,7 @@
     <ChatContainerComponent
       userId={loggedUserId}
       data={$data}
+      chatId={$data.messages[0].chatId}
       sendMessage={async (msg) => {
         const lastMessage = $messages[$messages.length - 1];
         const message = createMessage(

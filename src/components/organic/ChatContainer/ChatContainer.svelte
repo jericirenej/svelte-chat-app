@@ -13,6 +13,7 @@
   export let userId: string;
   export let data: SingleChatData;
   export let usersTyping: string | undefined = undefined;
+  export let chatId: string;
   export let sendMessage: SendMessageHandler;
   export let onInput: SendOnInput;
   export let loadPrevious: MessageLoadPrevious;
@@ -30,6 +31,7 @@
     messages={data.messages}
     loggedUserId={userId}
     {participants}
+    {chatId}
     total={data.total}
     {loadPrevious}
   />

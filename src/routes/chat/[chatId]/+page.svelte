@@ -73,6 +73,7 @@
     <ChatContainer
       data={target}
       userId={data.user.id}
+      {chatId}
       usersTyping={$usersTypingStore[chatId]?.label}
       {loadPrevious}
       onInput={setTypingStatus}
