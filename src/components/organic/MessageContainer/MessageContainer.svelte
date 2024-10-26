@@ -6,7 +6,7 @@
   import { debounce } from "$lib/utils";
   import arrowDown from "@iconify/icons-humbleicons/arrow-down";
   import Icon from "@iconify/svelte";
-  import { afterUpdate } from "svelte";
+  import { afterUpdate, onMount } from "svelte";
   import { fade } from "svelte/transition";
   import type { MessageDto } from "../../../../db/postgres/types";
   import { CONVERSATION_MESSAGES } from "../../../messages";
@@ -19,7 +19,6 @@
   export let loadPrevious: MessageLoadPrevious;
 
   const SCROLL_BUFFER = 50;
-
   let div!: HTMLDivElement;
   let userScroll: boolean | null = null;
   let previousLoaded = false;
@@ -66,9 +65,19 @@
   };
 
   $: onMessageAdd(messages.length);
+  let showEmit: boolean;
 
   afterUpdate(() => {
-    shouldScroll() && scrollToBottom();
+    if (shouldScroll()) {
+      scrollToBottom();
+    }
+  });
+  onMount(() => {
+    // Delay rendering of EmitInView to allow container to scroll if needed,
+    // hide the emit element and prevent unneeded fetch
+    setTimeout(() => {
+      showEmit = true;
+    }, 50);
   });
 </script>
 
@@ -92,6 +101,8 @@
       <Icon class="p-1" icon={arrowDown} />
     </button>
   {/if}
-  <EmitInView inViewHandler={handlePreviousLoad} />
+  {#if showEmit}
+    <EmitInView inViewHandler={handlePreviousLoad} />
+  {/if}
   <MessageList {loggedUserId} {messages} {participants} />
 </div>
