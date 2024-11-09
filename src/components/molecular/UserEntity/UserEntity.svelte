@@ -1,8 +1,22 @@
+<script context="module" lang="ts">
+  export const sizeVariants = ["xs", "sm", "base", "lg", "xl"] satisfies Exclude<
+    EntitySize,
+    "number"
+  >[];
+
+  export const sizeMap: Record<Exclude<EntitySize, "number">, string> = {
+    xs: "text-xs",
+    sm: "text-sm",
+    base: "text-base",
+    lg: "text-lg",
+    xl: "text-xl"
+  };
+</script>
+
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import type { EntitySize, Entity } from "../../../types";
   import Avatar from "../../atomic/Avatar/Avatar.svelte";
-  import { sizeMap } from "../../story-helpers/sizeHandler";
 
   export let entity: Entity;
   export let size: EntitySize = "xs";

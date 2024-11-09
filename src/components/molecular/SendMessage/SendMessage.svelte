@@ -15,7 +15,7 @@
   let error = false;
   const handleInput = () => {
     error = false;
-    onInput && onInput();
+    if (onInput) onInput();
   };
 
   const handleSubmit = async () => {

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
+  import { setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
+  import { onMount } from "svelte";
   import RootHeading from "../components/atomic/RootHeading/RootHeading.svelte";
   import type { PageData } from "./$types.js";
-  import { onMount } from "svelte";
-  import { setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
+  import { fade } from "svelte/transition";
 
   export let data: PageData;
 

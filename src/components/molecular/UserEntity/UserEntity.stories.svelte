@@ -3,7 +3,7 @@
   import type { ComponentProps } from "svelte";
   import type { EntitySize, RemoveIndexSignature } from "../../../types";
   import { avatarTypes } from "../../story-helpers/avatarSrc";
-  import UserEntityComponent from "./UserEntity.svelte";
+  import UserEntityComponent, { sizeVariants } from "./UserEntity.svelte";
 
   type CustomProps = RemoveIndexSignature<ComponentProps<UserEntityComponent>> & {
     avatarType: keyof typeof avatarTypes;
@@ -21,7 +21,13 @@
       avatarType: { control: "radio", options: ["empty", "transparentBg", "full"] },
       containerWidth: { control: { type: "range", max: 100, min: 10, step: 5 } },
       slotContent: { control: "boolean" },
-      ...sizeArgTypes
+      sizeVariant: {
+        control: "radio",
+        options: sizeVariants,
+        description: `Size property can be given as one of the ${(sizeVariants as string[]).join(", ")} keywords.`
+      },
+      sizeNumber: { control: "number", description: "Size prop can also be given as a number" },
+      size: { table: { disable: true } }
     },
     args: { handleSelect: fn() }
   };
@@ -30,7 +36,6 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import { fn } from "@storybook/test";
-  import { sizeArgTypes } from "../../story-helpers/sizeHandler";
   const assertArgs = (args: unknown) => args as CustomProps;
   const args = {
     containerWidth: 20,

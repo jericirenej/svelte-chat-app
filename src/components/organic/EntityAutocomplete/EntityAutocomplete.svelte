@@ -12,7 +12,6 @@
 
   const handleSearch = async (term: string) => {
     const result = await searchUsers(term);
-    console.log(result);
     entities = result;
   };
 
