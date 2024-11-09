@@ -58,11 +58,6 @@ export const userMap = derived(
         });
       return map;
     });
-    /* return new Map(
-      Object.values($chats)
-        .filter((c): c is SingleChatData => !!c)
-        .flatMap(({ participants }) => participants.map((p) => [p.id, p]))
-    ); */
   },
   new Map<string, ParticipantData>()
 );
