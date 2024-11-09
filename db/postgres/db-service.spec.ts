@@ -98,7 +98,9 @@ describe("DatabaseService", () => {
         userProps.forEach((key) => {
           const createVal = firstUser[key];
 
-          createVal && expect(user[key]).toEqual(firstUser[key]);
+          if (createVal) {
+            expect(user[key]).toEqual(firstUser[key]);
+          }
         });
       });
       it("Should create user with just required properties", async () => {
@@ -416,8 +418,13 @@ describe("DatabaseService", () => {
         ];
         for (const { search, expected } of testCases) {
           const searchResult = await service.searchForUsers(search);
-          expect(searchResult.length).toBe(expected);
+          expect(searchResult).toHaveLength(expected);
         }
+      });
+      it("Filters out users that match excludedIds", async () => {
+        const searchResult = await service.searchForUsers("doe", [firstCreated.id]);
+        expect(searchResult).toHaveLength(1);
+        expect(searchResult[0].id).toBe(secondCreated.id);
       });
     });
   });

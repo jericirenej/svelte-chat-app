@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-throw-literal */
 import { error } from "@sveltejs/kit";
 import { Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
@@ -99,9 +98,9 @@ export class DatabaseService implements AsyncDisposable {
     return credentials;
   }
 
-  async searchForUsers(search: string): Promise<CompleteUserDto[]> {
+  async searchForUsers(search: string, excludedIds?: string[]): Promise<CompleteUserDto[]> {
     const props = ["name", "surname", "username"] satisfies (keyof User)[];
-    return await this.db
+    let baseQuery = this.db
       .selectFrom("user")
       .leftJoin("admin", "admin.id", "user.id")
       .selectAll("user")
@@ -116,8 +115,14 @@ export class DatabaseService implements AsyncDisposable {
           .end()
           .as("role")
       )
-      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(`user.${prop}`), "ilike", `%${search}%`))))
-      .execute();
+      .where((eb) =>
+        eb.or(props.map((prop) => eb(eb.ref(`user.${prop}`), "ilike", `%${search}%`)))
+      );
+    if (excludedIds?.length) {
+      baseQuery = baseQuery.where("user.id", "not in", excludedIds);
+    }
+
+    return await baseQuery.execute();
   }
 
   /** Update user properties. Overriding id's is forbidden.*/
@@ -663,7 +668,7 @@ export class DatabaseService implements AsyncDisposable {
   /* ----- UTILITY METHODS ----- */
 
   /** Prevent external modification of base table columns, such as `id`, `createdDate`, `updatedDate` */
-  #forbidBaseColumns<T extends Record<string, unknown>>(arg: T): void {
+  #forbidBaseColumns(arg: Record<string, unknown>): void {
     const baseColumns: BaseTableColumns[] = ["createdAt", "id", "updatedAt"];
     if (baseColumns.some((col) => col in arg)) {
       return throwHttpError(
