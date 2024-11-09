@@ -7,6 +7,7 @@ import { genPassword } from "../../../utils/generate-password.js";
 import { baseDate, createEmail, createUserId, v5 } from "../../../utils/users.js";
 import type { Admin, Auth, Chat, DB, Message, Participant, User } from "../db-types.js";
 import type { XOR } from "../types.js";
+import { randomPick } from "../tools/utils.js";
 
 const { timestamp, printf, align } = format;
 
@@ -21,7 +22,9 @@ const logForm = format.combine(
 
 const forceNull = <T>(value: T): NonNullable<T> | null => (!value ? null : value);
 const isEven = (num: number): boolean => num % 2 === 0;
-export const pickUser = <T>(num: number, user1: T, user2: T): T => (isEven(num) ? user1 : user2);
+export const evenUserPick = <T>(num: number, user1: T, user2: T): T =>
+  isEven(num) ? user1 : user2;
+export const randomUserPick = <T>(...users: T[]) => randomPick(users);
 
 export type CreateUserArg = Partial<Pick<User, "id" | "avatar" | "surname" | "name">> & {
   username: string;
