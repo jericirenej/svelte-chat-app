@@ -48,7 +48,8 @@
     <span
       bind:this={span}
       style:font-size={textSizeStyle}
-      class={`overflow-hidden text-ellipsis whitespace-nowrap ${textSize}`}>{entity.name}</span
+      class={`overflow-hidden text-ellipsis whitespace-nowrap bg-inherit text-inherit ${textSize}`}
+      >{entity.name}</span
     >
   </button>
   <!-- Add additional elements, like delete controls, etc. -->

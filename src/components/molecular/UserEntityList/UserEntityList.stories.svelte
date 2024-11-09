@@ -26,14 +26,8 @@
       containerWidth: {
         control: { type: "range", max: 100, min: 10, step: 5 }
       },
-      show: { control: "boolean" }
-    },
-    args: {
-      containerWidth: 25,
-      show: true,
-      removeCallback: false,
-      handleSelect: fn(),
-      removeAction: fn()
+      show: { control: "boolean" },
+      colorTheme: { control: "inline-radio", options: ["light", "dark"] }
     }
   };
 </script>
@@ -56,13 +50,14 @@
 </script>
 
 <Template let:args>
-  {@const { containerWidth, show, removeCallback, handleSelect } = assertArgs(args)}
+  {@const { containerWidth, show, removeCallback, handleSelect, colorTheme } = assertArgs(args)}
   <div>
     <div class="border-[1px] border-neutral-200" style:width={width(containerWidth)}>
       <UserEntityListComponent
         entities={show ? entities : []}
         removeAction={removeCallback ? removeAction : undefined}
         {handleSelect}
+        {colorTheme}
       />
     </div>
     <div class="ml-auto mt-2">
@@ -73,4 +68,14 @@
   </div>
 </Template>
 
-<Story name="UserEntityList" />
+<Story
+  name="UserEntityList"
+  args={{
+    containerWidth: 25,
+    show: true,
+    removeCallback: false,
+    colorTheme: "light",
+    handleSelect: fn(),
+    removeAction: fn()
+  }}
+/>

@@ -8,9 +8,10 @@
   const duration = 20;
   export let entities: Entity[];
   export let removeAction: ((id: string) => unknown) | undefined = undefined;
-  export let handleSelect: (id: string) => unknown = (id) => {
-    id;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  export let handleSelect: (id: string) => unknown = (_id) => {};
+  export let colorTheme: "dark" | "light" = "light";
+  $: hover = `hover:${colorTheme === "light" ? "bg-slate-300" : "bg-slate-700"}`;
 </script>
 
 <ul class="flex list-none flex-col">
@@ -18,7 +19,7 @@
     <li
       in:slide|global={{ duration, delay: i * (duration / 2) }}
       out:slide|global={{ duration, delay: (entities.length - i - 1) * duration }}
-      class="cursor-default p-2 transition-colors hover:bg-slate-300"
+      class={`"cursor-default p-2 transition-colors ${hover}`}
     >
       <UserEntity {entity} {handleSelect} size="base">
         {#if removeAction}
