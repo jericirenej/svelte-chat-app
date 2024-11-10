@@ -38,6 +38,8 @@
     use:typeAction
     bind:value
     placeholder={placeholder.length ? placeholder : label}
+    on:blur
+    on:focus
     on:blur={() => (isControlValid = ref.validity.valid)}
     on:input={input}
     {disabled}
