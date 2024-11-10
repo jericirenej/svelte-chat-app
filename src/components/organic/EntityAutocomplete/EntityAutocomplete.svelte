@@ -1,30 +1,51 @@
 <script lang="ts">
-  import UserEntityList from "../../molecular/UserEntityList/UserEntityList.svelte";
-  import Search from "../../molecular/Search/Search.svelte";
   import { ENTITY_LIST } from "../../../messages";
   import type { Entity } from "../../../types";
+  import Search from "../../molecular/Search/Search.svelte";
+  import UserEntityList from "../../molecular/UserEntityList/UserEntityList.svelte";
 
-  const { searchLabel: label, searchPlaceholder: placeholder } = ENTITY_LIST;
+  export let label = ENTITY_LIST.searchLabel;
   export let searchUsers: (term: string) => Promise<Entity[]>;
-  export let pickUser: (id: string) => unknown;
+  export let pickUser: (entity: Entity) => unknown;
 
   let entities: Entity[] = [];
+  let search: string = "";
+  let showList = true;
+  let ref: HTMLDivElement;
 
   const handleSearch = async (term: string) => {
     const result = await searchUsers(term);
     entities = result;
   };
+  let clear: () => void;
 
-  const handleSelect = (id: string) => {
-    pickUser(id);
+  const handleSelect = (entity: Entity) => {
+    pickUser(entity);
     entities = [];
+    clear();
   };
 </script>
 
-<Search searchCb={handleSearch} {label} {placeholder} name="user-search">
-  {#if entities.length}
-    <div class="rounded-b-md border-[1px] border-t-0 border-neutral-400">
-      <UserEntityList {entities} {handleSelect} />
-    </div>
-  {/if}
-</Search>
+<svelte:window
+  on:click={(ev) => {
+    showList = ev.composedPath().includes(ref);
+  }}
+/>
+<div bind:this={ref} class="autocomplete-wrapper">
+  <Search
+    searchCb={handleSearch}
+    {label}
+    placeholder={ENTITY_LIST.searchPlaceholder}
+    {search}
+    bind:clear
+    name="user-search"
+  >
+    {#if entities.length && showList}
+      <div
+        class="absolute left-0 top-full z-20 w-full rounded-b-md border-[1px] border-t-0 border-neutral-400 bg-neutral-50"
+      >
+        <UserEntityList {entities} {handleSelect} />
+      </div>
+    {/if}
+  </Search>
+</div>

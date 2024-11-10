@@ -27,6 +27,7 @@
         control: { type: "range", max: 100, min: 10, step: 5 }
       },
       show: { control: "boolean" },
+      animationDuration: { control: "number" },
       colorTheme: { control: "inline-radio", options: ["light", "dark"] }
     }
   };
@@ -50,7 +51,8 @@
 </script>
 
 <Template let:args>
-  {@const { containerWidth, show, removeCallback, handleSelect, colorTheme } = assertArgs(args)}
+  {@const { containerWidth, show, removeCallback, handleSelect, animationDuration, colorTheme } =
+    assertArgs(args)}
   <div>
     <div class="border-[1px] border-neutral-200" style:width={width(containerWidth)}>
       <UserEntityListComponent
@@ -58,6 +60,7 @@
         removeAction={removeCallback ? removeAction : undefined}
         {handleSelect}
         {colorTheme}
+        {animationDuration}
       />
     </div>
     <div class="ml-auto mt-2">
@@ -74,6 +77,7 @@
     containerWidth: 25,
     show: true,
     removeCallback: false,
+    animationDuration: 25,
     colorTheme: "light",
     handleSelect: fn(),
     removeAction: fn()

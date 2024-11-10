@@ -20,7 +20,7 @@
 
   export let entity: Entity;
   export let size: EntitySize = "xs";
-  export let handleSelect: (id: string) => unknown;
+  export let handleSelect: (entity: Entity) => unknown;
 
   let span: HTMLSpanElement | undefined;
   const getSize = () => {
@@ -36,11 +36,11 @@
   });
 </script>
 
-<div class="flex items-center justify-between">
+<div class="flex items-center justify-between bg-inherit">
   <button
     type="button"
     class="flex min-w-0 flex-grow items-center gap-2"
-    on:click={() => handleSelect(entity.id)}
+    on:click={() => handleSelect(entity)}
   >
     <div>
       <Avatar name={entity.name} src={entity.avatar} size={avatarSize} />

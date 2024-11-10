@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
   import type { ComponentProps } from "svelte";
+  import { searchUsers } from "../../story-helpers/createChat";
   import EntityAutocompleteComponent from "./EntityAutocomplete.svelte";
 
   type CustomProps = RemoveIndexSignature<ComponentProps<EntityAutocompleteComponent>> & {
@@ -14,43 +15,32 @@
         control: { type: "range", max: 100, min: 10, step: 5 }
       },
       pickUser: { table: { disable: true } },
-      searchUsers: { table: { disable: true } }
+      searchUsers: { table: { disable: true } },
+
+      label: { control: "text" }
     },
     args: {
       containerWidth: 30,
-      pickUser: (id: string) => {
-        id;
-      },
-
-      searchUsers: async (term: string) =>
-        Promise.resolve(
-          USERS_WITH_ID.filter((u) =>
-            [u.username, u.name, u.surname]
-              .map((val) => val.toLowerCase())
-              .some((val) => !!term && val.includes(term.toLowerCase()))
-          ).map(({ id, name, surname }, i) => ({
-            id,
-            name: `${name} ${surname}`,
-            avatar: assignAvatar(i)
-          }))
-        )
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      pickUser: (_entity: Entity) => {},
+      label: ENTITY_LIST.searchLabel,
+      searchUsers
     }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { USERS_WITH_ID } from "@utils/users";
-  import type { RemoveIndexSignature } from "../../../types";
-  import { assignAvatar } from "../../story-helpers/avatarSrc";
+  import type { Entity, RemoveIndexSignature } from "../../../types";
+  import { ENTITY_LIST } from "../../../messages";
   const width = (arg: number) => `${arg}%`;
   const assertArgs = (args: unknown) => args as CustomProps;
 </script>
 
 <Template let:args>
-  {@const { containerWidth, pickUser, searchUsers } = assertArgs(args)}
+  {@const { containerWidth, ...rest } = assertArgs(args)}
   <div style:width={width(containerWidth)}>
-    <EntityAutocompleteComponent {pickUser} {searchUsers} />
+    <EntityAutocompleteComponent {...rest} />
   </div>
 </Template>
 
