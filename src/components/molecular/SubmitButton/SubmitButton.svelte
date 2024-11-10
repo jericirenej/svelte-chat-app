@@ -9,6 +9,7 @@
     type ButtonVariant
   } from "../../atomic/Button/Button.svelte";
   import LoadOverlay from "../../atomic/LoadOverlay/LoadOverlay.svelte";
+  import SubmitMessages from "../../atomic/SubmitMessages/SubmitMessages.svelte";
   export let isLoading = false;
   export let config: Partial<{
     variant: ButtonVariant;
@@ -56,23 +57,10 @@
     </div>
   </Button>
   {#if showNotification}
-    <div
-      transition:fade={{ duration: 150 }}
-      class={`
-      top-100 absolute left-0 flex
-      w-full flex-col gap-1
-      ${config.display === "block" ? "text-center" : "text-left"}
-      select-none
-      overflow-hidden
-      text-ellipsis
-      whitespace-nowrap
-      text-sm
-      ${submitStatus === "success" ? "text-emerald-600" : "text-red-600"}
-`}
-    >
-      {#each messages as message}
-        <small>{message}</small>
-      {/each}
-    </div>
+    <SubmitMessages
+      alignment={config.display === "block" ? "center" : "left"}
+      {messages}
+      success={submitStatus === "success"}
+    />
   {/if}
 </div>

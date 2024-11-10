@@ -81,6 +81,7 @@
     "@iconify/icons-iconoir": "^1.2.30",
     "@iconify/svelte": "^3.1.4",
     "@storybook/test": "^8.0.9",
+    "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
