@@ -1,4 +1,6 @@
+import { throwOnTruthy } from "$lib/utils";
 import { ZodIssueCode, z } from "zod";
+import { LENGTH_ERR_MESSAGES } from "../../messages";
 
 export const USERNAME_MIN = 5,
   PASSWORD_MIN = 8,
@@ -9,8 +11,7 @@ const errorMessages = {
   password: "Please supply a password",
   email: "Please supply a valid email address",
   verify: "Password values must match",
-  overMax: (val: number) => `A maximum of ${val} characters permitted.`,
-  underMin: (val: number) => `Should contain at least ${val} characters.`
+  ...LENGTH_ERR_MESSAGES
 };
 
 const username = (msg?: string) => z.string().min(1, msg ?? errorMessages.username),
@@ -45,7 +46,7 @@ if (import.meta.vitest) {
     passwordPath = "password",
     email = "some.email@somewhere.com";
   describe("Login form validator", () => {
-    it("LoginSchema should throw if password and / or username are not supplied", () => {
+    it("Throws if password and / or username are not supplied", () => {
       const testCases: {
         schema: [string, string];
         err: Map<string, string>;
@@ -87,7 +88,7 @@ if (import.meta.vitest) {
     });
   });
   describe("Signup validator schema", () => {
-    it("Verify password should throw if length is less than one", () => {
+    it("Throws if length is less than one", () => {
       const result = signupSchema.safeParse({
         username,
         password,
@@ -100,7 +101,7 @@ if (import.meta.vitest) {
       expect(path[0]).toBe("verifyPassword");
       expect(message).toBe(errorMessages.password);
     });
-    it("Signup schema should throw if password check does not match", () => {
+    it("Throws if password check does not match", () => {
       for (const verifyPassword of ["1", "invalid", password]) {
         const result = signupSchema.safeParse({
           username,
@@ -119,7 +120,7 @@ if (import.meta.vitest) {
         }
       }
     });
-    it("Signup schema should throw for invalid email", () => {
+    it("Throws for invalid email", () => {
       for (const emailVal of ["", "invalid", email]) {
         const result = signupSchema.safeParse({
           username,
@@ -137,7 +138,7 @@ if (import.meta.vitest) {
         }
       }
     });
-    it("Signup schema should throw if username is too short", () => {
+    it("Throws if username is too short", () => {
       const shortName = "sh";
       const result = signupSchema.safeParse({
         username: shortName,
@@ -145,15 +146,13 @@ if (import.meta.vitest) {
         verifyPassword: password,
         email
       });
-      if (result.success) {
-        throw new Error("Should have thrown!");
-      }
+      throwOnTruthy(result.success);
       expect(result.error.errors).toHaveLength(1);
       const { message, path } = result.error.errors[0];
       expect(path[0]).toBe("username");
       expect(message).toBe(errorMessages.underMin(USERNAME_MIN));
     });
-    it("Signup schema should throw if password is too short", () => {
+    it("Throws if password is too short", () => {
       const shortPassword = "sh";
       const result = signupSchema.safeParse({
         username,
@@ -161,9 +160,7 @@ if (import.meta.vitest) {
         verifyPassword: shortPassword,
         email
       });
-      if (result.success) {
-        throw new Error("Should have thrown!");
-      }
+      throwOnTruthy(result.success);
       expect(result.error.errors).toHaveLength(1);
       const { message, path } = result.error.errors[0];
       expect(path[0]).toBe("password");

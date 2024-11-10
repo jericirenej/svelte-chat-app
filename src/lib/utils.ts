@@ -56,3 +56,9 @@ export const participantName = ({ name, surname, username }: ParticipantData): s
   const val = [name, surname].filter(Boolean).join(" ");
   return val ? val : username;
 };
+
+export function throwOnTruthy(val: boolean): asserts val is false {
+  if (val) {
+    throw new Error("Should have been falsy!");
+  }
+}

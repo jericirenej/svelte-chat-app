@@ -4,7 +4,7 @@ import { dbService } from "@db/postgres/db-service.js";
 import { error, fail } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
-import { loginSchema } from "../../lib/client/login-signup-validators.js";
+import { loginSchema } from "../../lib/client/login-signup.validators.js";
 import { VERIFICATION_FAILURE, verifyUser } from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
 

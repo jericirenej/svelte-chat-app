@@ -8,7 +8,7 @@
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
   import { SIGNUP_ROUTE } from "../../constants";
-  import { loginSchema } from "../../lib/client/login-signup-validators.js";
+  import { loginSchema } from "../../lib/client/login-signup.validators.js";
   import { LOGIN_MESSAGES } from "../../messages";
   import type { PageData } from "./$types.js";
   import { zodClient } from "sveltekit-superforms/adapters";

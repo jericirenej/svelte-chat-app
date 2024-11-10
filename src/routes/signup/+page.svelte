@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
-  import { signupSchema } from "$lib/client/login-signup-validators";
+  import { signupSchema } from "$lib/client/login-signup.validators";
   import { handleLoginResult } from "$lib/client/session-handlers";
   import { debounce, promisifiedTimeout } from "$lib/utils";
   import { onMount } from "svelte";

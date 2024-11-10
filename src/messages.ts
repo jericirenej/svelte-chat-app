@@ -89,3 +89,8 @@ export const ENTITY_LIST = {
   searchLabel: "User search",
   searchPlaceholder: "Search for users"
 };
+
+export const LENGTH_ERR_MESSAGES = {
+  overMax: (val: number) => `A maximum of ${val} characters permitted.`,
+  underMin: (val: number) => `Should contain at least ${val} characters.`
+};
