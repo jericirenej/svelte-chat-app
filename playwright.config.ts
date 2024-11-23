@@ -10,7 +10,7 @@ const config: PlaywrightTestConfig = {
   workers: WORKERS,
   retries: 1,
   timeout: 15e3,
-  projects: [{ name: "chrome", use: { ...devices["Desktop Chrome"] } }],
+  projects: [{ name: "chrome", use: { ...devices["Desktop Chrome"], channel: "chromium" } }],
 
   testMatch: /(.+\.)?spec\.ts/
 };
