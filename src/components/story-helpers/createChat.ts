@@ -1,5 +1,5 @@
 import { USERS_WITH_ID } from "@utils/users";
-import { assignAvatar } from "./avatarSrc";
+import { assignAvatar } from "../../../utils/avatarSrc";
 
 export const searchUsers = async (term: string, excludedIds?: string[]) => {
   return Promise.resolve(
