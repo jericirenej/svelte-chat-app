@@ -9,7 +9,7 @@
   export let handleLogout: () => Promise<void>;
 
   const classes = {
-    li: "border-b border-r transition-[color,_background-color] first:rounded-tl-md last:border-r-0 hover:bg-neutral-100 hover:text-slate-700",
+    li: "border-t border-r transition-[color,_background-color] first:rounded-bl-md last:border-r-0 hover:bg-neutral-100 hover:text-slate-700",
     icon: "inline-block aspect-square text-3xl",
     anchorOrButton:
       "group flex py-2 w-full items-center justify-center hover:bg-neutral-100 hover:text-slate-700 rounded-[inherit]",

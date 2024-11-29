@@ -1,5 +1,5 @@
 export type ChatPreviewProp = {
   chatId: string;
   chatLabel: string;
-  message: string;
+  message: string | undefined;
 };

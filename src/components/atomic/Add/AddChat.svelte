@@ -7,10 +7,17 @@
   $: sizePixels = `${size}px`;
 </script>
 
-<button {disabled} {title} on:click on:pointerdown class="cursor-pointer">
+<button
+  {disabled}
+  {title}
+  type="button"
+  on:click
+  on:pointerdown
+  class="cursor-pointer hover:brightness-110"
+>
   <Icon
     icon={AddIcon}
-    class="pointer-events-none text-current"
+    class="pointer-events-none text-current "
     width={sizePixels}
     height={sizePixels}
   />

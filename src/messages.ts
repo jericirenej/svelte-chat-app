@@ -90,7 +90,18 @@ export const ENTITY_LIST = {
   searchPlaceholder: "Search for users"
 };
 
+export const CREATE_CHAT = {
+  pageTitle: `${APP_NAME} - New chat`,
+  title: "Create new chat",
+  chatLabel: "Label (Optional)",
+  submitText: "Create chat",
+  supplyDetailsTitle: "Pick at least one chat participant. Add optional chat label."
+};
+
 export const LENGTH_ERR_MESSAGES = {
   overMax: (val: number) => `A maximum of ${val} characters permitted.`,
   underMin: (val: number) => `Should contain at least ${val} characters.`
 };
+
+export const PREVIEW_LIST_TITLE = "Chats";
+export const PREVIEW_LIST_EMPTY = "No active chats. Go and talk to someone!";

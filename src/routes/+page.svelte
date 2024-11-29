@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
+  import { setPreviewAndUnreadOnLoad } from "$lib/client/chat-handlers";
   import { onMount } from "svelte";
   import RootHeading from "../components/atomic/RootHeading/RootHeading.svelte";
   import type { PageData } from "./$types.js";

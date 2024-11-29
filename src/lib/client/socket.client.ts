@@ -5,13 +5,14 @@ import { get } from "svelte/store";
 import { CSRF_HEADER, EXPIRE_SESSION_WARNING_BUFFER, WEBSOCKET_PATH } from "../../constants";
 import { NOTIFICATION_MESSAGES } from "../../messages";
 import { handleExtendCall, setRedirectAfterExpire } from "./session-handlers";
-import { notificationStore } from "./stores";
+import { chatPreviews, notificationStore } from "./stores";
 
 import {
   updateAfterChatLeftNotification,
   updateOnMessagePush,
   updateUsersTyping
-} from "./message-handlers";
+} from "./chat-handlers";
+import type { LayoutChats } from "../../types";
 
 const getOrigin = (): string => get(page).url.origin;
 
@@ -51,6 +52,21 @@ export const socketClientSetup = (csrfToken: string, socketUIserName?: string): 
 
   socket.on("participantLeftChat", async (...args) => {
     await updateAfterChatLeftNotification(...args);
+  });
+
+  socket.on("chatCreated", (id, chatLabel, participants) => {
+    chatPreviews.update((previews) => {
+      return [
+        {
+          chatId: id,
+          chatLabel,
+          participants,
+          message: undefined,
+          totalMessages: 0
+        } as LayoutChats,
+        ...previews
+      ];
+    });
   });
 
   return socket;

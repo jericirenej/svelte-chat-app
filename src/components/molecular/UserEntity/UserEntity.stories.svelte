@@ -2,7 +2,7 @@
   import type { Meta } from "@storybook/svelte";
   import type { ComponentProps } from "svelte";
   import type { EntitySize, RemoveIndexSignature } from "../../../types";
-  import { avatarTypes } from "../../story-helpers/avatarSrc";
+  import { avatarTypes } from "../../../../utils/avatarSrc";
   import UserEntityComponent, { sizeVariants } from "./UserEntity.svelte";
 
   type CustomProps = RemoveIndexSignature<ComponentProps<UserEntityComponent>> & {

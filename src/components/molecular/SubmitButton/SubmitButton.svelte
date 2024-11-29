@@ -40,7 +40,7 @@
     {title}
   >
     <div class="flex justify-center">
-      <div class="relative flex px-3" style:width={`${text.length + 3}ch`}>
+      <div class="relative flex px-3" style:width={`${text.length + 4}ch`}>
         <span
           class="leading-1 relative inline-block text-sm transition {isLoading
             ? '-translate-x-2'

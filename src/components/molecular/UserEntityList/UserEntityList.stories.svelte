@@ -38,7 +38,7 @@
   import { USERS_WITH_ID } from "@utils/users";
   import Button from "../../atomic/Button/Button.svelte";
   import { fn } from "@storybook/test";
-  import { assignAvatar } from "../../story-helpers/avatarSrc";
+  import { assignAvatar } from "../../../../utils/avatarSrc";
   const assertArgs = (args: unknown) => args as CustomProps;
   const width = (arg: number) => `${arg}%`;
   let entities = JSON.parse(JSON.stringify(entitiesArr)) as typeof entitiesArr;

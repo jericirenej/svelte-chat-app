@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { loadPrevious, sendMessage } from "$lib/client/message-handlers";
+  import { loadPrevious, sendMessage } from "$lib/client/chat-handlers";
 
   import {
     chats,
@@ -13,6 +13,7 @@
   import { type Unsubscriber } from "svelte/store";
   import ChatContainer from "../../../components/organic/ChatContainer/ChatContainer.svelte";
   import type { PageData } from "./$types";
+  import { fade } from "svelte/transition";
 
   export let data: PageData;
 
@@ -69,7 +70,7 @@
   <title>{data.chats?.find((c) => c.chatId === chatId)?.chatLabel}</title>
 </svelte:head>
 {#if target}
-  <div class="w-full px-4 pb-5">
+  <div in:fade class="mb-5 mt-6 w-full px-4">
     <ChatContainer
       data={target}
       userId={data.user.id}

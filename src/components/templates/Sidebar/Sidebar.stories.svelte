@@ -35,38 +35,56 @@
       handleChatDelete: { table: { disable: true } },
       onActivateHandler: { table: { disable: true } },
       routeId: { table: { disable: true } },
-      chatUnreadList: { table: { disable: true } }
+      chatUnreadList: { table: { disable: true } },
+      handleChatCreate: { table: { disable: true } }
     }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-
+  let ref: HTMLInputElement;
+  let value = chatPreviewList.length;
+  $: slicedPreviews = chatPreviewList.slice(0, value);
   const assertArgs = (args: unknown) => args as Props;
 </script>
 
 <Template let:args>
   {@const { containerHeight, containerWidth, activeUsers, ...rest } = assertArgs(args)}
-  <div
-    class="overflow-auto"
-    style:width={`${containerWidth}px`}
-    style:height={`${containerHeight}vh`}
-  >
-    <SidebarComponent {...rest} usersTyping={simulateUsersTyping(activeUsers)} />
+  <div class="flex gap-8">
+    <div style:width={`${containerWidth}px`} style:height={`${containerHeight}vh`}>
+      <SidebarComponent
+        {...rest}
+        chatPreviewList={slicedPreviews}
+        usersTyping={simulateUsersTyping(activeUsers)}
+      />
+    </div>
+    <div class="flex flex-col justify-center self-start">
+      <label class="flex flex-col">
+        <span>Number of chats: {value}</span>
+        <input
+          bind:this={ref}
+          type="range"
+          max={chatPreviewList.length}
+          min="0"
+          class="self-start"
+          bind:value
+        />
+      </label>
+    </div>
   </div>
 </Template>
 
 <Story
   name="Sidebar"
   args={{
-    chatPreviewList,
     chatUnreadList,
     containerWidth: 350,
     containerHeight: 100,
     activeUsers: [],
     handleChatDelete: fn(),
     handleLogout: fn(),
-    onActivateHandler: fn()
+    onActivateHandler: fn(),
+    handleChatCreate: fn()
   }}
 />

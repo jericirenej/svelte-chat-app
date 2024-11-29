@@ -4,10 +4,10 @@
   import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
 
   export let chatLabel: string;
-  export let message: string;
+  export let message: string | undefined;
   export let labelOverride: string | undefined = undefined;
   export let unreadMessages: number;
-  $: previewMessage = labelOverride ? labelOverride : message;
+  $: previewMessage = labelOverride ? labelOverride : message ?? "No messages yet...";
   export let onDelete: () => unknown;
 </script>
 

@@ -1,5 +1,5 @@
 import { goto, invalidateAll } from "$app/navigation";
-import type { ActionResult } from "@sveltejs/kit";
+import type { ActionResult, SubmitFunction } from "@sveltejs/kit";
 import {
   DELETE_ACCOUNT_ROUTE,
   EXPIRE_SESSION_WARNING_BUFFER,
@@ -106,6 +106,18 @@ export const handleLoginResult = (event: FormEventType): number | undefined => {
   }
 
   return result.status;
+};
+
+export const createChatCall = async (input: Parameters<SubmitFunction>[0]) => {
+  const csrf = getCSRFLocal();
+  if (!csrf) return new Response();
+  const response = await fetch(input.action, {
+    method: "POST",
+    headers: csrfHeader(csrf),
+    body: input.formData
+  });
+  await handleNotification({ response });
+  return response;
 };
 
 const extendCall = (csrf: string) =>

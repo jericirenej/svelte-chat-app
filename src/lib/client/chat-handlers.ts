@@ -1,5 +1,7 @@
-import { goto } from "$app/navigation";
+import { goto, invalidate } from "$app/navigation";
 import { page } from "$app/stores";
+import type { UsersTypingArgs } from "$lib/socket.types";
+import { participantName } from "$lib/utils";
 import type { MessageDto } from "@db/postgres";
 import { get } from "svelte/store";
 import { CHAT_ROUTE, MESSAGE_TAKE, ROOT_ROUTE } from "../../constants";
@@ -17,10 +19,8 @@ import {
   userMap,
   usersTyping
 } from "./stores";
-import type { UsersTypingArgs } from "$lib/socket.types";
 import { handleUsers } from "./typing-users-handler";
-import { participantName } from "$lib/utils";
-
+export const LAYOUT_INVALIDATE = "app:user:chats";
 export const currentChatId = () => get(page).params["chatId"] as string | undefined;
 export const getChatHref = (chatId: string) => [get(page).url.origin, "api/chat", chatId].join("/");
 export const getChatExistsHref = (chatId: string) => [getChatHref(chatId), "exists"].join("/");
@@ -227,4 +227,32 @@ export const removeChat = async (chatId: string, participantId: string): Promise
   await handleNotification({ response, successMsg: NOTIFICATION_MESSAGES.leftChatSuccess });
   get(socket)?.emit("participantLeftChat", chatId, participantId);
   updateAfterLeavingChat(chatId);
+  await invalidate(LAYOUT_INVALIDATE);
+  if (get(page).url.href.includes(chatId)) {
+    await goto(ROOT_ROUTE);
+  }
+};
+
+export const createChatHandler = async (
+  chatId: string,
+  chatLabel: string,
+  participants: ParticipantData[]
+) => {
+  chatPreviews.update((previews) => {
+    return [
+      {
+        chatId,
+        chatLabel,
+        participants,
+        message: undefined,
+        totalMessages: 0
+      } as LayoutChats,
+      ...previews
+    ];
+  });
+  const clientSocket = get(socket);
+  if (clientSocket) {
+    clientSocket.emit("chatCreated", chatId, chatLabel, participants);
+  }
+  await goto(`${CHAT_ROUTE}/${chatId}`);
 };

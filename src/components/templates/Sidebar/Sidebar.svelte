@@ -5,13 +5,19 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
-  import { CONVERSATION_MESSAGES } from "../../../messages";
+  import {
+    CONVERSATION_MESSAGES,
+    CREATE_CHAT,
+    PREVIEW_LIST_EMPTY,
+    PREVIEW_LIST_TITLE
+  } from "../../../messages";
   import type { UnreadChatMessages, UsersTyping } from "../../../types";
   import NavIcons from "../../molecular/NavIcons/NavIcons.svelte";
   import ChatPreviewList from "../../organic/ChatPreviewList/ChatPreviewList.svelte";
   import type { ChatPreviewProp } from "../../organic/ChatPreviewList/types";
   import Dialog from "../../organic/Dialog/Dialog.svelte";
   import { debounce } from "$lib/utils";
+  import AddChat from "../../atomic/Add/AddChat.svelte";
 
   export let chatPreviewList: ChatPreviewProp[];
   export let chatUnreadList: UnreadChatMessages;
@@ -21,6 +27,7 @@
   export let onActivateHandler: (chatId: string) => void;
   export let handleLogout: () => Promise<void>;
   export let handleChatDelete: (chatId: string) => Promise<void>;
+  export let handleChatCreate: () => void;
   let showLeaveChatDialog = false,
     leaveChatTarget: string | null = null,
     previewRef: HTMLDivElement | undefined,
@@ -35,6 +42,12 @@
     chatTransparencyMask =
       previewRef.scrollTop + previewRef.clientHeight !== previewRef.scrollHeight;
   }, 30);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handlePreviewChange = (_length: number) => {
+    handleScroll();
+  };
+  $: handlePreviewChange(chatPreviewList.length);
   onMount(() => {
     handleScroll();
   });
@@ -42,17 +55,18 @@
 
 <svelte:window on:resize={handleScroll} />
 <div
-  class="sidebar h-full w-full rounded-s-md bg-slate-700 text-neutral-50 transition-max-width duration-500"
+  class="flex h-full w-full flex-col rounded-md bg-slate-700 text-neutral-50 transition-max-width duration-500"
   style:min-width="350px"
   style:max-width="max(500px, 25%)"
 >
-  <nav>
-    <NavIcons {routeId} {handleLogout} />
-  </nav>
+  <div class="my-5 ml-3 mr-4 flex shrink-0 justify-between text-neutral-200">
+    <h2 class="select-none text-right text-xl uppercase">{PREVIEW_LIST_TITLE}</h2>
+    <AddChat disabled={false} on:click={handleChatCreate} title={CREATE_CHAT.title} />
+  </div>
   {#if chatPreviewList.length}
     <div
       bind:this={previewRef}
-      class="mt-5 max-h-[75%] overflow-y-auto bg-slate-700"
+      class="max-h-[85%] overflow-y-auto rounded-[inherit] bg-slate-700"
       class:chat-previews={chatTransparencyMask}
       on:scroll={handleScroll}
     >
@@ -66,9 +80,15 @@
       />
     </div>
     <div class="pb-10"></div>
+  {:else}
+    <p class="ml-3">{PREVIEW_LIST_EMPTY}</p>
   {/if}
+  <nav class="mt-auto shrink-0">
+    <NavIcons {routeId} {handleLogout} />
+  </nav>
 </div>
 
+<!-- Dialog for confirming chat leave action -->
 <Dialog
   bind:open={showLeaveChatDialog}
   confirmAction={async () => {

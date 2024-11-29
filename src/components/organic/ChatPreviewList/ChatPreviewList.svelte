@@ -31,7 +31,7 @@
 <ul>
   {#each chatPreviewList as { chatLabel, message, chatId } (chatId)}
     <li
-      class="b border-b-[1px] border-t-[1px] py-4 pl-0 pr-2 hover:bg-neutral-200 hover:bg-opacity-50"
+      class="border-b-[1px] py-4 pl-0 pr-2 hover:bg-neutral-200 hover:bg-opacity-50"
       class:active={active === chatId}
     >
       <div class="px-3">
@@ -56,9 +56,6 @@
 </ul>
 
 <style lang="css">
-  li:not(:first-child) {
-    border-top: none;
-  }
   .active {
     background-color: hsla(0deg, 0%, 85%, 75%);
   }

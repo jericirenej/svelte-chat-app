@@ -43,7 +43,7 @@
   import type { MessageDto } from "@db/postgres";
   import { USERS_WITH_ID } from "@utils/users";
   import { derived, writable, type Readable, type Writable } from "svelte/store";
-  import { assignAvatar } from "../../story-helpers/avatarSrc";
+  import { assignAvatar } from "../../../../utils/avatarSrc";
   import ChatStoryWrapper from "../../story-helpers/ChatStoryWrapper.svelte";
   import {
     baseMessages,

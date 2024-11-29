@@ -1,6 +1,6 @@
 import type { SocketServer } from "$lib/socket.types";
 import { dbService } from "@db/postgres/db-service";
-import { redisService } from "@db/redis";
+import { redisService } from "@db/redis/";
 import { CSRF_HEADER, SESSION_COOKIE, EXPIRE_SESSION_WARNING_BUFFER } from "../../constants";
 import { authenticateUserWS } from "./authenticate";
 
@@ -101,6 +101,23 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
         return;
       }
       socket.broadcast.to(chatId).emit("participantLeftChat", chatId, participantId);
+    });
+    socket.on("chatCreated", async (chatId, chatLabel, participants) => {
+      const sessionIds = (
+        await Promise.all(
+          participants.map(async ({ id }) => await redisService.getUserSessions(id))
+        )
+      ).flat();
+      const socketSessions = (
+        await Promise.all(sessionIds.map(async (id) => await redisService.getSocketSession(id)))
+      ).filter((socket): socket is string => socket !== null);
+      const sockets = (await socketServer.fetchSockets()).filter((socket) =>
+        socketSessions.includes(socket.id)
+      );
+      sockets.map((socket) => {
+        socket.join(chatId);
+      });
+      socket.to(chatId).emit("chatCreated", chatId, chatLabel, participants);
     });
   });
 };

@@ -11,7 +11,7 @@
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
   import { layoutOnMountHandler } from "$lib/client/layout-handlers";
-  import { removeChat, setPreviewAndUnreadOnLoad } from "$lib/client/message-handlers";
+  import { removeChat, setPreviewAndUnreadOnLoad } from "$lib/client/chat-handlers";
   import { handleLogoutCall } from "$lib/client/session-handlers";
   import { onMount } from "svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
@@ -33,6 +33,10 @@
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
   };
+
+  const handleChatCreate = async () => {
+    await goto("/create");
+  };
   onMount(() => {
     layoutOnMountHandler(data);
     setPreviewAndUnreadOnLoad(data);
@@ -40,7 +44,7 @@
 </script>
 
 <div class="flex h-screen w-screen items-center justify-center overflow-hidden bg-neutral-400">
-  {#key data.user}
+  {#key data.user?.id !== undefined}
     <div
       class="app relative flex h-[95vh] w-[95vw] max-w-[1900px] overflow-y-auto rounded-md bg-white"
       in:fade
@@ -54,6 +58,7 @@
           {handleChatDelete}
           onActivateHandler={navigateToChat}
           {handleLogout}
+          {handleChatCreate}
         />
       {/if}
       <slot />

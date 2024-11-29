@@ -35,7 +35,7 @@
     total={data.total}
     {loadPrevious}
   />
-  <div class="relative mt-6 pb-2">
+  <div class="relative">
     <div class="absolute bottom-[115%] right-16">
       <TypingIndicator {usersTyping} />
     </div>
