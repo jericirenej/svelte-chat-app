@@ -5,7 +5,7 @@
   type StoryProps = RemoveIndexSignature<ComponentProps<FormWrapperComponent>>;
 
   export const meta: Meta<StoryProps> = {
-    title: "Molecular/FormWrapper",
+    title: "Organic/FormWrapper",
     component: FormWrapperComponent,
     argTypes: {
       subtitle: { control: "text" },
