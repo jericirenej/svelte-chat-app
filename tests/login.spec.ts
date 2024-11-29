@@ -32,7 +32,9 @@ test("App should redirect to login if not authenticated", async ({
     await page.waitForLoadState("domcontentloaded");
     await page.goto(url);
     await expect(page).toHaveURL(LOGIN_ROUTE);
-    await page.screenshot({ path: `./tests/screenshots/login-${browserName}.png` });
+    await expect(page).toHaveScreenshot(`login-${browserName}.png`, {
+      fullPage: true
+    });
   }
 });
 

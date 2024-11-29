@@ -11,7 +11,7 @@ const config: PlaywrightTestConfig = {
   retries: 1,
   timeout: 15e3,
   projects: [{ name: "chrome", use: { ...devices["Desktop Chrome"], channel: "chromium" } }],
-
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.05 } },
   testMatch: /(.+\.)?spec\.ts/
 };
 

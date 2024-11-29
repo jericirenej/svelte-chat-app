@@ -26,8 +26,8 @@ test.beforeEach(async ({ seedDB }) => {
 
 test("Should display appropriate fields and data", async ({ page, locale }) => {
   await loginUserAndNavigate(page, user, password);
-  await expect(page.getByRole("heading")).toContainText("Profile");
-  await expect(page.getByRole("paragraph")).toContainText(user);
+  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
+  await expect(page.getByText(user, { exact: true })).toBeVisible();
   const dateFormat = new Intl.DateTimeFormat(locale);
   const data = [
     ["Id", target.id],
