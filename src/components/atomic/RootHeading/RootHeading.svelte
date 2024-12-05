@@ -8,7 +8,7 @@
 </script>
 
 <div class="inline-flex select-none gap-2">
-  <h1 class="text-5xl font-extralight uppercase text-sky-800">
+  <h1 class="text-5xl font-light uppercase text-sky-800">
     {heading}
   </h1>
   {#if showIcon}
