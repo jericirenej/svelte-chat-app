@@ -42,7 +42,7 @@ export type ChatSchema<T extends string> = {
   createdAt?: Date | string;
   /** Optionally supply a `createdDate` or an `afterPrevious` property. If none supplied,
    * a base message interval will be used to queue the new message. */
-  messages: Array<
+  messages?: Array<
     { username: T; message: string } & XOR<{
       createdAt?: Date | string;
       /** How many seconds after previous message the new one should be created */
@@ -52,7 +52,7 @@ export type ChatSchema<T extends string> = {
 };
 
 type CreateMessageTemplateArg<T extends string> = {
-  message: ChatSchema<T>["messages"][number];
+  message: Required<ChatSchema<T>>["messages"][number];
   prevMessage: Insertable<Message> | undefined;
   index: number;
   chatId: string;
@@ -61,8 +61,8 @@ type CreateMessageTemplateArg<T extends string> = {
 
 type ChatTemplate = {
   chat: Omit<Insertable<Chat>, "id"> & { id: string };
-  messages: Omit<Insertable<Message>, "chatId">[];
   participants: Insertable<Participant>[];
+  messages?: Omit<Insertable<Message>, "chatId">[];
 };
 
 export class SeederTemplateBuilder {
@@ -99,10 +99,7 @@ export class SeederTemplateBuilder {
   ): ChatTemplate {
     const id = v5("chat", chatIndex);
     this.minimumParticipants(participants);
-    this.messageVerify(
-      participants,
-      messages.map(({ username }) => username)
-    );
+    this.messageVerify(participants, messages ? messages.map(({ username }) => username) : []);
 
     const createdAt =
       createdDateArg ?? add(this.baseDate, { seconds: this.baseChatInterval * chatIndex });
@@ -115,17 +112,19 @@ export class SeederTemplateBuilder {
       ...dates
     }));
     const messagesTemplate: Insertable<Message>[] = [];
-    messages.forEach((message, index) => {
-      messagesTemplate.push(
-        this.createMessageTemplate({
-          message,
-          index,
-          chatDate: createdAt,
-          chatId: id,
-          prevMessage: messagesTemplate[index - 1]
-        })
-      );
-    });
+    if (messages?.length) {
+      messages.forEach((message, index) => {
+        messagesTemplate.push(
+          this.createMessageTemplate({
+            message,
+            index,
+            chatDate: createdAt,
+            chatId: id,
+            prevMessage: messagesTemplate[index - 1]
+          })
+        );
+      });
+    }
     return { chat, participants: chatParticipants, messages: messagesTemplate };
   }
   createMessageTemplate<T extends string>({
@@ -218,10 +217,12 @@ export class Seeder extends SeederTemplateBuilder {
       await this.db.transaction().execute(async (trx) => {
         await trx.insertInto("chat").values(chat).returningAll().execute();
         await trx.insertInto("participant").values(participants).returningAll().execute();
-        const completeMessages = messages.map(
-          (message) => ({ ...message, chatId: chat.id }) satisfies Insertable<Message>
-        );
-        await trx.insertInto("message").values(completeMessages).returningAll().execute();
+        if (messages?.length) {
+          const completeMessages = messages.map(
+            (message) => ({ ...message, chatId: chat.id }) satisfies Insertable<Message>
+          );
+          await trx.insertInto("message").values(completeMessages).returningAll().execute();
+        }
         this.logInfo(`Inserted chat details for chat ${chat.name ?? chat.id}`);
       });
     } catch (error) {
