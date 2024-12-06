@@ -1,7 +1,7 @@
 import { generateSessionCookieAndCsrf } from "$lib/server/authenticate.js";
-import { redisService } from "@db/redis";
 import { dbService } from "@db/postgres/db-service.js";
-import { error, fail, redirect } from "@sveltejs/kit";
+import { redisService } from "@db/redis";
+import { error, fail } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
 import { loginSchema } from "../../lib/client/login-signup.validators.js";

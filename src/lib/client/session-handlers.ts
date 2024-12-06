@@ -10,7 +10,7 @@ import {
   LOGOUT_ROUTE,
   REDIRECT_AFTER_EXPIRE_DELAY
 } from "../../constants";
-import { NOTIFICATION_MESSAGES } from "../../messages";
+import { LOGIN_MESSAGES, NOTIFICATION_MESSAGES } from "../../messages";
 import { csrfHeader, getCSRFLocal, setCSRFLocal } from "./csrf-handlers";
 import { socketClientSetup } from "./socket.client";
 import { clearChatRelatedStores, notificationStore, socket } from "./stores";
@@ -104,6 +104,9 @@ export const handleLoginResult = (event: FormEventType): number | undefined => {
   if (result.data.username) {
     socket.set(socketClientSetup(result.data.csrfToken, result.data.username));
   }
+  setTimeout(() => {
+    notificationStore.addNotification({ content: LOGIN_MESSAGES.success, type: "default" });
+  }, 100);
 
   return result.status;
 };
