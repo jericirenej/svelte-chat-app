@@ -28,7 +28,7 @@
   $: active = reactOnRoute(routeId, active);
 </script>
 
-<ul>
+<ul aria-label="Chat list">
   {#each chatPreviewList as { chatLabel, message, chatId } (chatId)}
     <li
       class="border-b-[1px] py-4 pl-0 pr-2 hover:bg-neutral-200 hover:bg-opacity-50"
