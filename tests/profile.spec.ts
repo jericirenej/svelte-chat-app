@@ -76,6 +76,7 @@ test.describe("Delete account", () => {
       createUsername(browserName, test.info().parallelIndex),
       password
     );
+    await expect(deleteButton(page)).toBeVisible();
     await deleteButton(page).click();
 
     const dialog = page.getByRole("dialog");
@@ -100,6 +101,7 @@ test.describe("Delete account", () => {
     );
     const dialog = page.getByRole("dialog");
     for (const key of ["Escape", "Enter"]) {
+      await expect(deleteButton(page)).toBeVisible();
       await deleteButton(page).click();
       await expect(dialog).toBeVisible();
       await page.keyboard.press(key);
@@ -121,8 +123,12 @@ test.describe("Delete account", () => {
       createUsername(browserName, test.info().parallelIndex),
       password
     );
+    await expect(deleteButton(page)).toBeVisible();
     await deleteButton(page).click();
-    await page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm }).click();
+    const confirm = page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm });
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(confirm).toBeVisible();
+    await confirm.click();
     await expect(page).toHaveURL(LOGIN_ROUTE);
     const userExists = await dbService.usernameExists(
       createUsername(browserName, test.info().parallelIndex)

@@ -31,7 +31,7 @@ test.beforeEach(async ({ seedDB }) => {
     ]
   });
 });
-test("App redirects to login if not authenticated", async ({ page, browserName, baseURL }) => {
+test("App redirects to login if not authenticated", async ({ page, browserName }) => {
   const urls = ["/", "/profile", "random/page"];
   for (const url of urls) {
     await page.waitForLoadState("domcontentloaded");
@@ -76,6 +76,9 @@ test("Disallows invalid form submission", async ({ page }) => {
 
 test("Allows valid form submission", async ({ page }) => {
   await page.goto(LOGIN_ROUTE);
+  await expect(page).toHaveURL(LOGIN_ROUTE);
+  // eslint-disable-next-line playwright/no-networkidle
+  await page.waitForLoadState("networkidle");
   await clickAndFillLocator(page.getByPlaceholder(usernamePlaceholder), "username");
   await clickAndFillLocator(page.getByPlaceholder(passwordPlaceholder), "password");
   await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();

@@ -1,9 +1,10 @@
 import { exec } from "child_process";
 import { e2eDatabases } from "./utils.js";
 import { resolve } from "path";
+import { WORKERS } from "../playwright.config.js";
 
 const populate = async () => {
-  for (const name of Array.from(Array(4), (v, i) => `chat_test_${i + 1}`)) {
+  for (const name of Array.from(Array(WORKERS), (_v, i) => `chat_test_${i + 1}`)) {
     await e2eDatabases.createTestDB(name);
     await e2eDatabases.seedDbDispose(name);
   }
