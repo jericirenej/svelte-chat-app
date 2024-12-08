@@ -5,25 +5,24 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
+  import { debounce } from "$lib/utils";
   import {
     CONVERSATION_MESSAGES,
     CREATE_CHAT,
     PREVIEW_LIST_EMPTY,
     PREVIEW_LIST_TITLE
   } from "../../../messages";
-  import type { UnreadChatMessages, UsersTyping } from "../../../types";
+  import type { Nullish, UnreadChatMessages, UsersTyping } from "../../../types";
+  import AddChat from "../../atomic/Add/AddChat.svelte";
   import NavIcons from "../../molecular/NavIcons/NavIcons.svelte";
   import ChatPreviewList from "../../organic/ChatPreviewList/ChatPreviewList.svelte";
   import type { ChatPreviewProp } from "../../organic/ChatPreviewList/types";
   import Dialog from "../../organic/Dialog/Dialog.svelte";
-  import { debounce } from "$lib/utils";
-  import AddChat from "../../atomic/Add/AddChat.svelte";
 
-  export let chatPreviewList: ChatPreviewProp[];
+  export let chatPreviewList: ChatPreviewProp[] | null;
   export let chatUnreadList: UnreadChatMessages;
   export let usersTyping: UsersTyping;
   export let routeId: string | null;
-
   export let onActivateHandler: (chatId: string) => void;
   export let handleLogout: () => Promise<void>;
   export let handleChatDelete: (chatId: string) => Promise<void>;
@@ -44,10 +43,10 @@
   }, 30);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handlePreviewChange = (_length: number) => {
+  const handlePreviewChange = (_length: number | Nullish) => {
     handleScroll();
   };
-  $: handlePreviewChange(chatPreviewList.length);
+  $: handlePreviewChange(chatPreviewList?.length);
   onMount(() => {
     handleScroll();
   });
@@ -63,25 +62,27 @@
     <h2 class="select-none text-right text-xl uppercase">{PREVIEW_LIST_TITLE}</h2>
     <AddChat disabled={false} on:click={handleChatCreate} title={CREATE_CHAT.title} />
   </div>
-  {#if chatPreviewList.length}
-    <div
-      bind:this={previewRef}
-      class="max-h-[85%] overflow-y-auto rounded-[inherit] bg-slate-700"
-      class:chat-previews={chatTransparencyMask}
-      on:scroll={handleScroll}
-    >
-      <ChatPreviewList
-        {chatPreviewList}
-        {chatUnreadList}
-        {usersTyping}
-        onActive={onActivateHandler}
-        onDelete={showDialogForChatLeave}
-        {routeId}
-      />
-    </div>
-    <div class="pb-10"></div>
-  {:else}
-    <p class="ml-3">{PREVIEW_LIST_EMPTY}</p>
+  {#if chatPreviewList !== null}
+    {#if chatPreviewList.length}
+      <div
+        bind:this={previewRef}
+        class="max-h-[85%] overflow-y-auto rounded-[inherit] bg-slate-700"
+        class:chat-previews={chatTransparencyMask}
+        on:scroll={handleScroll}
+      >
+        <ChatPreviewList
+          {chatPreviewList}
+          {chatUnreadList}
+          {usersTyping}
+          onActive={onActivateHandler}
+          onDelete={showDialogForChatLeave}
+          {routeId}
+        />
+      </div>
+      <div class="pb-10"></div>
+    {:else}
+      <p class="ml-3">{PREVIEW_LIST_EMPTY}</p>
+    {/if}
   {/if}
   <nav class="mt-auto shrink-0">
     <NavIcons {routeId} {handleLogout} />
