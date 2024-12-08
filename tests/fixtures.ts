@@ -13,6 +13,7 @@ type CustomFixtures = {
   seedDB: <T extends string>(schema?: SeedSchema<T>) => Promise<void>;
   seedAll: <T extends string>(schema?: SeedSchema<T>) => Promise<void>;
   login: (user: string, options?: { waitForRoot?: boolean; page: Page }) => Promise<void>;
+  logout: (page?: Page) => Promise<void>;
 };
 
 export const test = base.extend<CustomFixtures>({
@@ -42,11 +43,13 @@ export const test = base.extend<CustomFixtures>({
     const login = async (user: string, options?: { waitForRoot?: boolean; page?: Page }) => {
       const targetPage = options?.page ?? page,
         waitForRoot = options?.waitForRoot ?? true;
+
       if (!targetPage.url().includes("login")) {
         await targetPage.goto(LOGIN_ROUTE);
       }
       await expect(targetPage).toHaveURL(LOGIN_ROUTE);
       await targetPage.waitForLoadState("networkidle");
+
       const userField = targetPage.getByPlaceholder(LOGIN_MESSAGES.usernamePlaceholder),
         passwordField = targetPage.getByPlaceholder(LOGIN_MESSAGES.passwordPlaceholder);
       for (const [field, val] of [
@@ -66,6 +69,14 @@ export const test = base.extend<CustomFixtures>({
       }
     };
     await use(login);
+  },
+  logout: async ({ page }, use) => {
+    await use(async (pageParam?: Page) => {
+      const targetPage = pageParam ?? page;
+      await targetPage.goto(ROOT_ROUTE);
+      await targetPage.getByRole("button", { name: "Logout" }).click();
+      await expect(targetPage).toHaveURL("/login");
+    });
   },
   baseURL: async ({}, use) => {
     await use(`http://localhost:${BASE_PORT + base.info().parallelIndex}`);
