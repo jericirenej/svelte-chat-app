@@ -16,7 +16,7 @@
   import { onMount } from "svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
   import Sidebar from "../components/templates/Sidebar/Sidebar.svelte";
-  import { CHAT_ROUTE } from "../constants";
+  import { CHAT_ROUTE, CREATE_CHAT_ROUTE } from "../constants";
   import type { LayoutData } from "./$types";
   import { fade } from "svelte/transition";
   export let data: LayoutData;
@@ -35,7 +35,7 @@
   };
 
   const handleChatCreate = async () => {
-    await goto("/create");
+    await goto(CREATE_CHAT_ROUTE);
   };
   onMount(() => {
     layoutOnMountHandler(data);
