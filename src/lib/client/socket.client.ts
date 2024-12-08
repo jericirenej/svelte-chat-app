@@ -64,7 +64,7 @@ export const socketClientSetup = (csrfToken: string, socketUIserName?: string): 
           message: undefined,
           totalMessages: 0
         } as LayoutChats,
-        ...previews
+        ...(previews ?? [])
       ];
     });
   });

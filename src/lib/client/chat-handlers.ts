@@ -52,7 +52,7 @@ export const setPreviewAndUnreadOnLoad = (data: LayoutData) => {
   if (!data.chats) return;
   // If chat previews have already been set, return (since we are loading in layout
   // OR in root route after login).
-  if (get(chatPreviews).length) return;
+  if (get(chatPreviews)) return;
   const chatPreviewData: LayoutChats[] = [];
   const unread = data.chats.reduce(
     (acc, chat) => {
@@ -80,6 +80,7 @@ export const updatePreviewData = (message: MessageDto) => {
     });
   }
   chatPreviews.update((chats) => {
+    if (!chats) return chats;
     const target = chats.find((c) => c.chatId === message.chatId);
     if (!target) {
       return chats;
@@ -142,6 +143,7 @@ export const loadPrevious = async () => {
 
 export const updateAfterLeavingChat = (chatId: string) => {
   chatPreviews.update((previews) => {
+    if (!previews) return previews;
     const filtered = previews.filter((chat) => chat.chatId !== chatId);
     return filtered;
   });
@@ -247,7 +249,7 @@ export const createChatHandler = async (
         message: undefined,
         totalMessages: 0
       } as LayoutChats,
-      ...previews
+      ...(previews ?? [])
     ];
   });
   const clientSocket = get(socket);

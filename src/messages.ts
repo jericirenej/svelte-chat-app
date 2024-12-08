@@ -105,3 +105,4 @@ export const LENGTH_ERR_MESSAGES = {
 
 export const PREVIEW_LIST_TITLE = "Chats";
 export const PREVIEW_LIST_EMPTY = "No active chats. Go and talk to someone!";
+export const PREVIEW_LIST_NO_MESSAGES = "No messages yet...";

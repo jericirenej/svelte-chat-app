@@ -16,6 +16,5 @@ export const handleUsers = (users: MaybeArray<string> | Nullish): string | undef
     default:
       subjects = [userArr.slice(0, -1).join(", "), userArr.at(-1) as string].join(", and ");
   }
-  console.log(`${subjects} ${verb}`);
   return `${subjects} ${verb}`;
 };

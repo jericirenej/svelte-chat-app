@@ -41,12 +41,13 @@ export const showSessionExpirationWarning = writable(false);
 export const notificationStore = new NotificationStore();
 
 export const unreadChatMessages = writable<UnreadChatMessages>({});
-export const chatPreviews = writable<LayoutChats[]>([]);
+export const chatPreviews = writable<LayoutChats[] | null>(null);
 export const chats = writable<Record<string, SingleChatData | undefined>>({});
 export const userMap = derived(
   chatPreviews,
   ($chatPreviews, _set, update) => {
     update((map) => {
+      if ($chatPreviews === null) return map;
       $chatPreviews
         .map(({ participants }) => participants)
         .flatMap((participants) => {
@@ -67,5 +68,5 @@ export const clearChatRelatedStores = () => {
   unreadChatMessages.set({});
   chats.set({});
   usersTyping.set({});
-  chatPreviews.set([]);
+  chatPreviews.set(null);
 };
