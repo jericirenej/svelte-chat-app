@@ -1,6 +1,7 @@
 <script lang="ts">
   import clsx from "clsx";
   import type { HTMLInputTypeAttribute } from "svelte/elements";
+  import { type InputConstraint } from "sveltekit-superforms";
 
   export let name: string;
   export let type: Exclude<
@@ -11,6 +12,10 @@
   export let placeholder = "";
   export let disabled: boolean = false;
   export let value: string | undefined;
+  export let constraints: InputConstraint | undefined = undefined;
+  export let errors: string[] | undefined = undefined;
+  $: isInvalid = errors !== undefined && errors.length;
+
   export let input: (ev?: Event) => unknown = () => {};
 
   export let isControlValid = true;
@@ -45,7 +50,9 @@
     on:blur={() => (isControlValid = ref.validity.valid)}
     on:input={input}
     {disabled}
-    {...$$props}
+    {...constraints}
+    aria-invalid={isInvalid ? "true" : undefined}
+    {...$$restProps}
   />
   {#if label && showPlaceholder}
     <label

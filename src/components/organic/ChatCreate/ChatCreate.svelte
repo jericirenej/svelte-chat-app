@@ -26,15 +26,13 @@
   const participants = derived(entities, ($entities) => $entities.map(({ id }) => id));
   const pickUser = (entity: Entity): void => {
     entities.update((entities) => [...entities, entity]);
-    submitDisabledToggle();
   };
   const removeUser = (userId: string): void => {
     entities.update((entities) => entities.filter(({ id }) => id !== userId));
-    submitDisabledToggle();
   };
   let createDisabled = true;
 
-  const { enhance, validateForm, form } = superForm(formData, {
+  const { enhance, validateForm, form, errors, constraints } = superForm(formData, {
     dataType: "json",
     onSubmit: ({ customRequest }) => {
       isLoading = true;
@@ -58,8 +56,8 @@
     return performUserSearch(term, $participants);
   };
   onMount(() => {
-    const participantSub = participants.subscribe((p) => {
-      $form.participants = p;
+    const participantSub = participants.subscribe((participants) => {
+      $form.participants = participants;
       submitDisabledToggle();
     });
     return () => {
@@ -77,10 +75,13 @@
           label={CREATE_CHAT.chatLabel}
           placeholder={CREATE_CHAT.chatLabel}
           name="chatLabel"
+          errors={$errors.chatLabel}
+          constraints={$constraints.chatLabel}
           input={submitDisabledToggle}
           bind:value={$form.chatLabel}
         />
-        <EntityAutocomplete {pickUser} {searchUsers} />
+
+        <EntityAutocomplete {pickUser} {searchUsers} errors={$errors.participants?._errors} />
         <div id="participant-list">
           <UserEntityList
             entities={$entities}

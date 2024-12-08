@@ -25,6 +25,7 @@
     bind:value={search}
     on:blur
     on:focus
+    {...$$restProps}
   />
   <slot />
 </div>
