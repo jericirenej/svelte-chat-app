@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CONVERSATION_MESSAGES } from "../../../messages";
+  import { CONVERSATION_MESSAGES, PREVIEW_LIST_NO_MESSAGES } from "../../../messages";
   import Badge from "../../atomic/Badge/Badge.svelte";
   import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
 
@@ -7,7 +7,7 @@
   export let message: string | undefined;
   export let labelOverride: string | undefined = undefined;
   export let unreadMessages: number;
-  $: previewMessage = labelOverride ? labelOverride : message ?? "No messages yet...";
+  $: previewMessage = labelOverride ? labelOverride : message ?? PREVIEW_LIST_NO_MESSAGES;
   export let onDelete: () => unknown;
 </script>
 
@@ -20,10 +20,11 @@
     role="button"
     tabindex="0"
   >
-    <span
+    <h3
       class=" text-md inline-block w-11/12 overflow-hidden text-ellipsis whitespace-nowrap font-medium"
-      >{chatLabel}</span
     >
+      {chatLabel}
+    </h3>
     <div class="flex min-w-0 justify-between gap-4">
       <p
         title={previewMessage}
