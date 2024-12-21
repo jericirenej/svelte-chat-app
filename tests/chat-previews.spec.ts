@@ -114,6 +114,10 @@ test.describe("With chats", () => {
     await expect(unreadLocator(page, 1).getByText("2")).toBeVisible();
     await expect(unreadLocator(page, 2)).toBeHidden();
   });
+  test("No unread messages shown for directly navigated chat", async ({ page }) => {
+    await page.goto([CHAT_ROUTE, v5("chat", 2)].join("/"));
+    await expect(unreadLocator(page, 0)).toBeHidden();
+  });
   test("Unread messages is cleared after visiting chat page and persists on reload", async ({
     page
   }) => {

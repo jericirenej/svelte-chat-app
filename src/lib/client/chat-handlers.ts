@@ -63,7 +63,9 @@ export const setPreviewAndUnreadOnLoad = (data: LayoutData) => {
     },
     {} as Record<string, number>
   );
-  unreadChatMessages.set(unread);
+  // Ensure that unread data that is available beforehand (for example from navigating
+  // to chat page directly) is not overwritten
+  unreadChatMessages.update((data) => ({ ...unread, ...data }));
   chatPreviews.set(chatPreviewData);
 };
 
