@@ -1,6 +1,5 @@
 <script lang="ts">
   export let disabled = true;
-  let ref: HTMLButtonElement;
   import SendIcon from "@iconify/icons-iconoir/send";
   import Icon from "@iconify/svelte";
   import { CONVERSATION_MESSAGES } from "../../../messages";
@@ -9,7 +8,6 @@
 </script>
 
 <button
-  bind:this={ref}
   on:click
   on:pointerdown
   {title}

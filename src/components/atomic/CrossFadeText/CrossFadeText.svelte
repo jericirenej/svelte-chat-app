@@ -13,12 +13,16 @@
 
 {#if text !== undefined}
   <div class="relative">
-    <span class="invisible">{text}</span>
+    <span aria-hidden="true" class="invisible">{text}</span>
     {#key text}
       {#if prevAndCurrent[0]}
-        <span aria-hidden class="previous-entry absolute left-0 top-0">{prevAndCurrent[0]}</span>
+        <span aria-hidden="true" class="previous-entry absolute left-0 top-0"
+          >{prevAndCurrent[0]}</span
+        >
       {/if}
-      <p class="absolute left-0 top-0" {title} in:fade={{ duration: 200 }}>{prevAndCurrent[1]}</p>
+      <p class="absolute left-0 top-0" {title} in:fade={{ duration: 200 }}>
+        {prevAndCurrent[1]}
+      </p>
     {/key}
   </div>
 {/if}

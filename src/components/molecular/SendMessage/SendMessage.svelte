@@ -29,7 +29,7 @@
   };
 </script>
 
-<div class="relative flex flex-row items-end justify-between gap-3">
+<div class="relative flex flex-row items-end justify-between gap-3 pb-1">
   <TextArea
     placeholder={CONVERSATION_MESSAGES.textPlaceholder}
     bind:value
