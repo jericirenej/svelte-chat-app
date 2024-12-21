@@ -26,7 +26,7 @@
   $: participants = new Map(data.participants.map((p) => [p.id, participantName(p)]));
 </script>
 
-<div class="flex h-full w-full flex-col justify-between gap-4 overflow-y-auto">
+<div class="chat-container flex h-full w-full flex-col justify-between gap-4 overflow-y-auto">
   <MessageContainer
     messages={data.messages}
     loggedUserId={userId}
