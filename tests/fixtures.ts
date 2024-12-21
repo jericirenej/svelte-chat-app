@@ -7,7 +7,7 @@ import { LOGIN_ROUTE, ROOT_ROUTE } from "../src/constants";
 import { LOGIN_MESSAGES } from "../src/messages";
 import { dbName, e2eDatabases, sleep } from "./utils";
 
-type CustomFixtures = {
+export type CustomFixtures = {
   dbService: DatabaseService;
   clearDB: () => Promise<void>;
   seedDB: <T extends string>(schema?: SeedSchema<T>) => Promise<void>;
