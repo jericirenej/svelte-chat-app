@@ -12,7 +12,10 @@ export type CustomFixtures = {
   clearDB: () => Promise<void>;
   seedDB: <T extends string>(schema?: SeedSchema<T>) => Promise<void>;
   seedAll: <T extends string>(schema?: SeedSchema<T>) => Promise<void>;
-  login: (user: string, options?: { waitForRoot?: boolean; page: Page }) => Promise<void>;
+  login: (
+    user: string,
+    options?: { waitForRoot?: boolean; page?: Page; password?: string }
+  ) => Promise<void>;
   logout: (page?: Page) => Promise<void>;
 };
 
@@ -40,7 +43,10 @@ export const test = base.extend<CustomFixtures>({
     await use(seedDb);
   },
   login: async ({ page }, use) => {
-    const login = async (user: string, options?: { waitForRoot?: boolean; page?: Page }) => {
+    const login = async (
+      user: string,
+      options?: { waitForRoot?: boolean; page?: Page; password?: string }
+    ) => {
       const targetPage = options?.page ?? page,
         waitForRoot = options?.waitForRoot ?? true;
 
@@ -54,7 +60,7 @@ export const test = base.extend<CustomFixtures>({
         passwordField = targetPage.getByPlaceholder(LOGIN_MESSAGES.passwordPlaceholder);
       for (const [field, val] of [
         [userField, user],
-        [passwordField, `${user}-password`]
+        [passwordField, options?.password ?? `${user}-password`]
       ] as const) {
         await field.click({ delay: 50 });
         await field.fill(val);

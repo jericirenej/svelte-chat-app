@@ -2,7 +2,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import type { AvailableUsers } from "@utils/users.js";
 import { PROFILE_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 import { test } from "./fixtures";
-import { login, userHashMap } from "./utils.js";
+import { userHashMap } from "./utils.js";
 
 const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
   return {
@@ -11,9 +11,9 @@ const getPages = (page: Page): Record<"homepage" | "profile", Locator> => {
   };
 };
 
-test.beforeEach(async ({ page, seedDB }) => {
+test.beforeEach(async ({ seedDB, login }) => {
   await seedDB();
-  await login(page);
+  await login("lovelace");
 });
 
 test("Should show navbar with appropriate nav items", async ({ page }) => {
@@ -50,12 +50,12 @@ test("Should show visual indicator of current page", async ({ page }) => {
   await expect(getMark(profile)).toBeVisible();
 });
 
-test("Should show welcome message", async ({ page }) => {
+test("Should show welcome message", async ({ page, login }) => {
   await page.getByRole("button", { name: "Logout" }).click();
   await page.waitForURL("/login");
   const username: AvailableUsers = "chu_lonzo";
   const name = userHashMap[username].name;
-  await login(page, username, `${username}-password`);
+  await login(username);
   await expect(page.getByRole("heading", { level: 1, name: "Chat App" })).toBeVisible();
   await expect(page.getByText(`Welcome ${name}!`)).toBeVisible();
 });

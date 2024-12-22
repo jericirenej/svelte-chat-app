@@ -1,13 +1,12 @@
+import type { UserNames } from "@db/postgres/seed/default-seed.js";
 import { expect } from "@playwright/test";
 import type { AvailableUsers } from "@utils/users.js";
 import { LOGIN_ROUTE, ROOT_ROUTE } from "../src/constants.js";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { test } from "./fixtures";
-import { clickAndFillLocator, login } from "./utils.js";
-import type { UserNames } from "@db/postgres/seed/default-seed.js";
+import { clickAndFillLocator } from "./utils.js";
 
-const user: AvailableUsers = "babbage",
-  password: `${AvailableUsers}-password` = "babbage-password";
+const user: AvailableUsers = "babbage";
 const {
   failure,
   success,
@@ -84,25 +83,26 @@ test("Allows valid form submission", async ({ page }) => {
   await expect(page.getByRole("button", { name: "SUBMIT", exact: true })).toBeEnabled();
 });
 
-test("Shows message on failed  login", async ({ page }) => {
+test("Shows message on failed  login", async ({ page, login }) => {
   await page.goto(LOGIN_ROUTE);
-  await login(page, "user", "password", false);
+  await login("user", { password: "password", waitForRoot: false });
   await expect(page.getByText(failure)).toBeVisible();
 });
-test("Shows notification on successful login", async ({ page }) => {
-  await login(page, user, password, false);
+test("Shows notification on successful login", async ({ page, login }) => {
+  await login(user);
   await expect(page.getByRole("alert").getByText(success)).toBeVisible();
 });
-test("Successful login should redirect to root", async ({ page }) => {
+test("Successful login should redirect to root", async ({ page, login }) => {
   await page.goto(LOGIN_ROUTE);
-  await login(page, user, password, false);
+  await login(user);
   await expect(page).toHaveURL("/");
 });
 test("Successful login persists when new page with same storageState is opened", async ({
   page,
-  context
+  context,
+  login
 }) => {
-  await login(page);
+  await login(user);
   const newPage = await context.newPage();
   await page.close();
   await newPage.goto(LOGIN_ROUTE);
