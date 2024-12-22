@@ -29,7 +29,7 @@ test.beforeEach(async ({ seedDB }) => {
   await seedDB();
 });
 
-test("Should display appropriate fields and data", async ({ page, locale, loginAndNavigate }) => {
+test("Displays appropriate fields and data", async ({ page, locale, loginAndNavigate }) => {
   await loginAndNavigate(user);
   await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
   await expect(page.getByText(user, { exact: true })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe("Delete account", () => {
       await dbService.removeUser(user.id, user.id);
     }
   });
-  test("Clicking on delete account should show dialog", async ({
+  test("Clicking on delete account shows dialog", async ({
     page,
     browserName,
     loginAndNavigate
@@ -96,7 +96,7 @@ test.describe("Delete account", () => {
       dialog.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm })
     ).toBeVisible();
   });
-  test("Escape press, direct enter press, or clicking the 'No' button should not delete account", async ({
+  test("Escape press, enter press, or clicking 'No' button cancels delete operation", async ({
     page,
     browserName,
     loginAndNavigate
@@ -116,7 +116,7 @@ test.describe("Delete account", () => {
     await expect(dialog).toBeHidden();
     await expect(deleteButton(page)).toBeEnabled();
   });
-  test("Confirmation should delete account and redirect to login", async ({
+  test("Confirmation deletes account and redirects to login", async ({
     page,
     browserName,
     dbService,
@@ -137,11 +137,7 @@ test.describe("Delete account", () => {
     );
     expect(userExists).toBeFalsy();
   });
-  test("Successful delete should show notification", async ({
-    page,
-    browserName,
-    loginAndNavigate
-  }) => {
+  test("Successful delete shows notification", async ({ page, browserName, loginAndNavigate }) => {
     await loginAndNavigate(createUsername(browserName, test.info().parallelIndex), { password });
     await deleteButton(page).click();
     await page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm }).click();
@@ -149,7 +145,7 @@ test.describe("Delete account", () => {
       page.getByRole("alert").getByText(NOTIFICATION_MESSAGES.deleteAccountSuccess)
     ).toBeVisible();
   });
-  test("Delete operation should fail, if csrf header is not present", async ({
+  test("Delete operation fails if csrf header is not present", async ({
     page,
     browserName,
     dbService,
@@ -176,7 +172,7 @@ test.describe("Delete account", () => {
     const awaitedResponse = await resp;
     expect(awaitedResponse.status()).toBe(403);
   });
-  test("Unauthorized delete operation should show appropriate notification", async ({
+  test("Unauthorized delete operation shows appropriate notification", async ({
     page,
     browserName,
     loginAndNavigate
@@ -192,7 +188,7 @@ test.describe("Delete account", () => {
     await page.getByRole("button", { name: PROFILE_MESSAGES.deleteConfirm }).click();
     await expect(page.getByRole("alert").getByText(NOTIFICATION_MESSAGES[403])).toBeVisible();
   });
-  test("Should not allow super-admins to delete own account", async ({
+  test("Disallows super-admins to delete own account", async ({
     page,
     dbService,
     loginAndNavigate
@@ -210,10 +206,7 @@ test.describe("Delete account", () => {
     const awaitedResponse = await resp;
     expect(awaitedResponse.status()).toBe(400);
   });
-  test("Should show notification for super-user delete attempt", async ({
-    page,
-    loginAndNavigate
-  }) => {
+  test("Shows notification for super-user delete attempt", async ({ page, loginAndNavigate }) => {
     await loginAndNavigate(userHashMap.lovelace.username, {
       password: `${userHashMap.lovelace.username}-password`
     });

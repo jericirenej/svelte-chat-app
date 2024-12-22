@@ -54,21 +54,21 @@ const createContext = (
 test.beforeEach(async ({ seedDB }) => {
   await seedDB();
 });
-test("Should logout by clicking the logout button", async ({ page, context, login }) => {
+test("Logs out after clicking the logout button", async ({ page, context, login }) => {
   await login("lovelace");
   expect(await hasCredentials(context.storageState())).toBe(true);
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(page).toHaveURL("/login");
   expect(await hasCredentials(context.storageState())).toBe(false);
 });
-test("Should show notification", async ({ page, login }) => {
+test("Shows notification", async ({ page, login }) => {
   await login("lovelace");
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(
     page.getByRole("alert").getByText(NOTIFICATION_MESSAGES.logoutSuccess)
   ).toBeVisible();
 });
-test("Should show failure notification", async ({ page, login }) => {
+test("Shows failure notification", async ({ page, login }) => {
   await page.route(LOGOUT_ROUTE, async (route) => {
     await route.fulfill({
       status: 403,
@@ -81,7 +81,7 @@ test("Should show failure notification", async ({ page, login }) => {
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(page.getByRole("alert").getByText(NOTIFICATION_MESSAGES[403])).toBeVisible();
 });
-test(`Should logout via DELETE request if ${CSRF_HEADER} header is supplied`, async ({
+test(`Logs out via DELETE request if ${CSRF_HEADER} header is supplied`, async ({
   page,
   context,
   baseURL,
@@ -97,7 +97,7 @@ test(`Should logout via DELETE request if ${CSRF_HEADER} header is supplied`, as
   await page.goto("/login");
   await expect(page).toHaveURL("/login");
 });
-test(`Should reject DELETE request if ${CSRF_HEADER} header or session cookie is missing`, async ({
+test(`Rejects DELETE request if ${CSRF_HEADER} header or session cookie is missing`, async ({
   baseURL,
   page,
   context,

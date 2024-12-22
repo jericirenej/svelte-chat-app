@@ -68,11 +68,11 @@ test.beforeEach(async ({ page, clearDB }) => {
 test.afterAll(async ({ seedAll }) => {
   await seedAll();
 });
-test("Should allow direct navigation", async ({ page, browserName }) => {
+test("Allows direct navigation", async ({ page, browserName }) => {
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await page.screenshot({ path: `./tests/screenshots/signup-${browserName}.png` });
 });
-test("Should have appropriate elements", async ({ page }) => {
+test("Has appropriate elements", async ({ page }) => {
   await expect(page).toHaveTitle(pageTitle);
 
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
@@ -99,12 +99,12 @@ test("Should have appropriate elements", async ({ page }) => {
   await expect(page.getByRole("link", { name: login })).toBeVisible();
 });
 
-test("Should navigate to login", async ({ page }) => {
+test("Navigates to login", async ({ page }) => {
   await page.getByRole("link", { name: login }).click();
   await expect(page.getByRole("heading", { name: LOGIN_MESSAGES.title })).toBeVisible();
 });
 
-test("Should register new user and redirect", async ({ page, browserName }) => {
+test("Registers new user and redirect", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName);
 
   await fillSignupForm(page, user, false);
@@ -117,7 +117,7 @@ test("Should register new user and redirect", async ({ page, browserName }) => {
   await expect(page).toHaveURL("/");
 });
 
-test("Should reject registration if a username or email already exists", async ({
+test("Rejects registration if a username or email already exists", async ({
   page,
   browserName
 }) => {
@@ -152,7 +152,7 @@ test("Should reject registration if a username or email already exists", async (
   await fillSignupForm(page, anotherUser, true);
   await expect(page.getByText(success)).toBeVisible();
 });
-test("Should reject registration if password verification does not match", async ({
+test("Rejects registration if password verification does not match", async ({
   page,
   browserName
 }) => {
@@ -164,7 +164,7 @@ test("Should reject registration if password verification does not match", async
   await fillSignupForm(page, user, false);
   await expect(page.getByRole("button", { name: "submit" })).toBeEnabled();
 });
-test("Should allow registration with blank optional fields", async ({ page, browserName }) => {
+test("Allows registration with blank optional fields", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName) as unknown as Partial<
     ReturnType<typeof exampleUser>
   >;
@@ -179,7 +179,7 @@ test("Should allow registration with blank optional fields", async ({ page, brow
   await expect(page).toHaveURL(ROOT_ROUTE);
   const username = user.username?.value;
 });
-test("Should disallow submit if fields are too long", async ({ page, browserName }) => {
+test("Disallows submit if fields are too long", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName);
   const overLimit = new Array(101).fill("a").join("");
   await fillSignupForm(page, user, false);
@@ -200,7 +200,7 @@ test("Should disallow submit if fields are too long", async ({ page, browserName
     await expect(button).toBeEnabled();
   }
 });
-test("Should disallow submit if username is too short", async ({ page, browserName }) => {
+test("Disallows submit if username is too short", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName);
   const value = new Array(USERNAME_MIN - 1).fill("a").join("");
 
@@ -212,7 +212,7 @@ test("Should disallow submit if username is too short", async ({ page, browserNa
 
   await expect(button).toBeEnabled();
 });
-test("Should disallow submit if password is too short", async ({ page, browserName }) => {
+test("Disallows submit if password is too short", async ({ page, browserName }) => {
   const user = exampleUser(test.info(), browserName);
   const value = new Array(PASSWORD_MIN - 1).fill("a").join("");
   await fillSignupForm(page, user, false);
