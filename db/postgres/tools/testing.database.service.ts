@@ -4,7 +4,8 @@ import env from "../../environment.js";
 import { DatabaseService } from "../db-service.js";
 import type { DB } from "../db-types.js";
 import { seed as defaultSeed, users } from "../seed/default-seed.js";
-import { ChatSchema, CreateUserArg, Seeder } from "../seed/seed.js";
+import type { ChatSchema, CreateUserArg } from "../seed/seed.js";
+import { Seeder } from "../seed/seed.js";
 import { ESMFileMigrationProvider, MigrationHelper } from "./migrator.js";
 const postgresConnection = {
   database: env.POSTGRES_POSTGRES_DB,

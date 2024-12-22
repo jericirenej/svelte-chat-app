@@ -40,6 +40,7 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
   return;
 };
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 export const handle: Handle = async ({ event, resolve }) => {
   initializeSocketServer();
   if (!event.locals.socketServer) {
@@ -58,7 +59,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.cookies.delete(SESSION_COOKIE, { path: "/" });
     event.locals.user = undefined;
   }
-  // For non-authorized, non-get methods at non-login endpoint we throw forbidden immediately.
+  // For non-authorized, non-get methods at authorized endpoints throw immediately.
   if (!user && method !== "GET" && !(isLoginRoute || isSignupRoute)) {
     return error(403);
   }

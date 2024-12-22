@@ -17,24 +17,25 @@
         control: { type: "range", max: 100, min: 10, step: 5 }
       },
       performUserSearch: { table: { disable: true } },
-      createChat: { table: { disable: true } },
+      postCall: { table: { disable: true } },
       formData: { table: { disable: true } }
     },
     args: {
       containerWidth: 30,
       performUserSearch: searchUsers,
-      createChat: fn(() => Promise.resolve(true))
+      postCall: fn()
     }
   };
 </script>
 
 <script lang="ts">
+  import { type CreateChatFormData } from "$lib/client/createChat.types";
+  import { createChatSchema } from "$lib/client/createChat.validator";
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import { fn } from "@storybook/test";
-  import type { RemoveIndexSignature } from "../../../types";
-  import { createChatSchema, type CreateChatFormData } from "$lib/client/createChat.validator";
   import { superValidate } from "sveltekit-superforms";
   import { zod } from "sveltekit-superforms/adapters";
+  import type { RemoveIndexSignature } from "../../../types";
   const width = (arg: number) => `${arg}%`;
 
   const assertArgs = (args: unknown) => args as CustomProps;
