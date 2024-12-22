@@ -519,7 +519,7 @@ export class DatabaseService implements AsyncDisposable {
     if (!participants.find((id) => id === userId)) {
       return throwHttpError(400, "User is not a participant of the target chat!");
     }
-    // If only two participants are in the chat, the chat itself
+    // If only two participants are currently in the chat, the chat itself
     // should be removed (this removes participants as well).
     //
     // Possible feature: chats with only one participant could still be retained

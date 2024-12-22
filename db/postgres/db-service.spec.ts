@@ -3,17 +3,7 @@ import { randomUUID } from "crypto";
 import { faker } from "@faker-js/faker";
 import { add } from "date-fns";
 import { Kysely } from "kysely";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  expectTypeOf,
-  it,
-  vi
-} from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseService } from "./db-service.js";
 import type { DB } from "./db-types.js";
 import { TestingDatabases } from "./tools/testing.database.service.js";
@@ -26,20 +16,22 @@ import {
   MessageDto,
   ParticipantDto,
   type AuthDto,
-  type BaseTableColumns,
   type CreateChatDto,
   type CreateUserDto,
   type SingleUserSearch,
   type UpdateAuthDto,
-  type UpdateUserDto,
-  type UserDto
+  type UpdateUserDto
 } from "./types.js";
 
+const keyGuard = <T extends Record<string, unknown>>(key: unknown, obj: T): key is keyof T =>
+  typeof key === "string" && key in obj;
+
+const testingDatabases = new TestingDatabases();
+let service: DatabaseService;
+let db: Kysely<DB>;
+
 describe("DatabaseService", () => {
-  const testingDatabases = new TestingDatabases();
-  let service: DatabaseService;
-  let db: Kysely<DB>;
-  const firstUser: CreateUserDto = {
+  const firstUser = {
     username: "new_user_123",
     name: "Name",
     surname: "Surname",
@@ -47,7 +39,7 @@ describe("DatabaseService", () => {
     avatar: "some-avatar-data",
     hash: "password-hash",
     salt: "password-salt"
-  };
+  } satisfies CreateUserDto;
   const secondUser = {
     ...firstUser,
     email: "other.user@nowhere",
@@ -67,7 +59,6 @@ describe("DatabaseService", () => {
     username: "superadmin",
     email: "superadmin@nowhere.never"
   };
-
   beforeAll(async () => {
     db = await testingDatabases.createTestDB("test_db");
     service = new DatabaseService(db);
@@ -76,41 +67,50 @@ describe("DatabaseService", () => {
     await testingDatabases.cleanup();
   });
   describe("Users", () => {
-    const userProps = ["username", "avatar", "email", "name", "surname"] satisfies (keyof Omit<
-      UserDto,
-      BaseTableColumns
-    >)[];
-    const authProps = ["hash", "salt"] satisfies (keyof Omit<AuthDto, BaseTableColumns>)[];
     beforeEach(() => {
       vi.useFakeTimers();
     });
     afterEach(() => {
       vi.useRealTimers();
     });
+    const userProps = [
+      "id",
+      "email",
+      "name",
+      "surname",
+      "username",
+      "avatar",
+      "createdAt",
+      "updatedAt",
+      "role"
+    ] satisfies (keyof CompleteUserDto)[];
+    const authProps = ["id", "hash", "salt", "createdAt", "updatedAt"] satisfies (keyof AuthDto)[];
     describe("User CRUD", () => {
       afterEach(async () => {
         await db.deleteFrom("user").execute();
       });
-      it("User create should create and return user entry", async () => {
+      it("addUser creates and returns user entry", async () => {
         const user = await service.addUser(firstUser);
         expect(user).not.toBeUndefined();
-        expectTypeOf(user).toMatchTypeOf<CompleteUserDto>();
-        userProps.forEach((key) => {
-          const createVal = firstUser[key];
 
-          if (createVal) {
+        userProps.forEach((key) => {
+          expect(user).toHaveProperty(key);
+
+          if (keyGuard(key, firstUser)) {
             expect(user[key]).toEqual(firstUser[key]);
           }
         });
       });
-      it("Should create user with just required properties", async () => {
+      it("Creates user with minimal required properties", async () => {
         const { email, username, hash, salt } = firstUser;
         const minimal: CreateUserDto = { email, username, hash, salt };
         const user = await service.addUser(minimal);
         expect(user).not.toBeNull();
-        expectTypeOf(user).toMatchTypeOf<CompleteUserDto>();
+        userProps.forEach((key) => {
+          expect(user).toHaveProperty(key);
+        });
       });
-      it("First user should be created as super admin", async () => {
+      it("First created user is super admin", async () => {
         const { id } = await service.addUser(firstUser);
         expect(
           await db
@@ -120,7 +120,7 @@ describe("DatabaseService", () => {
             .executeTakeFirst()
         ).toEqual({ id });
       });
-      it("Other users should be created as normal users", async () => {
+      it("Non-first user created as normal user", async () => {
         await service.addUser(firstUser);
         const { id } = await service.addUser(secondUser);
         const admins = await db.selectFrom("admin").select("id").execute();
@@ -128,7 +128,7 @@ describe("DatabaseService", () => {
         expect(admins).toHaveLength(1);
         expect(adminIds[0]).not.toBe(id);
       });
-      it("Should throw if required fields are missing", async () => {
+      it("addUser throws if required fields are missing", async () => {
         const necessary = ["username", "email"] satisfies (keyof CreateUserDto)[];
         for (const required of necessary) {
           const cloneUser = JSON.parse(JSON.stringify(firstUser)) as Record<string, unknown>;
@@ -136,7 +136,7 @@ describe("DatabaseService", () => {
           await expect(() => service.addUser(cloneUser as CreateUserDto)).rejects.toThrow();
         }
       });
-      it("User create should create auth entry", async () => {
+      it("addUser creates auth entry", async () => {
         const { id } = await service.addUser(firstUser);
         const authEntry = await db
           .selectFrom("auth")
@@ -144,44 +144,45 @@ describe("DatabaseService", () => {
           .where("id", "=", id)
           .executeTakeFirstOrThrow();
 
-        expectTypeOf(authEntry).toMatchTypeOf<AuthDto>();
-
         authProps.forEach((key) => {
-          expect(authEntry[key]).toEqual(firstUser[key]);
+          expect(authEntry).toHaveProperty(key);
+          if (keyGuard(key, firstUser)) {
+            expect(authEntry[key]).toEqual(firstUser[key]);
+          }
         });
       });
-      it("Should update user and insert updatedAt time", async () => {
+      it("updateUser updates user and modifies updatedAt", async () => {
         const date = new Date(3000, 0, 1, 12);
         vi.setSystemTime(date);
         const { id } = await service.addUser(firstUser);
         const update: UpdateUserDto = { username: "other-user" };
         const updated = await service.updateUser(id, update);
-        expectTypeOf(updated).toMatchTypeOf<UserDto>();
+        expect(updated.username).toBe("other-user");
         expect(updated.updatedAt.getTime()).toBe(date.getTime());
       });
-      it("Updating an inexistent user should throw", async () => {
+      it("updateUser throws if updating inexistent user", async () => {
         await service.addUser(firstUser);
         await expect(
           service.updateUser(randomUUID(), { username: "other-user" })
         ).rejects.toThrowError();
       });
-      it("Should evaluate whether a username exists", async () => {
+      it("usernameExists evaluates provided username", async () => {
         await service.addUser(firstUser);
         await expect(service.usernameExists(firstUser.username)).resolves.toBe(true);
         await expect(service.usernameExists("inexistent")).resolves.toBe(false);
       });
-      it("Should evaluate whether an email exists", async () => {
+      it("emailExists evaluates provided email", async () => {
         await service.addUser(firstUser);
         await expect(service.emailExists(firstUser.email)).resolves.toBe(true);
         await expect(service.emailExists("inexistent@nowhere.never")).resolves.toBe(false);
       });
-      it("Should allow users to delete their account", async () => {
+      it("removeUser allows users to delete own account", async () => {
         await service.addUser(firstUser);
         const { id } = await service.addUser(secondUser);
         await service.removeUser(id, id);
         expect(await db.selectFrom("user").where("id", "=", id).execute()).toEqual([]);
       });
-      it("User deletions should cascade", async () => {
+      it("User deletions cascade", async () => {
         await service.addUser(superAdmin);
         const { id } = await service.addUser(firstUser);
         await service.removeUser(id, id);
@@ -197,14 +198,14 @@ describe("DatabaseService", () => {
           .executeTakeFirst();
         expect([authEmpty, userEmpty].every((v) => v === undefined)).toBe(true);
       });
-      it("Should reject if users try to delete other users", async () => {
+      it("Throws if users try to delete other users", async () => {
         await service.createSuperAdmin(superAdmin);
         const [first, second] = await Promise.all(
           [firstUser, secondUser].map((u) => service.addUser(u))
         );
         await expect(service.removeUser(first.id, second.id)).rejects.toThrowError();
       });
-      it("Get user credentials", async () => {
+      it("getCredentials returns credentials", async () => {
         const { username, id } = await service.addUser(firstUser);
         const targetCredentials = await db
           .selectFrom("auth")
@@ -214,7 +215,7 @@ describe("DatabaseService", () => {
         expect(await service.getCredentials(username)).toEqual(targetCredentials);
         expect(await service.getCredentials("inexistent")).toBeUndefined();
       });
-      it("Update user credentials", async () => {
+      it("updateCredentials updates hash and salt", async () => {
         const { id } = await service.addUser(firstUser);
         const date = new Date(3000, 0, 1, 12);
         vi.setSystemTime(date);
@@ -234,9 +235,14 @@ describe("DatabaseService", () => {
       afterEach(async () => {
         await db.deleteFrom("user").execute();
       });
-      it("Should create admin user", async () => {
+      it("Creates super admin", async () => {
         const user = await service.createSuperAdmin(firstUser);
-        expectTypeOf(user).toMatchTypeOf<UserDto>();
+        userProps.forEach((key) => {
+          expect(user).toHaveProperty(key);
+          if (keyGuard(key, firstUser)) {
+            expect(user[key]).toBe(firstUser[key]);
+          }
+        });
         const adminEntry = await db
           .selectFrom("admin")
           .select("id")
@@ -244,36 +250,40 @@ describe("DatabaseService", () => {
           .execute();
         expect(adminEntry.length).toBe(1);
       });
-      it("Should reject super admin creation if super admin already exists", async () => {
+      it("Rejects super admin creation if one already exists", async () => {
         await service.addUser(firstUser);
         await expect(service.createSuperAdmin(secondUser)).rejects.toThrowError();
       });
-      it("Should allow addAdmin if grantor is admin and grantee exists", async () => {
+      it("addAdmin proceeds if grantor is super admin and grantee exists", async () => {
         const admin = await service.createSuperAdmin(firstUser);
         const adminToBe = await service.addUser(secondUser);
         await service.addAdmin(admin.id, adminToBe.id);
-        const isAdminToBeAdmin = await db
+        const isAdminToBeConfirmed = await db
           .selectFrom("admin")
           .select("id")
           .where("id", "=", adminToBe.id)
           .executeTakeFirst();
-        expect(isAdminToBeAdmin).not.toBeUndefined();
+        expect(isAdminToBeConfirmed).not.toBeUndefined();
       });
-      it("Should reject addAdmin if superAdmin does not exist", async () => {
+      it("addAdmin rejects if super admin does not exist", async () => {
         const adminToBe = await service.addUser(secondUser);
         await expect(service.addAdmin(randomUUID(), adminToBe.id)).rejects.toThrowError();
       });
-      it("Should reject addAdmin if grantor is not superAdmin", async () => {
-        await service.addUser(superAdmin);
+      it("addAdmin rejects if grantor is not superAdmin", async () => {
+        const superAdminUser = await service.addUser(superAdmin);
         const nonAdmin = await service.addUser(firstUser);
+        const ordinaryAdmin = await service.addUser(thirdUser);
+        await service.addAdmin(superAdminUser.id, ordinaryAdmin.id);
+
         const adminToBe = await service.addUser(secondUser);
         await expect(service.addAdmin(nonAdmin.id, adminToBe.id)).rejects.toThrowError();
+        await expect(service.addAdmin(ordinaryAdmin.id, adminToBe.id)).rejects.toThrowError();
       });
-      it("Should reject addAdmin if grantee does not exist", async () => {
+      it("addAdmin rejects if grantee does not exist", async () => {
         const admin = await service.createSuperAdmin(firstUser);
         await expect(service.addAdmin(admin.id, randomUUID())).rejects.toThrowError();
       });
-      it("Should transfer superAdmin role", async () => {
+      it("transferSuperAdmin transfers role", async () => {
         const { id: superAdminId } = await service.addUser(superAdmin);
         const { id } = await service.addUser(firstUser);
         await service.transferSuperAdmin(superAdminId, id);
@@ -285,11 +295,11 @@ describe("DatabaseService", () => {
         expect(superAdmins.length).toBe(1);
         expect(superAdmins[0].id).toBe(id);
       });
-      it("Should not allow super admins to delete their account", async () => {
+      it("removeUser disallows super admins to delete own account", async () => {
         const { id } = await service.addUser(firstUser);
         await expect(service.removeUser(id, id)).rejects.toThrowError();
       });
-      it("Should allow admins to remove other users", async () => {
+      it("removeUser allows admins to remove normal users", async () => {
         const { id: superAdminId } = await service.addUser(superAdmin);
         const { id: adminId } = await service.addUser(firstUser);
         const { id } = await service.addUser(secondUser);
@@ -297,7 +307,7 @@ describe("DatabaseService", () => {
         await service.removeUser(adminId, id);
         expect(await db.selectFrom("user").select("id").where("id", "=", id).execute()).toEqual([]);
       });
-      it("Should remove admin", async () => {
+      it("removeUser allows super admins to remove admin users", async () => {
         const admin = await service.createSuperAdmin(firstUser);
         const secondAdmin = await service.addUser(secondUser);
         await service.addAdmin(admin.id, secondAdmin.id);
@@ -310,7 +320,7 @@ describe("DatabaseService", () => {
             .executeTakeFirst()
         ).toBeUndefined();
       });
-      it("Should reject admin removal if acting user is not super admin", async () => {
+      it("removeUser disallows admin removal if acting user is not super admin", async () => {
         const superAdmin = await service.addUser(firstUser);
         const nonPrivilegedUser = await service.addUser(secondUser);
         await expect(
@@ -325,15 +335,15 @@ describe("DatabaseService", () => {
         await service.addAdmin(superAdmin.id, nonSuperAdmin.id);
         await expect(service.removeAdmin(nonSuperAdmin.id, superAdmin.id)).rejects.toThrowError();
       });
-      it("Should not allow super admins to delete remove themselves", async () => {
+      it("removeAdmin disallows super admins to remove themselves", async () => {
         const { id } = await service.addUser(firstUser);
         await expect(service.removeAdmin(id, id)).rejects.toThrowError();
       });
-      it("Should reject admin removal if acting user does not exist", async () => {
+      it("removeAdmin rejects if acting user does not exist", async () => {
         const admin = await service.createSuperAdmin(firstUser);
         await expect(service.removeAdmin("inexistent", admin.id)).rejects.toThrowError();
       });
-      it("Should reject admin removal if target user is not admin", async () => {
+      it("removeAmin rejects if target user is not admin", async () => {
         const admin = await service.createSuperAdmin(firstUser);
         const nonPrivilegedUser = await service.addUser(secondUser);
         await expect(service.removeAdmin(admin.id, nonPrivilegedUser.id)).rejects.toThrowError();
@@ -372,7 +382,7 @@ describe("DatabaseService", () => {
       afterEach(async () => {
         await db.deleteFrom("user").execute();
       });
-      it("Should include proper role specification", async () => {
+      it("getUser includes role specification", async () => {
         const superAdmin = await service.getUser({ property: "id", value: firstCreated.id });
         expect(superAdmin?.role).toBe("superAdmin");
         await service.addAdmin(firstCreated.id, secondCreated.id);
@@ -385,7 +395,7 @@ describe("DatabaseService", () => {
         const newSuper = await service.getUser({ property: "id", value: secondCreated.id });
         expect(newSuper?.role).toBe("superAdmin");
       });
-      it("Should get user by unique column value", async () => {
+      it("getUser retrieves user by unique column value", async () => {
         await db.deleteFrom("user").where("id", "=", thirdCreated.id).execute();
         const testCases: { search: SingleUserSearch; expected: CompleteUserDto | undefined }[] = [
           {
@@ -409,7 +419,7 @@ describe("DatabaseService", () => {
           expect(await service.getUser(search)).toEqual(expected);
         }
       });
-      it("Should perform a case insensitive search for users", async () => {
+      it("searchForUsers performs case insensitive search for users", async () => {
         const testCases: { search: string; expected: number }[] = [
           { search: "123", expected: 2 },
           { search: "doe", expected: 2 },
@@ -421,7 +431,7 @@ describe("DatabaseService", () => {
           expect(searchResult).toHaveLength(expected);
         }
       });
-      it("Filters out users that match excludedIds", async () => {
+      it("searchForUsers filters out users that match excludedIds", async () => {
         const searchResult = await service.searchForUsers("doe", [firstCreated.id]);
         expect(searchResult).toHaveLength(1);
         expect(searchResult[0].id).toBe(secondCreated.id);
@@ -436,6 +446,16 @@ describe("DatabaseService", () => {
       participants: string[],
       allUserIds: string[],
       chatParticipantArr: ChatUserDto[];
+
+    const messageProps = [
+      "message",
+      "id",
+      "createdAt",
+      "updatedAt",
+      "chatId",
+      "deleted",
+      "userId"
+    ] satisfies (keyof MessageDto)[];
     const chatName = "chatName";
     const genMessage = () => faker.lorem.words({ min: 1, max: 10 });
     const insertMsgs = async (
@@ -475,7 +495,7 @@ describe("DatabaseService", () => {
     afterAll(async () => {
       await db.deleteFrom("user").execute();
     });
-    it("Should create chat and participant entries", async () => {
+    it("crateChat creates chat and participant entries", async () => {
       const createChat: CreateChatDto = { name: chatName, participants };
       const { id, participants: returnedParticipants } = await service.createChat(createChat);
       expect(returnedParticipants).toEqual(chatParticipantArr.slice(0, 2));
@@ -496,24 +516,34 @@ describe("DatabaseService", () => {
         .execute();
       expect(participantsQuery.length).toBe(participants.length);
     });
-    it("Should reject chat creation if some participants do not exist", async () => {
+    it("createChat rejects if some participants do not exist", async () => {
       const inexistent = uniqueUUID(allUserIds);
       await expect(
         service.createChat({ participants: [...participants, inexistent] })
       ).rejects.toThrowError();
     });
-    it("Should reject chat creation with less than two participants", async () => {
+    it("createChat rejects if less than two participants provided", async () => {
       await expect(
         service.createChat({ name: chatName, participants: participants.slice(0, 1) })
       ).rejects.toThrowError();
     });
-    it("Should add participants to existing chats", async () => {
+    it("addParticipantToChat adds participants to existing chats", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
       const participant = await service.addParticipantToChat(id, thirdCreated.id);
+      const participantProps = [
+        "chatId",
+        "createdAt",
+        "id",
+        "updatedAt",
+        "userId",
+        "chatLastAccess"
+      ] satisfies (keyof ParticipantDto)[];
       expect(participant).not.toBeUndefined();
-      expectTypeOf(participant).toMatchTypeOf<ParticipantDto>();
+      participantProps.forEach((key) => {
+        expect(participant).toHaveProperty(key);
+      });
     });
-    it("Should reject participant add if chat or user does not exist or already added", async () => {
+    it("addParticipantToChat rejects if chat or user does not exist or user is already added", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
       const nonExistingParticipant = uniqueUUID(participants);
       const nonExistingChat = uniqueUUID([id]);
@@ -528,7 +558,7 @@ describe("DatabaseService", () => {
         await expect(service.addParticipantToChat(chatId, userId)).rejects.toThrowError();
       }
     });
-    it("Updates chatLastAccessed", async () => {
+    it("setParticipantChatAccess updates chatLastAccessed", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
       const getParticipant = async () =>
         db
@@ -545,7 +575,7 @@ describe("DatabaseService", () => {
       expect(updated.chatLastAccess).toEqual(date);
       expect(updated.updatedAt).toEqual(date);
     });
-    it("Should get chat", async () => {
+    it("getChat retrieves chat data", async () => {
       const allParticipants = [...participants, thirdCreated.id];
       const { id } = await service.createChat({ name: chatName, participants: allParticipants });
       const returnedChat = await service.getChat(id);
@@ -553,12 +583,12 @@ describe("DatabaseService", () => {
       expect(returnedChat?.name).toBe(chatName);
       expect(returnedChat?.participants).toEqual(chatParticipantArr);
     });
-    it("Should return undefined for inexisting chats", async () => {
+    it("getChat returns undefined for inexisting chats", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
       await db.deleteFrom("chat").execute();
       expect(await service.getChat(id)).toBeUndefined();
     });
-    it("Should get chatIds for user", async () => {
+    it("getChatIdsForUsers retrieves chat ids for specified user", async () => {
       const otherChat = "otherChat";
       const { id: firstChatId } = await service.createChat({ name: chatName, participants });
       const { id: secondChatId } = await service.createChat({
@@ -569,7 +599,7 @@ describe("DatabaseService", () => {
       expect(await service.getChatIdsForUser(participants[0])).toEqual([firstChatId, secondChatId]);
       expect(await service.getChatIdsForUser(thirdCreated.id)).toEqual([secondChatId]);
     });
-    it("Should get chat participants", async () => {
+    it("getParticipantsForChat retrieves chat participants", async () => {
       const { id } = await service.createChat({
         name: "chatName",
         participants
@@ -578,50 +608,36 @@ describe("DatabaseService", () => {
       expect(result).toHaveLength(participants.length);
       expect(result.map(({ id }) => id)).toEqual(participants);
     });
-    it("Should throw when querying participants for inexisting chat", async () => {
+    it("getParticipantsForChat throws for inexistent chats", async () => {
       await expect(() =>
         service.getParticipantsForChat(uniqueUUID(["invalid"]))
       ).rejects.toThrowError();
     });
-    it("Should get chats", async () => {
+    it("getChats retrieves chats based on provided ids", async () => {
       const otherChat = "otherChat";
       const { id: firstChatId } = await service.createChat({ name: chatName, participants });
       const { id: secondChatId } = await service.createChat({
         name: otherChat,
         participants: [...participants, thirdCreated.id]
       });
-      const result = await service.getChats({ chatIds: [firstChatId, secondChatId] });
-      expectTypeOf(result).toMatchTypeOf<GetChatDto[]>();
-      expect(result.length).toBe(2);
-    });
-    it("Should get chats for user", async () => {
-      const { id: firstUserChat1 } = await service.createChat({
-        participants: [firstCreated.id, secondCreated.id]
-      });
-      const { id: firstUserChat2 } = await service.createChat({
-        participants: [firstCreated.id, thirdCreated.id]
-      });
-      await service.createChat({
-        participants: [secondCreated.id, thirdCreated.id]
-      });
-
-      const firstUserChats = [firstUserChat1, firstUserChat2];
-      const results = await service.getChatsForUser(firstCreated.id);
+      const chatDtoProps = [
+        "createdAt",
+        "id",
+        "updatedAt",
+        "name",
+        "participants",
+        "messages",
+        "totalMessages"
+      ] satisfies (keyof GetChatDto)[];
+      const results = await service.getChats({ chatIds: [firstChatId, secondChatId] });
       expect(results.length).toBe(2);
-      const chatIds = results.map(({ id }) => id);
-      expect(chatIds.every((id) => firstUserChats.includes(id))).toBe(true);
-    });
-    it("Get chats for users should respect order by property", async () => {
-      const { id } = await service.createChat({
-        participants: [firstCreated.id, secondCreated.id]
+      results.forEach((result) => {
+        chatDtoProps.forEach((key) => {
+          expect(result).toHaveProperty(key);
+        });
       });
-      const spyOnGetChats = vi.spyOn(service, "getChats");
-      const orderObj = { direction: "desc", property: "name" } as const;
-      await service.getChatsForUser(firstCreated.id, orderObj);
-      expect(spyOnGetChats).toHaveBeenLastCalledWith({ chatIds: [id], ...orderObj });
-      spyOnGetChats.mockRestore();
     });
-    it("Should order by participants", async () => {
+    it("getChats orders by participants", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({
         participants: [...participants, thirdCreated.id]
@@ -635,7 +651,7 @@ describe("DatabaseService", () => {
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
     });
-    it("Should order by message count", async () => {
+    it("getChats orders by message count", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({ participants });
       const { id: thirdChatId } = await service.createChat({ participants });
@@ -651,7 +667,7 @@ describe("DatabaseService", () => {
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
     });
-    it("Should order by created date", async () => {
+    it("getChats orders by created date", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId, createdAt } = await service.createChat({ participants });
       // Set second chat to have been created before first
@@ -671,7 +687,7 @@ describe("DatabaseService", () => {
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
     });
-    it("Should sort by names with null values last", async () => {
+    it("getChats sorts by names with null values last", async () => {
       const { id: zNameId } = await service.createChat({ name: "ZZZ", participants });
       const { id: nullNameId } = await service.createChat({ participants });
       const { id: aNameId } = await service.createChat({ name: "AAA", participants });
@@ -689,12 +705,39 @@ describe("DatabaseService", () => {
         expect(result.map(({ id }) => id)).toEqual(expected);
       }
     });
-    it("Returns boolean for chat existence", async () => {
+    it("getChatsForUser retrieves all chats for user", async () => {
+      const { id: firstUserChat1 } = await service.createChat({
+        participants: [firstCreated.id, secondCreated.id]
+      });
+      const { id: firstUserChat2 } = await service.createChat({
+        participants: [firstCreated.id, thirdCreated.id]
+      });
+      await service.createChat({
+        participants: [secondCreated.id, thirdCreated.id]
+      });
+
+      const firstUserChats = [firstUserChat1, firstUserChat2];
+      const results = await service.getChatsForUser(firstCreated.id);
+      expect(results.length).toBe(2);
+      const chatIds = results.map(({ id }) => id);
+      expect(chatIds.every((id) => firstUserChats.includes(id))).toBe(true);
+    });
+    it("getChatsForUser respects order by property", async () => {
+      const { id } = await service.createChat({
+        participants: [firstCreated.id, secondCreated.id]
+      });
+      const spyOnGetChats = vi.spyOn(service, "getChats");
+      const orderObj = { direction: "desc", property: "name" } as const;
+      await service.getChatsForUser(firstCreated.id, orderObj);
+      expect(spyOnGetChats).toHaveBeenLastCalledWith({ chatIds: [id], ...orderObj });
+      spyOnGetChats.mockRestore();
+    });
+    it("chatExists indicates whether chat exists", async () => {
       const { id } = await service.createChat({ participants });
       await expect(service.chatExists(id)).resolves.toBeTruthy();
       await expect(service.chatExists(uniqueUUID(["inexistent"]))).resolves.toBeFalsy();
     });
-    it("Should allow admins to directly delete a single chat", async () => {
+    it("deleteChats allows admins to directly delete a single chat", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({ participants });
       await insertMsgs(firstChatId, participants, 3);
@@ -726,7 +769,7 @@ describe("DatabaseService", () => {
         .execute();
       expect(otherChat.length).toBe(1);
     });
-    it("Should allow admins to delete multiple chats", async () => {
+    it("deleteChats allows admins to delete multiple chats", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const { id: secondChatId } = await service.createChat({ participants });
       const adminId = (await db.selectFrom("admin").select("id").executeTakeFirstOrThrow()).id;
@@ -738,7 +781,7 @@ describe("DatabaseService", () => {
         .execute();
       expect(deletedChats.length).toBe(0);
     });
-    it("Should reject chat deletion for non-admin users or non existent chats", async () => {
+    it("deleteChats rejects for non-admin users or non existent chats", async () => {
       const { id: firstChatId } = await service.createChat({ participants });
       const adminId = (await db.selectFrom("admin").select("id").executeTakeFirstOrThrow()).id;
       const nonAdminId = (
@@ -755,7 +798,7 @@ describe("DatabaseService", () => {
       await expect(service.deleteChats(adminId, [firstChatId, nonExistent])).rejects.toThrowError();
       expect(await service.getChat(firstChatId)).not.toBeUndefined();
     });
-    it("Should remove participant from chat", async () => {
+    it("removeParticipantFromChat removes participant from chat", async () => {
       const { id } = await service.createChat({ name: chatName, participants: allUserIds });
       const { id: secondId } = await service.createChat({ participants });
       expect(await service.removeParticipantFromChat(id, allUserIds[0])).toBe(true);
@@ -772,7 +815,7 @@ describe("DatabaseService", () => {
       const remainingChats = await db.selectFrom("chat").selectAll().execute();
       expect(remainingChats).toHaveLength(2);
     });
-    it("Should remove chat, if only two participants remain", async () => {
+    it("removeParticipantFromChat removes chat if request comes from chat with only 2 participants", async () => {
       const participants = allUserIds;
       const { id } = await service.createChat({ name: chatName, participants });
       for (const [participant, index] of participants.map((p, i) => [p, i] as const)) {
@@ -797,7 +840,7 @@ describe("DatabaseService", () => {
         break;
       }
     });
-    it("Should reject participant remove if chat does not exist or participant is not a member", async () => {
+    it("removeParticipantFromChat rejects if chat does not exist or participant is not a member", async () => {
       const { id } = await service.createChat({ name: chatName, participants });
       const nonExistingParticipant = uniqueUUID(participants),
         nonExistingChat = uniqueUUID([id]);
@@ -811,7 +854,7 @@ describe("DatabaseService", () => {
         await expect(service.removeParticipantFromChat(chatId, participant)).rejects.toThrowError();
       }
     });
-    it("Should add message to existing chat", async () => {
+    it("createMessage adds message to existing chat", async () => {
       const { id } = await service.createChat({ participants });
       const createMessage: CreateMessageDto = {
         chatId: id,
@@ -820,7 +863,9 @@ describe("DatabaseService", () => {
       };
       const message = await service.createMessage(createMessage);
       expect(message).not.toBeUndefined();
-      expectTypeOf(message).toMatchTypeOf<MessageDto>();
+      messageProps.forEach((key) => {
+        expect(message).toHaveProperty(key);
+      });
 
       const newMessage = {
         chatId: createMessage.chatId,
@@ -830,7 +875,7 @@ describe("DatabaseService", () => {
       expect(newMessage).toEqual(createMessage);
       expect(message.deleted).toBe(false);
     });
-    it("Should reject if user is not participant and autoAdd is false", async () => {
+    it("createMessage rejects if user is not participant and autoAdd is false", async () => {
       const { id } = await service.createChat({ participants });
       const createMessage: CreateMessageDto = {
         chatId: id,
@@ -839,7 +884,7 @@ describe("DatabaseService", () => {
       };
       await expect(service.createMessage(createMessage, false)).rejects.toThrowError();
     });
-    it("Should allow posting messages from non-participants if autoAdd is true", async () => {
+    it("createMessage allows posting from non-participants if autoAdd is true", async () => {
       const { id } = await service.createChat({ participants });
       const createMessage: CreateMessageDto = {
         chatId: id,
@@ -848,9 +893,11 @@ describe("DatabaseService", () => {
       };
       const createdMessage = await service.createMessage(createMessage, true);
       expect(createdMessage).not.toBeUndefined();
-      expectTypeOf(createdMessage).toMatchTypeOf<MessageDto>();
+      messageProps.forEach((key) => {
+        expect(createdMessage).toHaveProperty(key);
+      });
     });
-    it("Should reject posting messages if chat or user do not exist", async () => {
+    it("createMessage rejects if chat or user do not exist", async () => {
       const { id } = await service.createChat({ participants });
       const inexistentUser = uniqueUUID(allUserIds);
       const inexistentChat = uniqueUUID([id]);
@@ -865,7 +912,7 @@ describe("DatabaseService", () => {
         })
       ).rejects.toThrowError();
     });
-    it("Returns total count of messages for chat", async () => {
+    it("getMessageCountForChat returns count", async () => {
       await expect(service.getMessageCountForChat("invalid")).rejects.toThrowError();
       for (const num of [1, 10, 20, 30]) {
         const { id } = await service.createChat({ participants });
@@ -874,7 +921,7 @@ describe("DatabaseService", () => {
         await service.deleteChats(firstCreated.id, id);
       }
     });
-    it("Should return ordered slice and total count of chat messages", async () => {
+    it("getMessagesForChatParticipant returns ordered slice and total count of chat messages", async () => {
       const { id } = await service.createChat({ participants });
       const messages = await insertMsgs(id, participants, 20);
       const dateOffsets = messages.map(({ id, createdAt, updatedAt }, index) => {
@@ -912,19 +959,19 @@ describe("DatabaseService", () => {
         expect(result.messages.map(({ id }) => id)).toEqual(expected);
       }
     });
-    it("Throws when requesting messages for non existing chats", async () => {
+    it("getMessagesForChatParticipant rejects for non existing chats", async () => {
       await expect(
         service.getMessagesForChatParticipant(randomUUID(), participants[0])
       ).rejects.toThrowError();
     });
-    it("Throws for messages requested by non-participants", async () => {
+    it("getMessagesForChatParticipant if requested by non-participants", async () => {
       const { id } = await service.createChat({ participants });
       await insertMsgs(id, participants, 2);
       await expect(
         service.getMessagesForChatParticipant(id, thirdCreated.id)
       ).rejects.toThrowError();
     });
-    it("Should allow message delete status toggle", async () => {
+    it("toggleMessageDelete allows toggling delete status for message", async () => {
       const { id: chatId } = await service.createChat({ participants });
       const userId = participants[0];
       const { id: messageId, deleted } = await service.createMessage({
@@ -938,7 +985,7 @@ describe("DatabaseService", () => {
       const restoredMessage = await service.toggleMessageDelete(userId, messageId);
       expect(restoredMessage.deleted).toBe(false);
     });
-    it("Should reject message delete toggle for non-authors", async () => {
+    it("toggleMessageDelete rejects for non-authors", async () => {
       // First user is already an admin, so let's put non admins as participants
       const { id: chatId } = await service.createChat({
         participants: [secondCreated.id, thirdCreated.id]
@@ -961,7 +1008,7 @@ describe("DatabaseService", () => {
       await expect(service.toggleMessageDelete(adminId, messageId)).rejects.toThrowError();
       await expect(service.toggleMessageDelete(thirdCreated.id, messageId)).rejects.toThrowError();
     });
-    it("Returns number of unread messages", async () => {
+    it("setUnreadMessagesForParticipant  and getUnreadMessagesForParticipant set and retrieve number of unread messages respectively", async () => {
       const base = new Date("2024-01-01T12:00:00");
       const { id: chatId } = await service.createChat({ name: chatName, participants });
       // Update created and update manually, since postgres is running independently.
