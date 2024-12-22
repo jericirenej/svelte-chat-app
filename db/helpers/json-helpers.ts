@@ -20,6 +20,7 @@ export const jsonReviver = (key: string, value: unknown) => {
   return value;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export const typedJsonParse = <T>(
   stringified: string,
   reviver: Parameters<typeof JSON.parse>[1]
@@ -28,7 +29,7 @@ export const typedJsonParse = <T>(
 if (import.meta.vitest) {
   const { describe, expect, it } = import.meta.vitest;
   describe("jsonReplacer and reviver", () => {
-    it("Should allow proper encoding and decoding of nulls and datesd", () => {
+    it("Allows proper encoding and decoding of nulls and datesd", () => {
       const stringAndNumArray = ["string", 1, "alsoString", 2];
 
       for (const example of [

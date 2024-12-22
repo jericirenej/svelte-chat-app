@@ -33,7 +33,7 @@ export const genPassword = (
 if (import.meta.vitest) {
   const { describe, it, expect, vi } = import.meta.vitest;
   describe("genPassword", () => {
-    it("Should generate hash and salt with appropriate arguments", () => {
+    it("Generates hash and salt with appropriate arguments", () => {
       const spyOnPbkdf = vi.spyOn(crypto, "pbkdf2Sync"),
         spyOnRandomBytes = vi.spyOn(crypto, "randomBytes");
       const spyOnBufferToString = vi.spyOn(Buffer.prototype, "toString");
