@@ -13,8 +13,8 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .addColumn("surname", "varchar(100)")
     .addColumn("username", "varchar(100)", (col) => col.notNull().unique())
     .addColumn("avatar", "varchar")
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("createdAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("updatedAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
   await db.schema
@@ -24,8 +24,8 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     )
     .addColumn("hash", "varchar", (col) => col.notNull())
     .addColumn("salt", "varchar", (col) => col.notNull())
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("createdAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("updatedAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
   await db.schema
@@ -34,16 +34,16 @@ export const up = async (db: Kysely<any>): Promise<void> => {
       col.primaryKey().references("user.id").onDelete("cascade").onUpdate("cascade")
     )
     .addColumn("superAdmin", "boolean", (col) => col.notNull().defaultTo(false))
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("createdAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("updatedAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
   await db.schema
     .createTable("chat")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
     .addColumn("name", "varchar(100)")
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("createdAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("updatedAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
   await db.schema
@@ -57,8 +57,8 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     )
     .addColumn("message", "varchar", (col) => col.notNull())
     .addColumn("deleted", "boolean", (col) => col.notNull().defaultTo(false))
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("createdAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("updatedAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
   await db.schema
@@ -76,8 +76,9 @@ export const up = async (db: Kysely<any>): Promise<void> => {
     .addColumn("userId", "uuid", (col) =>
       col.notNull().references("user.id").onUpdate("cascade").onDelete("cascade")
     )
-    .addColumn("createdAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn("updatedAt", "timestamp", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("chatLastAccess", "timestamptz", (col) => col.defaultTo(null))
+    .addColumn("createdAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("updatedAt", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addUniqueConstraint("unique_participant_chat", ["userId", "chatId"])
     .execute();
 

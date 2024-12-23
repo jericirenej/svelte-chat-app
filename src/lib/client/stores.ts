@@ -1,11 +1,15 @@
 import type { SocketClient } from "$lib/socket.types";
-import { writable, type Writable } from "svelte/store";
-import type { NotificationEntry } from "../../types";
+import { derived, writable, type Writable } from "svelte/store";
 import { v4 } from "uuid";
+import {
+  type LayoutChats,
+  type NotificationEntry,
+  type ParticipantData,
+  type SingleChatData,
+  type UnreadChatMessages,
+  type UsersTyping
+} from "../../types";
 
-export const socket: Writable<SocketClient | undefined> = writable(undefined);
-
-export const showSessionExpirationWarning = writable(false);
 export class NotificationStore {
   #store = writable(new Map<string, NotificationEntry>());
 
@@ -31,4 +35,38 @@ export class NotificationStore {
     });
   }
 }
+
+export const socket: Writable<SocketClient | undefined> = writable(undefined);
+export const showSessionExpirationWarning = writable(false);
 export const notificationStore = new NotificationStore();
+
+export const unreadChatMessages = writable<UnreadChatMessages>({});
+export const chatPreviews = writable<LayoutChats[] | null>(null);
+export const chats = writable<Record<string, SingleChatData | undefined>>({});
+export const userMap = derived(
+  chatPreviews,
+  ($chatPreviews, _set, update) => {
+    update((map) => {
+      if ($chatPreviews === null) return map;
+      $chatPreviews
+        .map(({ participants }) => participants)
+        .flatMap((participants) => {
+          return participants.map((p) => [p.id, p] as [string, ParticipantData]);
+        })
+        .forEach(([id, p]) => {
+          if (map.has(id)) return;
+          map.set(id, p);
+        });
+      return map;
+    });
+  },
+  new Map<string, ParticipantData>()
+);
+export const usersTyping = writable<UsersTyping>({});
+
+export const clearChatRelatedStores = () => {
+  unreadChatMessages.set({});
+  chats.set({});
+  usersTyping.set({});
+  chatPreviews.set(null);
+};

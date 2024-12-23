@@ -1,11 +1,20 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
+  import { fn } from "@storybook/test";
   import type { ComponentProps } from "svelte";
   import ChatPreviewListComponent from "./ChatPreviewList.svelte";
+
   import type { RemoveIndexSignature } from "../../../types";
+  import {
+    activeUserOptions,
+    chatPreviewList,
+    chatUnreadList,
+    simulateUsersTyping
+  } from "./story-helpers";
 
   type Props = RemoveIndexSignature<ComponentProps<ChatPreviewListComponent>> & {
     containerWidth: number;
+    activeUsers: string[];
   };
 
   export const meta: Meta<Props> = {
@@ -13,31 +22,24 @@
     component: ChatPreviewListComponent,
     argTypes: {
       chatPreviewList: { table: { disable: true } },
-      containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } }
+      containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } },
+      activeUsers: {
+        control: "multi-select",
+        options: activeUserOptions,
+        description:
+          "Not the actual prop of ChatPreviewList. Here we are setting active users throughout the chats, while in actual use each chat id has its own set of currently active users."
+      },
+      usersTyping: { table: { disable: true } },
+      onDelete: { table: { disable: true } },
+      onActive: { table: { disable: true } }
     },
     args: {
-      chatPreviewList: [
-        {
-          chatId: "chatWithTwoParticipants",
-          chatLabel: "Linda Lovelace",
-          message: "I think so too!",
-
-          unreadMessages: 0
-        },
-        {
-          chatId: "chatWithMultipleParticipants",
-          chatLabel: "Linda Lovelace, Alan Turing",
-          message: "Well that's never going to work...",
-          unreadMessages: 10
-        },
-        {
-          chatId: "labelledChat",
-          chatLabel: "On the meaning of life",
-          message: "That might be complicated, I think",
-          unreadMessages: 120
-        }
-      ],
-      containerWidth: 50
+      chatPreviewList,
+      chatUnreadList,
+      containerWidth: 50,
+      activeUsers: [],
+      onDelete: fn(),
+      onActive: fn()
     }
   };
 </script>
@@ -48,9 +50,9 @@
 </script>
 
 <Template let:args>
-  {@const { containerWidth, chatPreviewList } = assertArgs(args)}
+  {@const { containerWidth, activeUsers, ...rest } = assertArgs(args)}
   <div style:width={`${containerWidth}%`}>
-    <ChatPreviewListComponent {chatPreviewList} />
+    <ChatPreviewListComponent {...rest} usersTyping={simulateUsersTyping(activeUsers)} />
   </div>
 </Template>
 

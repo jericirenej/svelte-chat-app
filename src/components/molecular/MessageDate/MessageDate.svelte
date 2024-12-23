@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import CrossFadeText from "../../atomic/CrossFadeText/CrossFadeText.svelte";
   import { handleDate } from "./dateHandler";
 
   export let date: Date | number;
-  export let locale = navigator.language;
+  export let locale: string | undefined = undefined;
 
   $: dateVal = date instanceof Date ? date : new Date(date);
 
@@ -13,6 +13,7 @@
   $: dataObj = { display: "", title: "" };
 
   const repeat = (date: Date) => {
+    if (!locale) return;
     clearTimeout(timeout);
     const { repeatIn, display, title } = handleDate({ date, locale });
     dataObj = { display, title };
@@ -23,6 +24,12 @@
   };
   $: repeat(dateVal);
 
+  onMount(() => {
+    if (!locale) {
+      locale = navigator.language;
+      repeat(dateVal);
+    }
+  });
   onDestroy(() => {
     clearTimeout(timeout);
   });

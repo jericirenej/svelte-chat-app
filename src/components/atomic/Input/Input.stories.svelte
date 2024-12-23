@@ -26,7 +26,8 @@
           "text",
           "time",
           "url",
-          "week"
+          "week",
+          "hidden"
         ]
       },
       placeholder: { control: "text" },

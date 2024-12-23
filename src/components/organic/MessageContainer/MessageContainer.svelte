@@ -1,26 +1,45 @@
+<script context="module" lang="ts">
+  export type MessageLoadPrevious = () => unknown;
+</script>
+
 <script lang="ts">
   import { debounce } from "$lib/utils";
   import arrowDown from "@iconify/icons-humbleicons/arrow-down";
   import Icon from "@iconify/svelte";
-  import { afterUpdate } from "svelte";
+  import { afterUpdate, onMount } from "svelte";
   import { fade } from "svelte/transition";
   import type { MessageDto } from "../../../../db/postgres/types";
   import { CONVERSATION_MESSAGES } from "../../../messages";
   import EmitInView from "../../atomic/EmitInView/EmitInView.svelte";
   import MessageList from "../../molecular/MessageList/MessageList.svelte";
   export let loggedUserId: string;
+  export let chatId: string;
   export let messages: MessageDto[];
   export let total: number;
   export let participants: Map<string, string>;
-  export let loadPrevious: () => unknown;
+  export let loadPrevious: MessageLoadPrevious;
 
   const SCROLL_BUFFER = 50;
-
   let div!: HTMLDivElement;
   let userScroll: boolean | null = null;
   let previousLoaded = false;
   let alertMessage = false;
   let msgCount = 0;
+  let showEmit: boolean;
+  let smoothScroll = false;
+
+  let timeout: ReturnType<typeof setTimeout>;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const resetSmoothScroll = (_chatId: string) => {
+    clearTimeout(timeout);
+    smoothScroll = false;
+    timeout = setTimeout(() => {
+      smoothScroll = true;
+    }, 50);
+  };
+
+  $: resetSmoothScroll(chatId);
 
   const isContentInvisible = (div: HTMLDivElement) => {
     return div.scrollTop < div.scrollHeight - div.offsetHeight - SCROLL_BUFFER;
@@ -64,7 +83,16 @@
   $: onMessageAdd(messages.length);
 
   afterUpdate(() => {
-    shouldScroll() && scrollToBottom();
+    if (shouldScroll()) {
+      scrollToBottom();
+    }
+  });
+  onMount(() => {
+    // Delay rendering of EmitInView to allow container to scroll if needed,
+    // hide the emit element and prevent unneeded fetch
+    setTimeout(() => {
+      showEmit = true;
+    }, 50);
   });
 </script>
 
@@ -74,15 +102,13 @@
   tabindex="0"
   role="group"
   aria-label={CONVERSATION_MESSAGES.containerLabel}
-  class="relative h-full overflow-y-scroll scroll-smooth"
+  class={`h-full overflow-y-auto ${smoothScroll ? "scroll-smooth" : ""}`}
   on:scroll={handleScroll}
   bind:this={div}
 >
-  <EmitInView inViewHandler={handlePreviousLoad} />
-  <MessageList {loggedUserId} {messages} {participants} />
   {#if alertMessage}
     <button
-      class="fixed right-8 top-6 inline-block aspect-square cursor-pointer rounded-full bg-green-600 text-3xl font-thin text-white shadow-sm"
+      class="sticky right-3 top-1 ml-auto block aspect-square cursor-pointer rounded-full bg-green-600 text-3xl font-thin text-white shadow-sm"
       title={CONVERSATION_MESSAGES.newMessagesInvisible}
       transition:fade={{ duration: 100 }}
       on:click={handleNotification}
@@ -90,4 +116,8 @@
       <Icon class="p-1" icon={arrowDown} />
     </button>
   {/if}
+  {#if showEmit}
+    <EmitInView inViewHandler={handlePreviousLoad} />
+  {/if}
+  <MessageList {loggedUserId} {messages} {participants} />
 </div>

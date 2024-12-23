@@ -1,4 +1,4 @@
-import { signupSchema } from "$lib/client/login-signup-validators";
+import { signupSchema } from "$lib/client/login-signup.validators";
 import { generateSessionCookieAndCsrf } from "$lib/server/authenticate";
 import { redisService } from "@db/redis";
 import { dbService } from "@db/postgres/db-service";

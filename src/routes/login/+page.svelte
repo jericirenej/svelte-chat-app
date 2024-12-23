@@ -1,17 +1,17 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
-  import { handleFormResult } from "$lib/client/session-handlers";
-  import { debounce, promisifiedTimeout } from "$lib/utils.js";
+  import { handleLoginResult } from "$lib/client/session-handlers";
+  import { debounce } from "$lib/utils.js";
   import { onMount } from "svelte";
   import { superForm } from "sveltekit-superforms";
+  import { zodClient } from "sveltekit-superforms/adapters";
   import FormFooter from "../../components/molecular/FormFooter/FormFooter.svelte";
   import FormWrapper from "../../components/molecular/wrappers/FormWrapper/FormWrapper.svelte";
   import LoginControls from "../../components/organic/LoginControls/LoginControls.svelte";
   import { SIGNUP_ROUTE } from "../../constants";
-  import { loginSchema } from "../../lib/client/login-signup-validators.js";
+  import { loginSchema } from "../../lib/client/login-signup.validators.js";
   import { LOGIN_MESSAGES } from "../../messages";
   import type { PageData } from "./$types.js";
-  import { zodClient } from "sveltekit-superforms/adapters";
 
   export let data: PageData;
 
@@ -37,13 +37,9 @@
     },
     validators: zodClient(loginSchema),
     customValidity: true,
-    onResult: async (event) => {
+    onResult: (event) => {
       isLoading = false;
-      status = handleFormResult(event) as typeof status;
-      // Delay for successful login, so that the user is informed before redirect
-      if (status === 200) {
-        await promisifiedTimeout(1500);
-      }
+      status = handleLoginResult(event) as typeof status;
     }
   });
 

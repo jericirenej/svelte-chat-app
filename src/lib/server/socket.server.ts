@@ -1,6 +1,6 @@
 import type { SocketServer } from "$lib/socket.types";
 import { dbService } from "@db/postgres/db-service";
-import { redisService } from "@db/redis";
+import { redisService } from "@db/redis/";
 import { CSRF_HEADER, SESSION_COOKIE, EXPIRE_SESSION_WARNING_BUFFER } from "../../constants";
 import { authenticateUserWS } from "./authenticate";
 
@@ -50,7 +50,6 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
     }
 
     const user = await authenticateUserWS({ sessionId, csrfToken });
-
     if (!user) {
       socket.emit("error", "Authentication failed. Disconnecting.");
       socket.disconnect(true);
@@ -58,6 +57,7 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
     }
 
     await removeDuplicatedSocketIfExists(socketServer, sessionId);
+
     await redisService.setSocketSession(sessionId, socket.id);
 
     const sessionTTL = await redisService.getSessionTTL(sessionId);
@@ -79,6 +79,45 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
       socket.to([...socket.rooms]).emit("participantOnline", user.username, false);
       console.log(`Socket ${socket.id} disconnected`);
       socket.disconnect(true);
+    });
+    socket.on("messagePush", (message) => {
+      if (!socket.rooms.has(message.chatId)) {
+        console.warn("Tried to send message to chat, but chat room does not exist");
+        return;
+      }
+      socket.broadcast.to(message.chatId).emit("messagePush", message);
+    });
+
+    socket.on("userTyping", (args) => {
+      if (!socket.rooms.has(args.chatId)) {
+        console.warn("Tried to send typing update to chat, but chat room does not exist");
+        return;
+      }
+      socket.broadcast.to(args.chatId).emit("userTyping", args);
+    });
+    socket.on("participantLeftChat", (chatId, participantId) => {
+      if (!socket.rooms.has(chatId)) {
+        console.warn("Tried to send typing update to chat, but chat room does not exist");
+        return;
+      }
+      socket.broadcast.to(chatId).emit("participantLeftChat", chatId, participantId);
+    });
+    socket.on("chatCreated", async (chatId, chatLabel, participants) => {
+      const sessionIds = (
+        await Promise.all(
+          participants.map(async ({ id }) => await redisService.getUserSessions(id))
+        )
+      ).flat();
+      const socketSessions = (
+        await Promise.all(sessionIds.map(async (id) => await redisService.getSocketSession(id)))
+      ).filter((socket): socket is string => socket !== null);
+      const sockets = (await socketServer.fetchSockets()).filter((socket) =>
+        socketSessions.includes(socket.id)
+      );
+      sockets.map((socket) => {
+        socket.join(chatId);
+      });
+      socket.to(chatId).emit("chatCreated", chatId, chatLabel, participants);
     });
   });
 };

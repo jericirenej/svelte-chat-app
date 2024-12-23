@@ -1,3 +1,6 @@
+import type { MessagesDto, UserDto } from "@db/postgres";
+import type { ChatPreviewProp } from "./components/organic/ChatPreviewList/types";
+
 export type PbkdfSettings = {
   iterations: number;
   keylen: number;
@@ -24,3 +27,21 @@ export type ActionTypes = "confirm" | "cancel" | "danger" | "info";
 
 export type EntitySize = "xs" | "sm" | "base" | "lg" | "xl" | number;
 export type Entity = { name: string; avatar: string | Nullish; id: string };
+export type LayoutChatData = ChatPreviewProp & {
+  participants: ParticipantData[];
+  totalMessages: number;
+  unreadMessages: number;
+};
+
+export type LayoutChats = Omit<LayoutChatData, "unreadMessages">;
+export type UnreadChatMessages = Record<string, number>;
+export type UserChats = Record<string, SingleChatData | undefined>;
+export type UsersTyping = Record<
+  string,
+  { list: Set<string>; label: string | undefined } | undefined
+>;
+
+export type ParticipantData = Omit<UserDto, "email" | "createdAt" | "updatedAt">;
+export type SingleChatData = {
+  participants: ParticipantData[];
+} & MessagesDto;

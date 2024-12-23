@@ -1,10 +1,10 @@
 import { generateSessionCookieAndCsrf } from "$lib/server/authenticate.js";
-import { redisService } from "@db/redis";
 import { dbService } from "@db/postgres/db-service.js";
+import { redisService } from "@db/redis";
 import { error, fail } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
-import { loginSchema } from "../../lib/client/login-signup-validators.js";
+import { loginSchema } from "../../lib/client/login-signup.validators.js";
 import { VERIFICATION_FAILURE, verifyUser } from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -33,10 +33,9 @@ export const actions = {
       value: username
     });
     if (!user) {
-      error(500, "Something went wrong while fetching user from the database");
+      return error(500, "Something went wrong while fetching user from the database");
     }
     const { csrfToken } = await generateSessionCookieAndCsrf({ cookies, user, redisService, url });
-
     return {
       form,
       csrfToken,

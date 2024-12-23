@@ -1,3 +1,4 @@
+import type { ParticipantData } from "../types";
 export const promisifiedTimeout = async (timeout: number) =>
   new Promise((resolve) => setTimeout(resolve, timeout));
 
@@ -50,3 +51,14 @@ export const throttle = <F extends (...args: any[]) => ReturnType<F>>(
 
 export const secureCookieEval = (url: URL): boolean =>
   url.hostname === "localhost" || url.protocol === "https";
+
+export const participantName = ({ name, surname, username }: ParticipantData): string => {
+  const val = [name, surname].filter(Boolean).join(" ");
+  return val ? val : username;
+};
+
+export function throwOnTruthy(val: boolean): asserts val is false {
+  if (val) {
+    throw new Error("Should have been falsy!");
+  }
+}

@@ -26,14 +26,9 @@
       containerWidth: {
         control: { type: "range", max: 100, min: 10, step: 5 }
       },
-      show: { control: "boolean" }
-    },
-    args: {
-      containerWidth: 25,
-      show: true,
-      removeCallback: false,
-      handleSelect: fn(),
-      removeAction: fn()
+      show: { control: "boolean" },
+      animationDuration: { control: "number" },
+      colorTheme: { control: "inline-radio", options: ["light", "dark"] }
     }
   };
 </script>
@@ -43,7 +38,7 @@
   import { USERS_WITH_ID } from "@utils/users";
   import Button from "../../atomic/Button/Button.svelte";
   import { fn } from "@storybook/test";
-  import { assignAvatar } from "../../story-helpers/avatarSrc";
+  import { assignAvatar } from "../../../../utils/avatarSrc";
   const assertArgs = (args: unknown) => args as CustomProps;
   const width = (arg: number) => `${arg}%`;
   let entities = JSON.parse(JSON.stringify(entitiesArr)) as typeof entitiesArr;
@@ -56,13 +51,16 @@
 </script>
 
 <Template let:args>
-  {@const { containerWidth, show, removeCallback, handleSelect } = assertArgs(args)}
+  {@const { containerWidth, show, removeCallback, handleSelect, animationDuration, colorTheme } =
+    assertArgs(args)}
   <div>
     <div class="border-[1px] border-neutral-200" style:width={width(containerWidth)}>
       <UserEntityListComponent
         entities={show ? entities : []}
         removeAction={removeCallback ? removeAction : undefined}
         {handleSelect}
+        {colorTheme}
+        {animationDuration}
       />
     </div>
     <div class="ml-auto mt-2">
@@ -73,4 +71,15 @@
   </div>
 </Template>
 
-<Story name="UserEntityList" />
+<Story
+  name="UserEntityList"
+  args={{
+    containerWidth: 25,
+    show: true,
+    removeCallback: false,
+    animationDuration: 25,
+    colorTheme: "light",
+    handleSelect: fn(),
+    removeAction: fn()
+  }}
+/>

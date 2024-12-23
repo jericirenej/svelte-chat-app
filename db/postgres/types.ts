@@ -19,7 +19,7 @@ export type UpdateAuthDto = Required<UpdateType<Auth>>;
 export type AdminDto = Selectable<Admin>;
 
 export type MessageDto = Selectable<Message>;
-export type GetMessagesDto = { messages: MessageDto[]; total: number };
+export type MessagesDto = { messages: MessageDto[]; total: number };
 export type CreateMessageDto = Omit<Insertable<Message>, BaseTableColumns>;
 export type ParticipantDto = Selectable<Participant>;
 
@@ -27,7 +27,12 @@ export type ChatDto = Selectable<Chat>;
 export type CreateChatDto = Omit<Insertable<Chat>, BaseTableColumns> & {
   participants: string[];
 };
-export type GetChatDto = ChatDto & { participants: string[]; messages: MessageDto[] };
+export type ChatUserDto = Omit<User, BaseDateColumns | "email" | "id"> & { id: string };
+export type GetChatDto = ChatDto & {
+  participants: ChatUserDto[];
+  messages: MessageDto[];
+  totalMessages: number;
+};
 
 export type ChatOrderProperties = {
   property: "name" | "createdAt" | "message" | "participants";

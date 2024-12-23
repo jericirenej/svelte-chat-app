@@ -25,9 +25,9 @@ const authenticateUser = async ({
   const user = await redisService.getSession(sessionId);
   if (!user) return null;
   if (method === "GET") return user;
+
   // All non-GET requests, such as POST, PUT, PATCH, or DELETE
   // must satisfy the csrf token header check
-
   if (!(csrfToken && verifyCsrfToken(csrfToken))) return null;
 
   const csrfSession = getSessionFromCsrfToken(csrfToken);

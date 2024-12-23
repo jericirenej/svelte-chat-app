@@ -4,6 +4,7 @@
   export let value: string;
   export let placeholder: string | undefined = undefined;
   export let onInput: ((ev?: Event) => unknown) | undefined = undefined;
+  export let submitEvent: (() => unknown) | undefined = undefined;
 
   const handleHeight = (value: string) => {
     if (!ref) return;
@@ -27,5 +28,10 @@
   spellcheck="true"
   {placeholder}
   on:input={handleInput}
+  on:keydown={(ev) => {
+    if (ev.ctrlKey && ev.key === "Enter") {
+      submitEvent && submitEvent();
+    }
+  }}
   rows="1"
 ></textarea>

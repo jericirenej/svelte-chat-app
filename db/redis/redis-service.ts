@@ -5,12 +5,15 @@ import { clientConnection, redisClient, type RedisClient } from "./client.js";
 
 export const REDIS_SESSION_KEY_PREFIX = "session";
 export const REDIS_SESSION_SOCKET_PREFIX = "socket";
+export const REDIS_USER_SESSION_BIND_PREFIX = "user";
+
 export const REDIS_DEFAULT_SEPARATOR = ":";
 export const REDIS_DEFAULT_TTL = env.SESSION_TTL || 10 * 60;
 
 export class RedisService {
   readonly sessionPrefix = REDIS_SESSION_KEY_PREFIX;
   readonly sessionSocketPrefix = REDIS_SESSION_SOCKET_PREFIX;
+  readonly userSessionBindPrefix = REDIS_USER_SESSION_BIND_PREFIX;
   readonly separator = REDIS_DEFAULT_SEPARATOR;
   #ttl = REDIS_DEFAULT_TTL;
   constructor(private client: RedisClient) {}
@@ -27,6 +30,7 @@ export class RedisService {
     const key = this.addSessionPrefix(sessionId);
     await this.client.set(key, JSON.stringify(user, jsonReplacer));
     await this.client.expire(key, this.ttl);
+    await this.bindSessionToUser(user.id, sessionId);
     return user;
   }
 
@@ -39,8 +43,11 @@ export class RedisService {
   /** Delete session entry. Also deletes associated socket entry
    * if it exists. */
   async deleteSession(sessionId: string): Promise<number> {
+    const user = await this.getSession(sessionId);
+    if (!user) return 0;
     const result = await this.client.del(this.addSessionPrefix(sessionId));
     await this.deleteSocketSession(sessionId);
+    await this.removeSessionFromBind(user.id, sessionId);
     return result;
   }
 
@@ -50,9 +57,7 @@ export class RedisService {
     const sessionExists = await this.getSession(currentId);
 
     if (!sessionExists) return null;
-
     const socketId = await this.getSocketSession(currentId);
-
     await this.deleteSession(currentId);
 
     const newSession = await this.setSession(newId, sessionExists);
@@ -92,6 +97,31 @@ export class RedisService {
     return [this.sessionSocketPrefix, sessionId].join(this.separator);
   }
 
+  async getUserSessions(userId: string): Promise<string[]> {
+    const key = this.addSessionBindScan(userId);
+    const keyWithoutWildcard = key.replace("*", "");
+    const { keys } = await this.client.scan(0, { MATCH: key });
+    return keys.map((session) => session.replace(keyWithoutWildcard, ""));
+  }
+  /** Entries allow us to see all active sessions for the current user. */
+  protected async bindSessionToUser(userId: string, sessionId: string): Promise<string | null> {
+    const key = this.addSessionBindPrefix(userId, sessionId);
+    const result = await this.client.set(key, sessionId);
+    await this.client.expire(key, this.ttl);
+    return result;
+  }
+
+  protected async removeSessionFromBind(userId: string, sessionId: string) {
+    return await this.client.del(this.addSessionBindPrefix(userId, sessionId));
+  }
+
+  addSessionBindPrefix(userId: string, sessionId: string): string {
+    return [this.userSessionBindPrefix, userId, sessionId].join(this.separator);
+  }
+  addSessionBindScan(userId: string): string {
+    return [this.userSessionBindPrefix, userId, "*"].join(this.separator);
+  }
+
   async connect(): Promise<void> {
     if (this.client.isOpen) return;
     await this.client.connect();
@@ -110,9 +140,6 @@ export class RedisService {
     return new RedisService(client);
   }
 }
-
-const redisService = await RedisService.init(redisClient);
-export { redisService };
 
 if (import.meta.vitest) {
   const { describe, it, expect, beforeAll, afterAll, afterEach } = import.meta.vitest;
@@ -137,7 +164,7 @@ if (import.meta.vitest) {
   beforeAll(async () => {
     standaloneClient = clientConnection();
     await standaloneClient.connect();
-    service = new RedisService(redisClient);
+    service = await RedisService.init(redisClient);
   });
   afterEach(async () => {
     await service.deleteAll();
@@ -148,10 +175,10 @@ if (import.meta.vitest) {
     await standaloneClient.disconnect();
   });
   describe("Session management", () => {
-    it("Should return user object ", async () => {
+    it("Returns user object ", async () => {
       expect(await service.setSession(session1, user1)).toEqual(user1);
     });
-    it("Should add session to store", async () => {
+    it("Adds session to store", async () => {
       await service.setSession(session1, user1);
       await service.setSession(session2, user2);
 
@@ -167,21 +194,22 @@ if (import.meta.vitest) {
         expect(JSON.parse(retrieved as string, jsonReviver)).toEqual(expected);
       });
     });
-    it("Should return session from store", async () => {
+
+    it("Returns session from store", async () => {
       await service.setSession(session1, user1);
       expect(await service.getSession(session1)).toEqual(user1);
     });
-    it("Should delete session from store", async () => {
+    it("Deletes session from store", async () => {
       await service.setSession(session1, user1);
       await service.deleteSession(session1);
       expect(await standaloneClient.get(service.addSessionPrefix(session1))).toBeNull();
     });
-    it("Setting ttl value should work", () => {
+    it("Sets ttl value", () => {
       expect(service.ttl).toBe(REDIS_DEFAULT_TTL);
       service.ttl = 20;
       expect(service.ttl).toBe(20);
     });
-    it("Should set proper ttl for session entry", async () => {
+    it("Sets proper ttl for session entry", async () => {
       const isInRange = (duration: number, ttl: number): boolean =>
         duration >= ttl - 1 && !(duration > ttl);
       await service.setSession(session1, user1);
@@ -195,13 +223,52 @@ if (import.meta.vitest) {
       ttl = await standaloneClient.ttl(service.addSessionPrefix(session1));
       expect(isInRange(ttl, service.ttl)).toBe(true);
     });
-    it("Should return TTL for session", async () => {
+    it("Returns TTL for session", async () => {
       await service.setSession(session1, user1);
       expect(await service.getSessionTTL(session1)).toBe(service.ttl);
     });
   });
+  describe("Binding of user sessions", () => {
+    it("Adding session adds user bind entry", async () => {
+      await service.setSession(session1, user1);
+      await service.setSession(session2, user1);
+      const bindKey = service.addSessionBindScan(user1.id);
+      const { keys } = await standaloneClient.scan(0, { MATCH: bindKey });
+      const expectedArr = [session1, session2].map((s) =>
+        service.addSessionBindPrefix(user1.id, s)
+      );
+      expect(keys.every((key) => expectedArr.includes(key))).toBeTruthy();
+    });
+    it("getUserSessions retrieves all sessions for user id", async () => {
+      await service.setSession(session1, user1);
+      await service.setSession(session2, user1);
+      const sessions = await service.getUserSessions(user1.id);
+      expect(sessions.every((session) => [session1, session2].includes(session))).toBeTruthy();
+    });
+    it("Bound sessions have appropriate TTL", async () => {
+      await service.setSession(session1, user1);
+      await expect(
+        standaloneClient.ttl(service.addSessionBindPrefix(user1.id, session1))
+      ).resolves.toBe(service.ttl);
+    });
+    it("Extending a session updates session binds", async () => {
+      await service.setSession(session1, user1);
+      await service.replaceSessionKey(session1, session2);
+      await expect(service.getUserSessions(user1.id)).resolves.toEqual([session2]);
+    });
+    it("Deleting a session deletes session bind", async () => {
+      await service.setSession(session1, user1);
+      await service.setSession(session2, user1);
+      let userSessions = await service.getUserSessions(user1.id);
+      expect(userSessions.every((session) => [session1, session2].includes(session))).toBeTruthy();
+
+      await service.deleteSession(session1);
+      userSessions = await service.getUserSessions(user1.id);
+      expect(userSessions).toEqual([session2]);
+    });
+  });
   describe("Socket management", () => {
-    it("Should only set socket session if a session already exists", async () => {
+    it("Only sets socket session if a session already exists", async () => {
       for (const populateSession of [false, true]) {
         if (populateSession) {
           await service.setSession(session1, user1);
@@ -214,38 +281,38 @@ if (import.meta.vitest) {
         await service.deleteAll();
       }
     });
-    it("Socket entry should have same TTL as its session", async () => {
-      redisService.ttl = 10;
-      await redisService.setSession(session1, user1);
-      redisService.ttl = 100;
-      await redisService.setSession(session2, user2);
-      redisService.ttl = 30;
+    it("Socket entry has same TTL as its session", async () => {
+      service.ttl = 10;
+      await service.setSession(session1, user1);
+      service.ttl = 100;
+      await service.setSession(session2, user2);
+      service.ttl = 30;
       await Promise.all(
         [socket1, socket2].map(async (socket, i) => {
-          await redisService.setSocketSession(`session${i + 1}`, socket);
+          await service.setSocketSession(`session${i + 1}`, socket);
         })
       );
       for (const session of [session1, session2]) {
-        const socket_TTL = await standaloneClient.ttl(redisService.addSocketPrefix(session)),
-          session_TTL = await standaloneClient.ttl(redisService.addSessionPrefix(session));
+        const socket_TTL = await standaloneClient.ttl(service.addSocketPrefix(session)),
+          session_TTL = await standaloneClient.ttl(service.addSessionPrefix(session));
         expect(socket_TTL).toBe(session_TTL);
       }
     });
-    it("Should delete socket session", async () => {
-      await redisService.setSession(session1, user1);
-      await redisService.setSocketSession(session1, socket1);
-      await redisService.deleteSocketSession(session1);
-      expect(await redisService.getSocketSession(session1)).toBeNull();
+    it("Deletes socket session", async () => {
+      await service.setSession(session1, user1);
+      await service.setSocketSession(session1, socket1);
+      await service.deleteSocketSession(session1);
+      expect(await service.getSocketSession(session1)).toBeNull();
     });
   });
   describe("Session replacement", () => {
-    it("Deleting session should also delete socket session", async () => {
+    it("Deleting session also deletes socket session", async () => {
       await service.setSession(session1, user1);
       await service.setSocketSession(session1, socket1);
       await service.deleteSession(session1);
       expect(await standaloneClient.get(service.addSocketPrefix(session1))).toBeNull();
     });
-    it("Should replace session key", async () => {
+    it("Replaces session key", async () => {
       const session_new_1 = "session_new_1",
         session_new_2 = "session_new_2";
       await service.setSession(session1, user1);

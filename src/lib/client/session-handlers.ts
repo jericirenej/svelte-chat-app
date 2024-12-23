@@ -1,20 +1,19 @@
 import { goto, invalidateAll } from "$app/navigation";
-import type { ActionResult } from "@sveltejs/kit";
+import type { ActionResult, SubmitFunction } from "@sveltejs/kit";
 import {
-  CSRF_HEADER,
   DELETE_ACCOUNT_ROUTE,
   EXPIRE_SESSION_WARNING_BUFFER,
   EXTEND_SESSION_ROUTE,
   LOCAL_EXPIRE_REDIRECT,
   LOCAL_KEYS,
-  LOCAL_SESSION_CSRF_KEY,
   LOGIN_ROUTE,
   LOGOUT_ROUTE,
   REDIRECT_AFTER_EXPIRE_DELAY
 } from "../../constants";
-import { NOTIFICATION_MESSAGES } from "../../messages";
+import { LOGIN_MESSAGES, NOTIFICATION_MESSAGES } from "../../messages";
+import { csrfHeader, getCSRFLocal, setCSRFLocal } from "./csrf-handlers";
 import { socketClientSetup } from "./socket.client";
-import { notificationStore, socket } from "./stores";
+import { clearChatRelatedStores, notificationStore, socket } from "./stores";
 
 type FormEventType = {
   result: ActionResult<Partial<{ csrfToken: string; username: string }>>;
@@ -22,7 +21,7 @@ type FormEventType = {
   cancel: () => void;
 };
 
-const handleNotification = async ({
+export const handleNotification = async ({
   response,
   successCodes = [200, 201],
   successMsg = NOTIFICATION_MESSAGES.defaultSuccess,
@@ -40,11 +39,12 @@ const handleNotification = async ({
   notificationOnNull?: boolean;
 }): Promise<void> => {
   if (!response) {
-    notificationOnNull &&
+    if (notificationOnNull) {
       notificationStore.addNotification({
         content: defaultFailMsg,
         type: "failure"
       });
+    }
     return;
   }
   if (successCodes.includes(response.status)) {
@@ -69,14 +69,6 @@ const handleNotification = async ({
   notificationStore.addNotification({ content, lifespan, type: "failure" });
 };
 
-export const setCSRFLocal = (csrfToken: string | undefined): boolean => {
-  if (!csrfToken) return false;
-  localStorage.setItem(LOCAL_SESSION_CSRF_KEY, csrfToken);
-  return true;
-};
-
-export const getCSRFLocal = () => localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
-
 export const setRedirectAfterExpire = () => {
   const timeout = setTimeout(() => {
     notificationStore.addNotification({
@@ -100,7 +92,7 @@ export const clearExpireRedirect = () => {
 };
 /** On successful result, set CSRF token in localStorage and open
  * setup web socket connection. */
-export const handleFormResult = (event: FormEventType): number | undefined => {
+export const handleLoginResult = (event: FormEventType): number | undefined => {
   const result = event.result;
   const status = result.status;
   if (result.type !== "success" || !result.data) {
@@ -112,11 +104,24 @@ export const handleFormResult = (event: FormEventType): number | undefined => {
   if (result.data.username) {
     socket.set(socketClientSetup(result.data.csrfToken, result.data.username));
   }
+  setTimeout(() => {
+    notificationStore.addNotification({ content: LOGIN_MESSAGES.success, type: "default" });
+  }, 100);
 
   return result.status;
 };
 
-const csrfHeader = (csrf: string) => ({ [CSRF_HEADER]: csrf });
+export const createChatCall = async (input: Parameters<SubmitFunction>[0]) => {
+  const csrf = getCSRFLocal();
+  if (!csrf) return new Response();
+  const response = await fetch(input.action, {
+    method: "POST",
+    headers: csrfHeader(csrf),
+    body: input.formData
+  });
+  await handleNotification({ response });
+  return response;
+};
 
 const extendCall = (csrf: string) =>
   fetch(EXTEND_SESSION_ROUTE, { method: "POST", headers: { ...csrfHeader(csrf) } });
@@ -148,7 +153,7 @@ const handleRequestAndCloseSession = async (
   LOCAL_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
-  socket.set(undefined);
+  clearChatRelatedStores();
   return response;
 };
 

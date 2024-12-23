@@ -14,7 +14,7 @@ describe("MessageDate", () => {
     vi.restoreAllMocks();
   });
 
-  it("Should update display and title", async () => {
+  it("Updates display and title", async () => {
     const date = add(new Date(), { minutes: 1 }),
       locale = "en-US";
     const { container } = render(MessageDate, {
@@ -41,7 +41,7 @@ describe("MessageDate", () => {
       });
     }
   });
-  it("Should only update for up to 1 hour", async () => {
+  it("Only updates for up to 1 hour", async () => {
     const date = new Date(),
       locale = "en-US",
       display = new Intl.DateTimeFormat(locale, {
@@ -60,7 +60,7 @@ describe("MessageDate", () => {
       });
     }
   });
-  it("Should have proper display of dates older than 1 hour", async () => {
+  it("Has appropriate display of dates older than 1 hour", async () => {
     const locale = "en-US";
     const testCases: { advance: number; dateConfig: Intl.DateTimeFormat }[] = [
       {
@@ -110,7 +110,7 @@ describe("MessageDate", () => {
       });
     }
   });
-  it("Locale should be passed to handleDate", () => {
+  it("Locale is passed to handleDate", () => {
     const locales = ["en-US", "de-DE", "sl-SI"],
       date = new Date();
     for (const locale of locales) {

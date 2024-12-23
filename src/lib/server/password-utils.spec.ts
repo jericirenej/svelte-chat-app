@@ -5,7 +5,7 @@ vi.mock("node:crypto", async () => {
   return { ...original };
 });
 
-import { afterEach, beforeEach, describe, expect, it, vi, type SpyInstance } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import {
   VERIFICATION_FAILURE,
   generateCsrfToken,
@@ -28,7 +28,7 @@ vi.mock("$env/static/private", () => ({ SERVER_SECRET: "mock-secret" }));
 describe("verifyInConstantTime", () => {
   const first1 = "first1",
     first2 = "first2";
-  it("Should verify string equality", () => {
+  it("Verifies string equality", () => {
     expect(verifyInConstantTime(first1, first2)).toBe(false);
     expect(verifyInConstantTime(first1, first1)).toBe(true);
   });
@@ -47,8 +47,8 @@ describe("verifyUser", () => {
       return Promise.resolve(undefined);
     }
   };
-  let spyOnConsole: SpyInstance,
-    spyOnCredentials: SpyInstance<[username: string], Promise<AuthDto | undefined>>;
+  let spyOnConsole: MockInstance,
+    spyOnCredentials: MockInstance<(username: string) => Promise<AuthDto | undefined>>;
   beforeEach(() => {
     spyOnConsole = vi.spyOn(console, "log").mockImplementation((message?: unknown) => {});
     spyOnCredentials = vi.spyOn(mockDbService, "getCredentials");
@@ -56,21 +56,21 @@ describe("verifyUser", () => {
   afterEach(() => {
     spyOnConsole.mockRestore();
   });
-  it("Should return null if username is not found and report mismatch", async () => {
+  it("Returns null if username is not found and report mismatch", async () => {
     expect(await verifyUser(username, password, mockDbService)).toBeNull();
     expect(spyOnConsole).toHaveBeenCalledWith(VERIFICATION_FAILURE);
   });
-  it("Should return null if verification fails and report mismatch", async () => {
+  it("Returns null if verification fails and report mismatch", async () => {
     spyOnCredentials.mockResolvedValueOnce({ hash, salt, id, createdAt, updatedAt });
     expect(await verifyUser(username, invalid, mockDbService)).toBeNull();
     expect(spyOnConsole).toHaveBeenCalledWith(VERIFICATION_FAILURE);
   });
-  it("Should return id, if verification succeeds", async () => {
+  it("Returns id, if verification succeeds", async () => {
     spyOnCredentials.mockResolvedValueOnce({ hash, salt, id, createdAt, updatedAt });
     expect(await verifyUser(username, password, mockDbService)).toBe(id);
     expect(spyOnConsole).not.toHaveBeenCalled();
   });
-  it("If function throws, should return null and report gracefully", async () => {
+  it("Returns null and reports gracefully if function throws", async () => {
     spyOnCredentials.mockRejectedValueOnce(new Error("error"));
     expect(await verifyUser(username, password, mockDbService)).toBeNull();
     expect(spyOnConsole).toHaveBeenCalledOnce();
@@ -80,25 +80,25 @@ describe("verifyUser", () => {
 
 describe("CSRF token", () => {
   const sessionId = "sessionId";
-  it("Should create a CSRF token", () => {
+  it("Creates a CSRF token", () => {
     const csrfToken = generateCsrfToken(sessionId);
     const splitToken = csrfToken.split(".");
     expect(splitToken.length).toBe(2);
     expect(splitToken[1].includes("!"));
   });
-  it("Successively created CSRF tokens with identical sessionId should not be equal because of random seeds", () => {
+  it("Random seeds distinguish successively created CSRF tokens with identical sessionId", () => {
     expect(generateCsrfToken(sessionId)).not.toEqual(generateCsrfToken(sessionId));
   });
-  it("Should return true, if an identical CSRF token is supplied", () => {
+  it("Returns true, if an identical CSRF token is supplied", () => {
     const csrfToken = generateCsrfToken(sessionId);
     expect(verifyCsrfToken(csrfToken)).toBe(true);
   });
-  it("Should return false if part of token is missing", () => {
+  it("Returns false if part of token is missing", () => {
     const csrfToken = generateCsrfToken(sessionId);
     const split = csrfToken.split(".");
     expect(verifyCsrfToken(split[1])).toBe(false);
   });
-  it("Should return false, if any part of the message has been changed", () => {
+  it("Returns false, if any part of the message has been changed", () => {
     const csrfToken = generateCsrfToken(sessionId);
     const [hmac, token] = csrfToken.split(".");
 
@@ -110,11 +110,11 @@ describe("CSRF token", () => {
     expect(verifyCsrfToken([hmac, alteredToken].join("."))).toBe(false);
     expect(verifyCsrfToken([alteredHmac, token].join("."))).toBe(false);
   });
-  it("Should extract session from token", () => {
+  it("Extractssession from token", () => {
     const csrfToken = generateCsrfToken(sessionId);
     expect(getSessionFromCsrfToken(csrfToken)).toBe(sessionId);
   });
-  it("If token is malformed, return empty string", () => {
+  it("Returns empty string for malformed token", () => {
     for (const malformed of ["malformed", "hmac.withoutExclamation"]) {
       expect(getSessionFromCsrfToken(malformed)).toBe("");
     }

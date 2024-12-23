@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
-  import { signupSchema } from "$lib/client/login-signup-validators";
-  import { handleFormResult } from "$lib/client/session-handlers";
+  import { signupSchema } from "$lib/client/login-signup.validators";
+  import { handleLoginResult } from "$lib/client/session-handlers";
   import { debounce, promisifiedTimeout } from "$lib/utils";
   import { onMount } from "svelte";
   import { superForm } from "sveltekit-superforms";
@@ -37,7 +37,7 @@
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
-      status = handleFormResult(event) as typeof status;
+      status = handleLoginResult(event) as typeof status;
       // Delay for successful login, so that the user is informed before redirect
       if (status === 200) {
         await promisifiedTimeout(1500);

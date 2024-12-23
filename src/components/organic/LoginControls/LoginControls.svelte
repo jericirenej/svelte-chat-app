@@ -12,15 +12,10 @@
   export let submitDisabled = false;
   const {
     failure: loginFailure,
-    success: loginSuccess,
     passwordPlaceholder,
     usernamePlaceholder,
     supplyDetailsTitle
   } = LOGIN_MESSAGES;
-  const defaultMessage = {
-    200: loginSuccess,
-    404: loginFailure
-  };
 </script>
 
 <ControlWrapper>
@@ -50,7 +45,7 @@
       title={submitDisabled ? supplyDetailsTitle : ""}
       config={{ display: "block" }}
       submitStatus={status === 200 ? "success" : "error"}
-      submitMessage={status ? defaultMessage[status] : undefined}
+      submitMessage={status === 404 ? loginFailure : undefined}
     />
   </svelte:fragment>
 </ControlWrapper>

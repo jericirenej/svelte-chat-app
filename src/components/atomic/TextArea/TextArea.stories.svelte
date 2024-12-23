@@ -18,7 +18,8 @@
     },
     args: {
       containerWidth: 50,
-      onInput: fn()
+      onInput: fn(),
+      submitEvent: fn()
     }
   };
 </script>
@@ -31,9 +32,9 @@
 </script>
 
 <Template let:args>
-  {@const { containerWidth, placeholder, onInput } = assertArgs(args)}
+  {@const { containerWidth, placeholder, onInput, submitEvent } = assertArgs(args)}
   <div style:width={`${containerWidth}%`}>
-    <TextAreaComponent bind:value {placeholder} {onInput} />
+    <TextAreaComponent bind:value {placeholder} {onInput} {submitEvent} />
   </div>
 </Template>
 

@@ -27,9 +27,8 @@ export const closeSocket = async (
   await disconnectTargetSocket(socketServer, socketId);
 };
 
-/** Logout the current user. Will not check if session exists.
- * Will not authenticate. This is done by the authentication function called
- * previously in the handle hook. */
+/** Logout the current user. Will not check if session exists. Will not authenticate.
+ *This is done by the authentication function called previously in the handle hook. */
 export const logoutUser = async (
   redisService: RedisService,
   sessionId: string

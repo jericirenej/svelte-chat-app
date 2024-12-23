@@ -7,7 +7,7 @@ export const LOGIN_MESSAGES = {
   pageTitle: `${APP_NAME} - Login`,
   title: "Sign in",
   subtitle: "...and start chatting!",
-  signup: "Not registered? Create an account!",
+  signup: "Not registered yet? Create an account!",
   supplyDetailsTitle: "Please supply a username and password.",
   usernamePlaceholder: "Enter your username",
   passwordPlaceholder: "Enter your password",
@@ -47,6 +47,7 @@ export const NOTIFICATION_MESSAGES = {
   defaultSuccess: "Success!",
   defaultFail: "Failed!",
   deleteAccountSuccess: "Account deletion successful.",
+  leftChatSuccess: "Left chat",
   logoutSuccess: "Logged out\t👋",
   extend: {
     initial: "Session will expire soon.\nClick here to extend.",
@@ -69,14 +70,16 @@ export const CONVERSATION_MESSAGES = {
   from: "Message author",
   publishedAt: "Sent date",
   send: "Send message",
-  sendEmpty: "Type something to send a message 😉",
+  sendEmpty: "Write something first, to be able to send a message",
   textPlaceholder: "Write something...",
   sendError: "Sending message failed. Please try again.",
   ownMessageAuthor: "You",
   missingAuthor: "Missing user",
   newMessagesInvisible: "New message received. Click here to show it.",
   containerLabel: "List of messages for the current chat",
-  unreadMessages: "Number of unread messages in this chat"
+  unreadMessages: "Number of unread messages in this chat",
+  leaveChat: "Leave chat",
+  leaveChatMessage: "Are you sure you want to leave the chat?"
 };
 
 export const avatarLabel = (name: string) => `${capitalize(name)} avatar`;
@@ -86,3 +89,20 @@ export const ENTITY_LIST = {
   searchLabel: "User search",
   searchPlaceholder: "Search for users"
 };
+
+export const CREATE_CHAT = {
+  pageTitle: `${APP_NAME} - New chat`,
+  title: "Create new chat",
+  chatLabel: "Label (Optional)",
+  submitText: "Create chat",
+  supplyDetailsTitle: "Pick at least one chat participant. Add optional chat label."
+};
+
+export const LENGTH_ERR_MESSAGES = {
+  overMax: (val: number) => `A maximum of ${val} characters permitted.`,
+  underMin: (val: number) => `Should contain at least ${val} characters.`
+};
+
+export const PREVIEW_LIST_TITLE = "Chats";
+export const PREVIEW_LIST_EMPTY = "No active chats. Go and talk to someone!";
+export const PREVIEW_LIST_NO_MESSAGES = "No messages yet...";

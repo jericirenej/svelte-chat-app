@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-throw-literal */
 import { error } from "@sveltejs/kit";
 import { Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
@@ -15,7 +14,7 @@ import type {
   CreateUserDto,
   GetChatDto,
   GetChatsDto,
-  GetMessagesDto,
+  MessagesDto,
   MessageDto,
   ParticipantDto,
   SingleUserSearch,
@@ -99,9 +98,9 @@ export class DatabaseService implements AsyncDisposable {
     return credentials;
   }
 
-  async searchForUsers(search: string): Promise<CompleteUserDto[]> {
+  async searchForUsers(search: string, excludedIds?: string[]): Promise<CompleteUserDto[]> {
     const props = ["name", "surname", "username"] satisfies (keyof User)[];
-    return await this.db
+    let baseQuery = this.db
       .selectFrom("user")
       .leftJoin("admin", "admin.id", "user.id")
       .selectAll("user")
@@ -116,8 +115,14 @@ export class DatabaseService implements AsyncDisposable {
           .end()
           .as("role")
       )
-      .where((eb) => eb.or(props.map((prop) => eb(eb.ref(`user.${prop}`), "ilike", `%${search}%`))))
-      .execute();
+      .where((eb) =>
+        eb.or(props.map((prop) => eb(eb.ref(`user.${prop}`), "ilike", `%${search}%`)))
+      );
+    if (excludedIds?.length) {
+      baseQuery = baseQuery.where("user.id", "not in", excludedIds);
+    }
+
+    return await baseQuery.execute();
   }
 
   /** Update user properties. Overriding id's is forbidden.*/
@@ -301,9 +306,9 @@ export class DatabaseService implements AsyncDisposable {
 
   /* ----- CHATS AND PARTICIPANTS ----- 
     Chats cannot be updated, only their participants can. 
-    Normal users also cannot deleted them directly. They are removed, when
-    the last of their participants is deleted as well. Only admins can delete
-    chats directly. */
+    Normal users also cannot deleted them directly, only leave them.
+    Chats are removed when the last participant is deleted as well. 
+    Only admins can delete chats directly. */
   async createChat({ name, participants }: CreateChatDto): Promise<GetChatDto> {
     const participantsExist = await Promise.all(participants.map((userId) => this.#isUser(userId)));
     if (!participantsExist.every((check) => check)) {
@@ -313,10 +318,10 @@ export class DatabaseService implements AsyncDisposable {
     // When starting, a minimum of 2 participants required.
     // However, a chat can exist, until it has at least one participant.
     if (participants.length < 2) {
-      return throwHttpError(400, "At least two participants are required when creating a chat!");
+      return throwHttpError(400, "At least two participants required!");
     }
     // Need explicit setting, or insert will throw.
-    const nameVal = name ? name : null;
+    const nameVal = name ?? null;
     const chat = await this.db.transaction().execute(async (trx) => {
       const createdChat = await trx
         .insertInto("chat")
@@ -327,16 +332,20 @@ export class DatabaseService implements AsyncDisposable {
         return throwHttpError(500, "Error creating new chat!");
       }
 
-      const participantIds = await trx
+      await trx
         .insertInto("participant")
         .values(participants.map((id) => ({ chatId: createdChat.id, userId: id })))
-        .returning("participant.userId")
         .execute();
 
       return {
         ...createdChat,
-        participants: participantIds.map(({ userId }) => userId),
-        messages: []
+        participants: await this.db
+          .selectFrom("user")
+          .select(["id", "username", "name", "surname", "avatar"])
+          .where("id", "in", participants)
+          .execute(),
+        messages: [],
+        totalMessages: 0
       };
     });
     return chat;
@@ -344,13 +353,7 @@ export class DatabaseService implements AsyncDisposable {
 
   /** Get a chat by their id */
   async getChat(chatId: string): Promise<GetChatDto | undefined> {
-    const chat = await this.baseGetChatQuery().where("c.id", "=", chatId).executeTakeFirst();
-
-    if (!chat) return chat;
-    return {
-      ...chat,
-      participants: chat.participants.map(({ userId }) => userId)
-    };
+    return this.baseGetChatQuery().where("c.id", "=", chatId).executeTakeFirst();
   }
 
   async getChats({ chatIds, direction, property }: GetChatsDto): Promise<GetChatDto[]> {
@@ -359,11 +362,16 @@ export class DatabaseService implements AsyncDisposable {
     }
     const ids = Array.isArray(chatIds) ? chatIds : [chatIds];
     const query = this.baseGetChatQuery().where("c.id", "in", ids);
-    const chats = await this.#chatOrderByQuery(query, { direction, property }).execute();
-    return chats.map((chat) => ({
-      ...chat,
-      participants: chat.participants.map(({ userId }) => userId)
-    }));
+    return this.#chatOrderByQuery(query, { direction, property }).execute();
+  }
+
+  async chatExists(chatId: string): Promise<boolean> {
+    const result = await this.db
+      .selectFrom("chat")
+      .select("id")
+      .where("id", "=", chatId)
+      .executeTakeFirst();
+    return !!result;
   }
 
   async getChatIdsForUser(userId: string): Promise<string[]> {
@@ -382,7 +390,6 @@ export class DatabaseService implements AsyncDisposable {
   ): Promise<GetChatDto[]> {
     const chatIds = await this.getChatIdsForUser(userId);
     if (!chatIds.length) return [];
-
     return await this.getChats({ chatIds, ...orderBy });
   }
 
@@ -392,15 +399,31 @@ export class DatabaseService implements AsyncDisposable {
       .selectAll("c")
       .select((eb) => [
         jsonArrayFrom(
-          eb.selectFrom("participant as p").select("p.userId").whereRef("p.chatId", "=", "c.id")
+          eb
+            .selectFrom("participant as p")
+            .innerJoin("user as u", "u.id", "p.userId")
+            .select(["u.id", "u.name", "u.surname", "u.username", "u.avatar"])
+            .whereRef("p.chatId", "=", "c.id")
         ).as("participants"),
         jsonArrayFrom(
           eb
             .selectFrom("message as m")
             .selectAll()
             .whereRef("m.chatId", "=", "c.id")
+            .orderBy("m.createdAt desc")
             .limit(this.BASE_PREVIEW_LIMIT)
-        ).as("messages")
+        ).as("messages"),
+
+        eb.fn
+          .coalesce(
+            eb
+              .selectFrom("message as m2")
+              .select((eb) => eb.cast<number>(eb.fn.countAll(), "integer").as("messageCount"))
+              .whereRef("m2.chatId", "=", "c.id")
+              .groupBy("m2.chatId"),
+            eb.lit(0)
+          )
+          .as("totalMessages")
       ]);
   }
 
@@ -496,22 +519,43 @@ export class DatabaseService implements AsyncDisposable {
     if (!participants.find((id) => id === userId)) {
       return throwHttpError(400, "User is not a participant of the target chat!");
     }
-    // If only a single participant is left in chat, remove the
-    // chat itself which will remove the participant as well.
-    if (participants.length === 1) {
+    // If only two participants are currently in the chat, the chat itself
+    // should be removed (this removes participants as well).
+    //
+    // Possible feature: chats with only one participant could still be retained
+    // but they would be read only (users wouldn't be able to send messages from them)
+    if (participants.length === 2) {
       await this.db.deleteFrom("chat").where("id", "=", chatId).execute();
     } else {
-      await this.db.deleteFrom("participant").where("userId", "=", userId).execute();
+      await this.db
+        .deleteFrom("participant")
+        .where((eb) => eb.and([eb("userId", "=", userId), eb("chatId", "=", chatId)]))
+        .execute();
     }
     return true;
   }
 
+  async setParticipantChatAccess(chatId: string, userId: string): Promise<void> {
+    await this.#throwIfNotFound("chat", chatId);
+    const isParticipant = await this.#isParticipant(chatId, userId);
+    if (!isParticipant) {
+      return throwHttpError(404, "User is not participant of target chat!");
+    }
+    const now = new Date();
+    await this.db
+      .updateTable("participant")
+      .set({ chatLastAccess: now, updatedAt: now })
+      .where((eb) => eb.and([eb("chatId", "=", chatId), eb("userId", "=", userId)]))
+      .execute();
+  }
+
   /* ----- MESSAGES ----- */
 
-  /* Currently  no updating (editing) of messages. Allow for soft deletions. */
+  /* Currently, no updating (editing) of messages possible. 
+     Allow for soft deletions. */
 
   /** Create a message in the existing chat.
-   * If autoAdd is true, users that are not participants of the current chat
+   * If `autoAdd` is true, users that are not participants of the current chat
    * will be auto-added. Defaults to `false` */
   async createMessage(
     { chatId, message, userId }: CreateMessageDto,
@@ -535,17 +579,28 @@ export class DatabaseService implements AsyncDisposable {
     return createdMessage;
   }
 
-  async getMessagesForChat(
+  async getMessagesForChatParticipant(
+    chatId: string,
+    userId: string,
+    options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
+  ): Promise<MessagesDto> {
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+    if (!(await this.#isParticipant(chatId, userId))) {
+      return throwHttpError(403, "Not a chat participant!");
+    }
+    return this.#getMessagesForChat(chatId, options);
+  }
+
+  async #getMessagesForChat(
     chatId: string,
     options: { take?: number; skip?: number; direction?: "desc" | "asc" } = {}
-  ): Promise<GetMessagesDto> {
-    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+  ): Promise<MessagesDto> {
     let baseQuery = this.db
       .selectFrom("message")
       .selectAll()
       .where("chatId", "=", chatId)
-      .orderBy("createdAt", options.direction ?? "desc");
-
+      // Newest chats on top by default
+      .orderBy(`createdAt ${options.direction ?? "desc"}`);
     if (options.take) {
       baseQuery = baseQuery.offset(options.skip ?? 0).limit(options.take);
     }
@@ -563,6 +618,27 @@ export class DatabaseService implements AsyncDisposable {
       .where("chatId", "=", chatId)
       .executeTakeFirstOrThrow();
     return count.total;
+  }
+
+  async getUnreadMessagesForParticipant(chatId: string, userId: string): Promise<number> {
+    await this.#throwIfNotFound("chat", chatId, "Target chat does not exist!");
+    if (!(await this.#isParticipant(chatId, userId))) {
+      return throwHttpError(403, "Not a chat participant of target chat!");
+    }
+    const { chatLastAccess } = await this.db
+      .selectFrom("participant")
+      .select("chatLastAccess")
+      .where((eb) => eb.and([eb("chatId", "=", chatId), eb("userId", "=", userId)]))
+      .executeTakeFirstOrThrow();
+    let query = this.db
+      .selectFrom("message")
+      .select((eb) => eb.cast<number>(eb.fn.countAll(), "integer").as("unread"))
+      .where("chatId", "=", chatId);
+    if (chatLastAccess) {
+      query = query.where("createdAt", ">", chatLastAccess);
+    }
+    const { unread } = await query.executeTakeFirstOrThrow();
+    return unread;
   }
 
   /** Message authors can toggle their message deletion status */
@@ -592,7 +668,7 @@ export class DatabaseService implements AsyncDisposable {
   /* ----- UTILITY METHODS ----- */
 
   /** Prevent external modification of base table columns, such as `id`, `createdDate`, `updatedDate` */
-  #forbidBaseColumns<T extends Record<string, unknown>>(arg: T): void {
+  #forbidBaseColumns(arg: Record<string, unknown>): void {
     const baseColumns: BaseTableColumns[] = ["createdAt", "id", "updatedAt"];
     if (baseColumns.some((col) => col in arg)) {
       return throwHttpError(
@@ -675,7 +751,7 @@ export class DatabaseService implements AsyncDisposable {
     if (!chat) {
       return throwHttpError(404, "Target chat does not exist!");
     }
-    return chat.participants.includes(userId);
+    return chat.participants.some((p) => p.id === userId);
   }
 
   async #usersExist(): Promise<boolean> {

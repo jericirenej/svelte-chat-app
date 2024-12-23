@@ -1,32 +1,37 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
-  import UserEntity from "../UserEntity/UserEntity.svelte";
-  import Icon from "@iconify/svelte";
-  import CancelIcon from "@iconify/icons-iconoir/cancel";
   import { ENTITY_LIST } from "../../../messages";
   import type { Entity } from "../../../types";
+  import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
+  import UserEntity from "../UserEntity/UserEntity.svelte";
 
-  const duration = 20;
-  export let entities: Entity[];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  export let handleSelect: (entity: Entity) => unknown = (_entity) => {};
   export let removeAction: ((id: string) => unknown) | undefined = undefined;
-  export let handleSelect: (id: string) => unknown = (id) => {
-    id;
-  };
+  export let entities: Entity[];
+  export let animationDuration = 25;
+  export let staggeredAnimation = true;
+  export let colorTheme: "dark" | "light" = "light";
+
+  $: hover = colorTheme === "light" ? "hover:bg-slate-300" : "hover:bg-slate-700";
 </script>
 
-<ul class="flex list-none flex-col">
+<ul class="mb-1 flex list-none flex-col bg-inherit">
   {#each entities as entity, i (entity.id)}
     <li
-      in:slide|global={{ duration, delay: i * (duration / 2) }}
-      out:slide|global={{ duration, delay: (entities.length - i - 1) * duration }}
-      class="cursor-default p-2 transition-colors hover:bg-slate-300"
+      in:slide|global={{
+        duration: animationDuration,
+        delay: staggeredAnimation ? i * (animationDuration / 2) : 0
+      }}
+      out:slide|global={{
+        duration: animationDuration,
+        delay: staggeredAnimation ? (entities.length - i - 1) * animationDuration : 0
+      }}
+      class={`"cursor-default bg-neutral-50 p-2 ${hover}`}
     >
       <UserEntity {entity} {handleSelect} size="base">
         {#if removeAction}
-          <button type="button" class="cursor-pointer" on:click={() => removeAction(entity.id)}>
-            <span class="sr-only">{ENTITY_LIST.remove}</span>
-            <Icon icon={CancelIcon} />
-          </button>
+          <DeleteButton on:click={() => removeAction(entity.id)} label={ENTITY_LIST.remove} />
         {/if}
       </UserEntity>
     </li>

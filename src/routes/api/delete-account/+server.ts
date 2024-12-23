@@ -1,7 +1,7 @@
 import { assertSessionCookie, closeSocket, logoutUser } from "$lib/server/disconnect-user";
 import { error, type RequestHandler } from "@sveltejs/kit";
-import { dbService } from "../../../../db/postgres";
-import { redisService } from "../../../../db/redis/redis-service";
+import { dbService } from "@db/postgres";
+import { redisService } from "@db/redis";
 
 export const DELETE: RequestHandler = async ({ cookies, locals }) => {
   const chatSessionId = assertSessionCookie(cookies);

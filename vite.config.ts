@@ -11,11 +11,11 @@ export default defineConfig({
     svelteTesting(),
     {
       name: "socketIOIntegration",
-      configureServer(server: ViteDevServer) {
-        createSocketServer(server.httpServer);
+      async configureServer(server: ViteDevServer) {
+        await createSocketServer(server.httpServer);
       },
-      configurePreviewServer(server: PreviewServer) {
-        createSocketServer(server.httpServer);
+      async configurePreviewServer(server: PreviewServer) {
+        await createSocketServer(server.httpServer);
       }
     }
   ],

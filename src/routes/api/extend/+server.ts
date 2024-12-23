@@ -1,7 +1,7 @@
 import { error, json, type RequestHandler } from "@sveltejs/kit";
 import { CSRF_HEADER, SESSION_COOKIE } from "../../../constants";
 import { generateCsrfToken, generateSessionId } from "$lib/server/password-utils";
-import { redisService } from "../../../../db/redis/redis-service";
+import { redisService } from "../../../../db/redis/redis-service-singleton";
 import { secureCookieEval } from "$lib/utils";
 
 export const POST: RequestHandler = async ({ url, cookies, request, locals }) => {

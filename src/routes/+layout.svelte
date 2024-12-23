@@ -1,68 +1,71 @@
 <script lang="ts">
-  import { page } from "$app/stores";
-  import { handleLogoutCall } from "$lib/client/session-handlers";
-  import { socketClientSetup } from "$lib/client/socket.client";
-  import { notificationStore, showSessionExpirationWarning, socket } from "$lib/client/stores";
-  import { onMount } from "svelte";
-  import { fly } from "svelte/transition";
-
-  import "../app.css";
-  
-  import NavIcons from "../components/molecular/NavIcons/NavIcons.svelte";
-  import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
   import {
-    LOCAL_KEYS,
-    LOCAL_SESSION_CSRF_KEY
-  } from "../constants.js";
-  import type { LayoutData } from "./$types";
+    chatPreviews,
+    notificationStore,
+    showSessionExpirationWarning,
+    unreadChatMessages,
+    usersTyping
+  } from "$lib/client/stores";
+  import "../app.css";
 
+  import { page } from "$app/stores";
+  import { goto } from "$app/navigation";
+  import { layoutOnMountHandler } from "$lib/client/layout-handlers";
+  import { removeChat, setPreviewAndUnreadOnLoad } from "$lib/client/chat-handlers";
+  import { handleLogoutCall } from "$lib/client/session-handlers";
+  import { onMount } from "svelte";
+  import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
+  import Sidebar from "../components/templates/Sidebar/Sidebar.svelte";
+  import { CHAT_ROUTE, CREATE_CHAT_ROUTE } from "../constants";
+  import type { LayoutData } from "./$types";
+  import { fade } from "svelte/transition";
   export let data: LayoutData;
 
-  $: loggedIn = !!data.user;
+  const handleChatDelete = async (chatId: string) => {
+    if (!data.user) return;
+    await removeChat(chatId, data.user.id);
+  };
 
-  const closeSession = async () => {
+  const navigateToChat = (chatId: string) => {
+    void goto(`${CHAT_ROUTE}/${chatId}`);
+  };
+  const handleLogout = async () => {
     await handleLogoutCall();
     $showSessionExpirationWarning = false;
   };
 
+  const handleChatCreate = async () => {
+    await goto(CREATE_CHAT_ROUTE);
+  };
   onMount(() => {
-    if (!data.user) {
-      LOCAL_KEYS.forEach((key) => {
-        localStorage.removeItem(key);
-      });
-      return;
-    }
-
-    const csrf = localStorage.getItem(LOCAL_SESSION_CSRF_KEY);
-    if (!csrf) return;
-    socket.set(socketClientSetup($page.url.origin, csrf));
+    layoutOnMountHandler(data);
+    setPreviewAndUnreadOnLoad(data);
   });
 </script>
 
 <div class="flex h-screen w-screen items-center justify-center overflow-hidden bg-neutral-400">
-  <div
-    class="app relative flex h-[95vh] w-[95vw] max-w-[1500px] overflow-y-auto rounded-md bg-white"
-  >
-    <section
-      transition:fly={{ duration: 300, y: -400 }}
-      class={`sidebar h-full w-full rounded-s-[inherit] bg-slate-700 text-neutral-50 transition-max-width duration-300 ${
-        loggedIn ? "min-w-[200px] max-w-[250px]" : "max-w-0"
-      }`}
+  {#key data.user?.id !== undefined}
+    <div
+      class="app relative flex h-[95vh] w-[95vw] max-w-[1900px] overflow-y-auto rounded-md bg-white"
+      in:fade
     >
-      {#if loggedIn}
-        <nav>
-          <section>
-            <NavIcons routeId={$page.route.id} handleLogout={closeSession} />
-          </section>
-        </nav>
-      {:else}
-        <nav></nav>
+      {#if data.user}
+        <Sidebar
+          usersTyping={$usersTyping}
+          chatUnreadList={$unreadChatMessages}
+          chatPreviewList={$chatPreviews}
+          routeId={$page.route.id}
+          {handleChatDelete}
+          onActivateHandler={navigateToChat}
+          {handleLogout}
+          {handleChatCreate}
+        />
       {/if}
-    </section>
-    <slot />
+      <slot />
 
-    <div class="absolute right-3 top-3 z-10">
-      <NotificationWrapper notifications={notificationStore} lifespan={3000} />
+      <div class="absolute right-3 top-3 z-10">
+        <NotificationWrapper notifications={notificationStore} lifespan={3000} />
+      </div>
     </div>
-  </div>
+  {/key}
 </div>

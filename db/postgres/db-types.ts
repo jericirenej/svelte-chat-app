@@ -40,6 +40,7 @@ export interface Message {
 
 export interface Participant {
   chatId: string;
+  chatLastAccess: Timestamp | null;
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
   updatedAt: Generated<Timestamp>;

@@ -1,10 +1,12 @@
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from "kysely";
 import pg from "pg";
 import env from "../../environment.js";
-import type { DB } from "../db-types.js";
-import { seed } from "../seed/default-seed.js";
-import { ESMFileMigrationProvider, MigrationHelper } from "./migrator.js";
 import { DatabaseService } from "../db-service.js";
+import type { DB } from "../db-types.js";
+import { seed as defaultSeed, users } from "../seed/default-seed.js";
+import type { ChatSchema, CreateUserArg } from "../seed/seed.js";
+import { Seeder } from "../seed/seed.js";
+import { ESMFileMigrationProvider, MigrationHelper } from "./migrator.js";
 const postgresConnection = {
   database: env.POSTGRES_POSTGRES_DB,
   host: env.POSTGRES_HOST,
@@ -16,6 +18,12 @@ type PostgresConnection = typeof postgresConnection;
 
 const MIGRATIONS_PATH = new URL("../migrations", import.meta.url),
   TYPE_PATH = new URL("../db-types.ts", import.meta.url).pathname.substring(1);
+
+export type SeedSchema<T extends string = string> = {
+  // If no users provided, default set will be used
+  users?: CreateUserArg[];
+  chats?: ChatSchema<T>[];
+};
 
 export class TestingDatabases {
   private readonly migrationsPath = MIGRATIONS_PATH;
@@ -54,9 +62,9 @@ export class TestingDatabases {
     await kyselyDB.db.deleteFrom("user").execute();
     await kyselyDB.db.deleteFrom("chat").execute();
   }
-  async seedDbDispose(dbName: string): Promise<void> {
+  async seedDbDispose(dbName: string, schema?: SeedSchema): Promise<void> {
     await using kyselyDb = this.createKyselyClientDispose<DB>(dbName);
-    await seed(kyselyDb.db, this.log);
+    await this.seed(kyselyDb.db, schema);
   }
 
   async dbService(dbName: string): Promise<DatabaseService> {
@@ -69,7 +77,7 @@ export class TestingDatabases {
   }
 
   async seedDB(dbName: string): Promise<void> {
-    await seed(this.getDB(dbName), this.log);
+    await this.seed(this.getDB(dbName));
   }
 
   private createKyselyClient<T>(dbName: string): Kysely<T> {
@@ -93,6 +101,21 @@ export class TestingDatabases {
         await db.destroy();
       }
     };
+  }
+
+  /** Executes default seed if no schema provided.
+   * Otherwise, performs seed with provided schema */
+  protected async seed(db: Kysely<DB>, schema?: SeedSchema) {
+    if (!schema) {
+      await defaultSeed(db, this.log);
+      return;
+    }
+    const seeder = new Seeder(db, this.log);
+    await seeder.clearDb();
+    await seeder.createUsers(schema.users?.length ? schema.users : users);
+    if (schema.chats?.length) {
+      await seeder.createChats<string>(schema.chats);
+    }
   }
 
   private async createDB(name: string): Promise<void> {

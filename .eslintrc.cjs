@@ -62,7 +62,10 @@ module.exports = {
         "@typescript-eslint/no-dynamic-delete": 0,
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
         "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
-        "unused-imports/no-unused-imports": "error"
+        "unused-imports/no-unused-imports": "error",
+        "@typescript-eslint/no-extraneous-class": "off",
+        "@typescript-eslint/consistent-type-exports": "error",
+        "@typescript-eslint/consistent-type-imports": "error"
       }
     },
     {

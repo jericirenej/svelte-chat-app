@@ -18,13 +18,15 @@
 </script>
 
 {#if num > 0}
-  {#key num}
-    <span
-      in:scale={{ duration: 500, start: 1.2, easing: quintOut, opacity: 1 }}
-      class={`${statusToColor[status]} inline-block cursor-default rounded-md border-2 px-2 text-xs`}
-      title={label}
-    >
-      {prefix}{truncatedNum}
-    </span>
-  {/key}
+  <div>
+    {#key num}
+      <span
+        in:scale={{ duration: 500, start: 1.2, easing: quintOut, opacity: 1 }}
+        class={`${statusToColor[status]} block cursor-default rounded-md border-2 px-2 text-xs`}
+        title={label}
+      >
+        {prefix}{truncatedNum}
+      </span>
+    {/key}
+  </div>
 {/if}
