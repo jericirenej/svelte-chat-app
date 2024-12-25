@@ -15,7 +15,7 @@
   import { handleLogoutCall } from "$lib/client/session-handlers";
   import { onMount } from "svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
-  import Sidebar from "../components/templates/Sidebar/Sidebar.svelte";
+  /* import Sidebar from "../components/templates/Sidebar/Sidebar.svelte"; */
   import { CHAT_ROUTE, CREATE_CHAT_ROUTE } from "../constants";
   import type { LayoutData } from "./$types";
   import { fade } from "svelte/transition";
@@ -26,6 +26,7 @@
     await removeChat(chatId, data.user.id);
   };
 
+  const loadSidebar = async () => await import("../components/templates/Sidebar/Sidebar.svelte");
   const navigateToChat = (chatId: string) => {
     void goto(`${CHAT_ROUTE}/${chatId}`);
   };
@@ -50,16 +51,18 @@
       in:fade
     >
       {#if data.user}
-        <Sidebar
-          usersTyping={$usersTyping}
-          chatUnreadList={$unreadChatMessages}
-          chatPreviewList={$chatPreviews}
-          routeId={$page.route.id}
-          {handleChatDelete}
-          onActivateHandler={navigateToChat}
-          {handleLogout}
-          {handleChatCreate}
-        />
+        {#await loadSidebar() then { default: Sidebar }}
+          <Sidebar
+            usersTyping={$usersTyping}
+            chatUnreadList={$unreadChatMessages}
+            chatPreviewList={$chatPreviews}
+            routeId={$page.route.id}
+            {handleChatDelete}
+            onActivateHandler={navigateToChat}
+            {handleLogout}
+            {handleChatCreate}
+          />
+        {/await}
       {/if}
       <slot />
 
