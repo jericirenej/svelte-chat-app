@@ -1,7 +1,6 @@
 <script lang="ts">
-  import chatIcon from "@iconify/icons-humbleicons/chat";
-  import Icon from "@iconify/svelte";
   import { APP_NAME } from "../../../messages";
+  import IconChat from "../IconChat/IconChat.svelte";
 
   export let heading = APP_NAME;
   export let showIcon = true;
@@ -12,8 +11,8 @@
     {heading}
   </h1>
   {#if showIcon}
-    <div>
-      <Icon icon={chatIcon} class="inline-block aspect-square text-5xl font-thin text-sky-800" />
+    <div class="inline-block aspect-square w-12 text-sky-800">
+      <IconChat />
     </div>
   {/if}
 </div>

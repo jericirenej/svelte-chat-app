@@ -6,5 +6,5 @@
 
 <button type="button" class="cursor-pointer" on:click on:pointerdown>
   <span class="sr-only">{label}</span>
-  <Icon icon={CancelIcon} />
+  <Icon icon={CancelIcon} style="font-size: 24px;" />
 </button>

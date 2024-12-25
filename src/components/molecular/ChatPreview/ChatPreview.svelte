@@ -39,7 +39,7 @@
       {/if}
     </div>
   </div>
-  <div class="absolute right-0 top-[2px]">
+  <div class="absolute right-0 top-0">
     <DeleteButton label={CONVERSATION_MESSAGES.leaveChat} on:click={onDelete} />
   </div>
 </div>
