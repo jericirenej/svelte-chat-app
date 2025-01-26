@@ -24,3 +24,4 @@ export const LOCAL_SESSION_CSRF_KEY = "csrfToken";
 export const LOCAL_EXPIRE_REDIRECT = "redirectAfterExpire";
 export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_EXPIRE_REDIRECT];
 export const MESSAGE_TAKE = 20;
+export const AVATAR = { borderRadius: "25%", aspectRatio: 1 };

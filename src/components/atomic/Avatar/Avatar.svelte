@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { AVATAR } from "../../../constants";
   import { avatarLabel } from "../../../messages";
   import type { Nullish } from "../../../types";
 
@@ -13,7 +14,7 @@
 <div
   class="flex aspect-square items-center justify-center bg-gradient-to-br from-slate-500 to-slate-900"
   style:width
-  style:border-radius="25%"
+  style:border-radius={AVATAR.borderRadius}
 >
   {#if src}
     <img class="object-cover" style:width {alt} {src} style:border-radius="inherit" />
