@@ -6,6 +6,7 @@ module.exports = {
     "plugin:storybook/recommended",
     "plugin:@typescript-eslint/strict-type-checked",
     "plugin:svelte/recommended",
+    "plugin:markdown/recommended-legacy",
     "prettier"
   ],
   parser: "@typescript-eslint/parser",
