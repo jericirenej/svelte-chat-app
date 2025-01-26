@@ -4,13 +4,17 @@ import { LENGTH_ERR_MESSAGES } from "../../messages";
 
 export const USERNAME_MIN = 5,
   PASSWORD_MIN = 8,
-  STRING_MAX = 100;
+  STRING_MAX = 100,
+  AVATAR_SIZE_LIMIT = 5.12 * 1e5,
+  AVATAR_SIZE_LIMIT_ERR = "512KB";
 
 const errorMessages = {
   username: "Please supply a username",
   password: "Please supply a password",
   email: "Please supply a valid email address",
   verify: "Password values must match",
+  avatarType: "Please upload a file.",
+  avatarSize: `Max. ${AVATAR_SIZE_LIMIT_ERR} upload size.`,
   ...LENGTH_ERR_MESSAGES
 };
 
@@ -32,7 +36,12 @@ export const signupSchema = z
     verifyPassword: password().min(1).max(STRING_MAX),
     email: z.string().email({ message: errorMessages.email }),
     name: z.string().max(STRING_MAX, errorMessages.overMax(STRING_MAX)).optional(),
-    surname: z.string().max(STRING_MAX, errorMessages.overMax(STRING_MAX)).optional()
+    surname: z.string().max(STRING_MAX, errorMessages.overMax(STRING_MAX)).optional(),
+    avatar: z.optional(
+      z
+        .instanceof(Blob, { message: errorMessages.avatarType })
+        .refine((blob) => blob.size < AVATAR_SIZE_LIMIT, errorMessages.avatarSize)
+    )
   })
   .refine(({ password, verifyPassword }) => password.length && password === verifyPassword, {
     message: errorMessages.verify,
@@ -40,11 +49,23 @@ export const signupSchema = z
   });
 
 if (import.meta.vitest) {
-  const { describe, it, expect } = import.meta.vitest;
+  const { describe, it, expect, vi } = import.meta.vitest;
   const username = "username",
     password = "password-val",
     passwordPath = "password",
     email = "some.email@somewhere.com";
+  const defaultVals = { username, password, verifyPassword: password, email };
+  const singleErrConfirm = <T>(
+    result: z.SafeParseReturnType<T, T>,
+    errPath: string,
+    errMsg: string
+  ) => {
+    throwOnTruthy(result.success);
+    expect(result.error.errors).toHaveLength(1);
+    const { message, path } = result.error.errors[0];
+    expect(path[0]).toBe(errPath);
+    expect(message).toBe(errMsg);
+  };
   describe("Login form validator", () => {
     it("Throws if password and / or username are not supplied", () => {
       const testCases: {
@@ -81,9 +102,9 @@ if (import.meta.vitest) {
             expect(err.get(target)).not.toBeUndefined();
             expect(message).toBe(err.get(target));
           });
-        } else {
-          expect(err.size).toBe(0);
+          continue;
         }
+        expect(err.size).toBe(0);
       }
     });
   });
@@ -115,56 +136,73 @@ if (import.meta.vitest) {
           const { message, path } = result.error.errors[0];
           expect(message).toBe(errorMessages.verify);
           expect(path[0]).toBe("verifyPassword");
-        } else {
-          expect(result.success).toBe(true);
+          continue;
         }
+        expect(result.success).toBe(true);
       }
     });
     it("Throws for invalid email", () => {
       for (const emailVal of ["", "invalid", email]) {
         const result = signupSchema.safeParse({
-          username,
-          password,
-          verifyPassword: password,
+          ...defaultVals,
           email: emailVal
         });
         if (!result.success) {
-          expect(result.error.errors).toHaveLength(1);
-          const { message, path } = result.error.errors[0];
-          expect(path[0]).toBe("email");
-          expect(message).toBe(errorMessages.email);
-        } else {
-          expect(emailVal).toBe(email);
+          singleErrConfirm(result, "email", errorMessages.email);
+          continue;
         }
+        expect(emailVal).toBe(email);
       }
     });
     it("Throws if username is too short", () => {
       const shortName = "sh";
       const result = signupSchema.safeParse({
-        username: shortName,
-        password,
-        verifyPassword: password,
-        email
+        ...defaultVals,
+        username: shortName
       });
-      throwOnTruthy(result.success);
-      expect(result.error.errors).toHaveLength(1);
-      const { message, path } = result.error.errors[0];
-      expect(path[0]).toBe("username");
-      expect(message).toBe(errorMessages.underMin(USERNAME_MIN));
+      singleErrConfirm(result, "username", errorMessages.underMin(USERNAME_MIN));
     });
     it("Throws if password is too short", () => {
       const shortPassword = "sh";
       const result = signupSchema.safeParse({
-        username,
+        ...defaultVals,
         password: shortPassword,
-        verifyPassword: shortPassword,
-        email
+        verifyPassword: shortPassword
       });
-      throwOnTruthy(result.success);
-      expect(result.error.errors).toHaveLength(1);
-      const { message, path } = result.error.errors[0];
-      expect(path[0]).toBe("password");
-      expect(message).toBe(errorMessages.underMin(PASSWORD_MIN));
+      singleErrConfirm(result, "password", errorMessages.underMin(PASSWORD_MIN));
+    });
+    it("Throws if non-blob supplied for avatar", () => {
+      const str = "someBufferString";
+      const buff = Buffer.from(str);
+      const blob = new Blob([buff]);
+      const file = new File([blob], "some-file.jpeg");
+      for (const avatar of [buff, file, blob, str]) {
+        const result = signupSchema.safeParse({
+          ...defaultVals,
+          avatar
+        });
+        if (avatar instanceof Blob) {
+          expect(result.success).toBeTruthy();
+          continue;
+        }
+        singleErrConfirm(result, "avatar", errorMessages.avatarType);
+      }
+    });
+    it("Throws if blob size over limit", () => {
+      const str = "someBufferString";
+      const blob = new Blob([Buffer.from(str)]);
+      const spyOnBuff = vi.spyOn(blob, "size", "get");
+      const diff = 100;
+      for (const overLimit of [false, true]) {
+        spyOnBuff.mockReturnValue((overLimit ? diff : -diff) + AVATAR_SIZE_LIMIT);
+        const result = signupSchema.safeParse({ ...defaultVals, avatar: blob });
+        if (overLimit) {
+          singleErrConfirm(result, "avatar", errorMessages.avatarSize);
+          continue;
+        }
+        expect(result.success).toBeTruthy();
+      }
+      spyOnBuff.mockRestore();
     });
   });
 }

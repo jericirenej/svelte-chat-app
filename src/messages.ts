@@ -111,6 +111,7 @@ export const IMAGE_CROP = {
   alt: "Upload profile image",
   error: "Failed to load image",
   reset: "Reset",
+  cancel: "Cancel",
   confirm: "Confirm",
   pristine: "Can't reset, since no changes have been made to the original crop."
 };

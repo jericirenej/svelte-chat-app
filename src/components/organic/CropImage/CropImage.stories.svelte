@@ -16,21 +16,23 @@
       src: { control: "text", table: { disable: true } },
       containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } },
       showContainerBorder: { control: "boolean" }
-    }
+    },
+    args: { cancelCallback: fn() }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import landscape from "../../story-helpers/images/Ruisdael_1653_Two_watermills_an_an_open_sluice.jpg";
-  import portrait from "../../story-helpers/images/Caillebote_1876_Young_man_ at_his_window.jpg";
+  import { fn } from "@storybook/test";
   import { writable } from "svelte/store";
+  import portrait from "../../story-helpers/images/Caillebote_1876_Young_man_ at_his_window.jpg";
+  import landscape from "../../story-helpers/images/Ruisdael_1653_Two_watermills_an_an_open_sluice.jpg";
   const assertArgs = (args: unknown) => args as Props;
   let dataUrl = writable<string | null>(null);
 </script>
 
 <Template let:args>
-  {@const { src, containerWidth, showContainerBorder } = assertArgs(args)}
+  {@const { src, containerWidth, showContainerBorder, cancelCallback } = assertArgs(args)}
   <div class="flex items-start">
     <div
       style:outline-width={showContainerBorder ? "1px" : "0px"}
@@ -39,6 +41,7 @@
     >
       <CropImageComponent
         {src}
+        {cancelCallback}
         extract={(val) => {
           dataUrl.set(val);
         }}

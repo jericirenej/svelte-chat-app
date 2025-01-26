@@ -4,6 +4,7 @@
 
   export let resetCallback: () => void;
   export let confirmCallback: () => void;
+  export let cancelCallback: () => void;
   export let resetDisabled: boolean;
   export let confirmDisabled: boolean;
 </script>
@@ -14,6 +15,9 @@
   </div>
   <div class={clsx({ action: true, enabled: !resetDisabled })}>
     <CropAction disabled={resetDisabled} action={resetCallback} type="reset" />
+  </div>
+  <div class={clsx({ action: true, enabled: true })}>
+    <CropAction disabled={false} action={cancelCallback} type="cancel" />
   </div>
 </div>
 

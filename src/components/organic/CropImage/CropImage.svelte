@@ -19,6 +19,7 @@
 
   export let src: string;
   export let extract: (dataUrl: string) => unknown;
+  export let cancelCallback: () => unknown;
 
   let prevWidth: number | undefined;
   let clientWidth: number;
@@ -47,6 +48,7 @@
       confirmCallback={handleExtract}
       resetDisabled={!$dirty}
       confirmDisabled={false}
+      {cancelCallback}
     />
   </div>
   <div
