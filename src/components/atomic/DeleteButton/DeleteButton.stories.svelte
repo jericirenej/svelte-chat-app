@@ -8,7 +8,8 @@
     title: "Atomic/DeleteButton",
     component: DeleteButtonComponent,
     argTypes: {
-      label: { control: "text" }
+      label: { control: "text" },
+      color: { control: "color" }
     },
     args: { click: fn() }
   };
