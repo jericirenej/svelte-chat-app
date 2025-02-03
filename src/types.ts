@@ -22,6 +22,7 @@ export type NotificationEntry = {
 
 export type MaybeArray<T> = T | T[];
 export type Nullish = undefined | null;
+export type Maybe<T> = T | Nullish;
 export type ExcludeNullish<Obj extends object> = { [Key in keyof Obj]: Exclude<Obj[Key], Nullish> };
 
 export type ActionTypes = "confirm" | "cancel" | "danger" | "info";

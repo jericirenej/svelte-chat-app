@@ -1,10 +1,10 @@
 <script lang="ts">
   import { AVATAR } from "../../../constants";
   import { avatarLabel } from "../../../messages";
-  import type { Nullish } from "../../../types";
+  import type { Maybe } from "../../../types";
 
   export let size: number;
-  export let src: string | Nullish = undefined;
+  export let src: Maybe<string> = undefined;
   export let name: string;
 
   $: alt = avatarLabel(name);
