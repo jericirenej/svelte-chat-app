@@ -4,7 +4,7 @@ import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { test } from "./fixtures";
 
 import { typedJsonClone } from "../db/postgres/tools/utils";
-import { PASSWORD_MIN, USERNAME_MIN } from "../src/lib/client/login-signup.validators";
+import { PASSWORD_MIN, USERNAME_MIN } from "../src/constants";
 import { typedObjectKeys } from "./utils";
 
 const {
