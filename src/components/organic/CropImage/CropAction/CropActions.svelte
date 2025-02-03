@@ -24,10 +24,10 @@
 <style lang="css">
   .action {
     position: relative;
-    transform: translateX(-25%);
+    transform: translateX(-15%);
     transition: transform 0.3s ease;
   }
   .action:hover {
-    transform: translateX(-10%);
+    transform: translateX(-8%);
   }
 </style>

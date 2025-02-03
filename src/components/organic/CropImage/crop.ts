@@ -240,6 +240,7 @@ export class ImageCrop {
       newPosition.right = zeroIfNegative(right - xDiff);
       newPosition.left = left + right - newPosition.right;
     }
+
     this.position.set(this.toPositionAsPixel(newPosition));
     this.dirty.set(true);
   }
@@ -260,7 +261,7 @@ export class ImageCrop {
     this.calculateInitialPosition();
   }
 
-  extractCrop(): string {
+  async extractCrop(): Promise<Blob> {
     const { left, top, width } = this.getPositionAsNumber();
     const { naturalHeight, naturalWidth, width: imageWidth, height } = this.imgRef;
     const canvas = document.createElement("canvas");
@@ -281,7 +282,18 @@ export class ImageCrop {
       width * widthRatio,
       height * heightRatio
     );
-    return canvas.toDataURL();
+
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+        },
+        "image/webp",
+        0.7
+      );
+    });
+    return blob;
+    /* return canvas.toDataURL(); */
   }
 
   protected remainingImageAxisSpace(size: number, dimension: "width" | "height"): number {
@@ -308,6 +320,6 @@ export class ImageCrop {
 
   protected getAdjustedWidth(width: number): number {
     if (this.isPortrait) return width;
-    return Math.pow(this.aspectRatio, -1) * width;
+    return (1 / this.aspectRatio) * width;
   }
 }

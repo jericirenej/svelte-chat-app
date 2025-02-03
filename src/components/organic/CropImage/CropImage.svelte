@@ -1,10 +1,17 @@
 <script lang="ts">
+  import { finalize, interval, map, pairwise, startWith, takeWhile } from "rxjs";
   import { onMount } from "svelte";
   import { readable } from "svelte/store";
   import { IMAGE_CROP } from "../../../messages";
+  import type { Maybe } from "../../../types";
   import { ImageCrop } from "./crop";
   import CropActions from "./CropAction/CropActions.svelte";
   import CropBox from "./CropBox/CropBox.svelte";
+
+  export let src: Maybe<string>;
+  export let extract: (dataUrl: string) => unknown;
+  export let cancelCallback: () => unknown;
+
   let imgRef: HTMLImageElement;
   let isError = false;
   let cropper: ImageCrop | undefined;
@@ -17,30 +24,44 @@
     cropper = new ImageCrop(imgRef);
   };
 
-  export let src: string;
-  export let extract: (dataUrl: string) => unknown;
-  export let cancelCallback: () => unknown;
-
   let prevWidth: number | undefined;
-  let clientWidth: number;
+  let offsetWidth: number;
   const handleResize = (width: number) => {
     if (!cropper) return;
     cropper.newWidthUpdate(prevWidth ? width / prevWidth : 1);
-    prevWidth = clientWidth;
+    prevWidth = width;
   };
-  $: handleResize(clientWidth);
+  $: handleResize(offsetWidth);
+  let actionsRef: HTMLDivElement | undefined;
 
-  const handleExtract = () => {
+  const handleExtract = async () => {
     if (!cropper) return;
-    extract(cropper.extractCrop());
+    const blob = await cropper.extractCrop();
+    extract(URL.createObjectURL(blob));
   };
+
   onMount(() => {
-    prevWidth = clientWidth;
+    /** Wrapper element's dimensions might be resized several times
+     * on initial render. In order for resize adjustments to work,
+     * the element needs to be stable. It is considered stable
+     * when its offsetWidth has not changed in a 30ms interval.
+     */
+    interval(30)
+      .pipe(
+        map(() => offsetWidth),
+        startWith(offsetWidth),
+        pairwise(),
+        takeWhile(([prev, current]) => prev !== current),
+        finalize(() => {
+          prevWidth = offsetWidth;
+        })
+      )
+      .subscribe();
   });
 </script>
 
-<div class="relative">
-  <div class="absolute left-full top-0">
+<div class="relative" style:margin-right={`${actionsRef?.clientWidth ?? 0}px`}>
+  <div class="absolute left-full top-0" bind:this={actionsRef}>
     <CropActions
       resetCallback={() => {
         cropper?.reset();
@@ -52,7 +73,7 @@
     />
   </div>
   <div
-    bind:clientWidth
+    bind:offsetWidth
     class="relative w-full select-none bg-black/[0.66] bg-contain bg-blend-darken"
     style:background-image={`url(${src})`}
     role="img"

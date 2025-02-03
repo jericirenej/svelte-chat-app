@@ -2,6 +2,7 @@
   import type { Meta } from "@storybook/svelte";
   import type { ComponentProps } from "svelte";
   import type { RemoveIndexSignature } from "../../../types";
+  import { fn } from "@storybook/test";
   import CropImageComponent from "./CropImage.svelte";
 
   type Props = RemoveIndexSignature<ComponentProps<CropImageComponent>> & {
@@ -23,7 +24,6 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import { fn } from "@storybook/test";
   import { writable } from "svelte/store";
   import portrait from "../../story-helpers/images/Caillebote_1876_Young_man_ at_his_window.jpg";
   import landscape from "../../story-helpers/images/Ruisdael_1653_Two_watermills_an_an_open_sluice.jpg";
