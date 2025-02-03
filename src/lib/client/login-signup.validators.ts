@@ -1,12 +1,13 @@
 import { throwOnTruthy } from "$lib/utils";
 import { ZodIssueCode, z } from "zod";
 import { LENGTH_ERR_MESSAGES } from "../../messages";
-
-export const USERNAME_MIN = 5,
-  PASSWORD_MIN = 8,
-  STRING_MAX = 100,
-  AVATAR_SIZE_LIMIT = 5.12 * 1e5,
-  AVATAR_SIZE_LIMIT_ERR = "512KB";
+import {
+  AVATAR_SIZE_LIMIT,
+  AVATAR_SIZE_LIMIT_ERR,
+  PASSWORD_MIN,
+  STRING_MAX,
+  USERNAME_MIN
+} from "../../constants";
 
 const errorMessages = {
   username: "Please supply a username",
