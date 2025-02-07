@@ -3,7 +3,8 @@ export const ROOT_ROUTE = "/",
   SIGNUP_ROUTE = "/signup",
   PROFILE_ROUTE = "/profile",
   CHAT_ROUTE = "/chat",
-  CREATE_CHAT_ROUTE = "/create";
+  CREATE_CHAT_ROUTE = "/create",
+  BLOB_ROUTE = "/api/blob";
 /** This s a list of **exact** routes on which no authentication is required.
  * All other routes should perform a check for `sessionId` cookie and and `X-CRSF` header. */
 export const UNPROTECTED_ROUTES = [LOGIN_ROUTE, SIGNUP_ROUTE];

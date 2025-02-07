@@ -1,7 +1,7 @@
 import { exec } from "child_process";
-import { e2eDatabases } from "./utils.js";
 import { resolve } from "path";
 import { WORKERS } from "../playwright.config.js";
+import { e2eDatabases } from "./utils.js";
 
 const populate = async () => {
   for (const name of Array.from(Array(WORKERS), (_v, i) => `chat_test_${i + 1}`)) {

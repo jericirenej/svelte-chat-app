@@ -31,6 +31,20 @@ services:
     container_name: "redis-server"
     volumes:
       - redis-data:/data
+  minio:
+    image: minio/minio:RELEASE.2025-02-03T21-03-04Z
+    restart: always
+    command: server /data --console-address :9001
+    ports:
+      - '9001:9001'
+      - '9000:9000'
+    env_file: .env
+    container_name: "minio"
+    volumes:
+      - minio-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   redis-insight:
     image: redislabs/redisinsight
     restart: always
@@ -57,3 +71,4 @@ volumes:
   pgadmin-vol:
   redis-data:
   insight-vol:
+  minio-data:

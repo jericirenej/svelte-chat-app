@@ -2,11 +2,11 @@
   import type { Meta } from "@storybook/svelte";
   import type { ComponentProps } from "svelte";
   import type { EntitySize, RemoveIndexSignature } from "../../../types";
-  import { avatarTypes } from "../../../../utils/avatarSrc";
+  import { avatars, type AvatarTypeKeys } from "../../story-helpers/avatars";
   import UserEntityComponent, { sizeVariants } from "./UserEntity.svelte";
 
   type CustomProps = RemoveIndexSignature<ComponentProps<UserEntityComponent>> & {
-    avatarType: keyof typeof avatarTypes;
+    avatarType: AvatarTypeKeys;
     containerWidth: number;
     sizeVariant: Exclude<EntitySize, "number"> | undefined;
     sizeNumber: number | undefined;
@@ -49,7 +49,7 @@
   <div class="border-[1px] border-neutral-300" style:width={`${containerWidth}%`}>
     <UserEntityComponent
       {handleSelect}
-      entity={{ name: "Linda Lovelace", avatar: avatarTypes[avatarType], id: "id" }}
+      entity={{ name: "Linda Lovelace", avatar: avatars[avatarType], id: "id" }}
       size={sizeVariant ?? sizeNumber ?? "base"}
     >
       {#if slotContent}<span>X</span>{/if}</UserEntityComponent
