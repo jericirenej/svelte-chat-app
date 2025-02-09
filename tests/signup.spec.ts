@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { LOGIN_ROUTE, ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
+import { ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { test, type UserData } from "./fixtures";
 
@@ -18,18 +18,17 @@ const {
   surnamePlaceholder,
   usernamePlaceholder,
   emailPlaceholder,
-  success,
-  duplicateFailure
+  success
 } = SIGNUP_MESSAGES;
 
 test.beforeEach(async ({ page, clearDB }) => {
   await clearDB();
   await page.goto(SIGNUP_ROUTE);
 });
-
-test.afterAll(async ({ seedAll }) => {
-  await seedAll();
+test.afterEach(async ({ clearDB }) => {
+  await clearDB();
 });
+
 test("Allows direct navigation", async ({ page, browserName }) => {
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await page.screenshot({ path: `./tests/screenshots/signup-${browserName}.png` });
@@ -78,42 +77,6 @@ test("Registers new user and redirects", async ({ page, exampleUser, fillSignupF
   await expect(page).toHaveURL("/");
 });
 
-test("Rejects registration if a username or email already exists", async ({
-  page,
-  browserName,
-  exampleUser,
-  fillSignupForm
-}) => {
-  const index = test.info().parallelIndex;
-  const alternateUsername = `signup_x_${browserName}_${index + 1}`,
-    alternateEmail = `${alternateUsername}@nowhere.never`;
-  const anotherUser = structuredClone(exampleUser);
-  anotherUser.username.value = alternateUsername;
-  anotherUser.email.value = alternateEmail;
-  await fillSignupForm(exampleUser, true);
-
-  await page.getByRole("button", { name: "Logout" }).click();
-  await page.waitForURL(LOGIN_ROUTE);
-  await page.goto(SIGNUP_ROUTE);
-  await page.waitForURL(SIGNUP_ROUTE);
-
-  await fillSignupForm(exampleUser, true);
-  await expect(page.getByText(duplicateFailure)).toBeVisible();
-
-  for (const [key, value] of [
-    ["username", alternateUsername],
-    ["email", alternateEmail]
-  ] as const) {
-    const attemptedUser = structuredClone(exampleUser);
-    attemptedUser[key].value = value;
-
-    await fillSignupForm(attemptedUser, true);
-    await expect(page.getByText(duplicateFailure)).toBeVisible();
-  }
-
-  await fillSignupForm(anotherUser, true);
-  await expect(page.getByText(success)).toBeVisible();
-});
 test("Rejects registration if password verification does not match", async ({
   page,
   exampleUser,

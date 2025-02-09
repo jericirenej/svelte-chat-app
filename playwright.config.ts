@@ -1,6 +1,6 @@
 import { devices, type PlaywrightTestConfig } from "@playwright/test";
 
-export const WORKERS = 4,
+export const WORKERS = 8,
   BASE_PORT = 5174;
 
 const config: PlaywrightTestConfig = {
@@ -9,15 +9,18 @@ const config: PlaywrightTestConfig = {
   testDir: "tests",
   workers: WORKERS,
   retries: 1,
-  timeout: 15e3,
+  fullyParallel: true,
+  timeout: 1e4,
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"], channel: "chromium" } }
+    /* { name: "edge", use: { ...devices["Desktop Edge"] } } */
     /* { name: "firefox", use: { ...devices["Desktop Firefox"] } } */
-    /*     { name: "safari", use: { ...devices["Desktop Safari"] } } */
+    /* { name: "safari", use: { ...devices["Desktop Safari"] } } */
   ],
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.05 } },
   testMatch: /(.+\.)?spec\.ts/,
-  reporter: [["html", { open: "never" }]],
+
+  reporter: [["list"], ["html", { open: "never" }]],
   use: {
     trace: "retain-on-failure"
   }

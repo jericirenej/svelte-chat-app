@@ -11,7 +11,7 @@ const populate = async () => {
 };
 
 async function globalSetup() {
-  exec(`npx pm2 start ${resolve(import.meta.dirname, "./ecosystem.json")}`, (err) => {
+  exec(`npx pm2 start ${resolve(import.meta.dirname, "./ecosystem.config.cjs")}`, (err) => {
     if (err) {
       console.error(err);
     }

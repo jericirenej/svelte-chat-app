@@ -58,7 +58,7 @@ module.exports = {
       }
     },
     {
-      files: ["*.ts"],
+      files: ["*.ts", "*.js"],
       rules: {
         "@typescript-eslint/no-throw-literal": 0,
         "@typescript-eslint/only-throw-error": 0,

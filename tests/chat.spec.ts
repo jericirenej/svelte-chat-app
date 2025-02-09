@@ -227,6 +227,7 @@ test.describe("Message list", () => {
     });
 
     test("Loads more messages when scrolling to top", async () => {
+      await (await container.elementHandle())?.waitForElementState("stable");
       await container.evaluate((e) => {
         e.scrollTo({ top: 0 });
       });
@@ -262,12 +263,9 @@ test.describe("Message list", () => {
       ).toBeVisible();
       await liskovTyping;
     });
-    test("User is notified on new messages it they are not in view", async ({
-      page,
-      browser,
-      login
-    }) => {
+    test("User is notified on new messages it they are not in view", async ({ page }) => {
       const notificationButton = page.getByTitle(CONVERSATION_MESSAGES.newMessagesInvisible);
+      await (await container.elementHandle())?.waitForElementState("stable");
       await container
         .locator("section", { has: page.getByText(prefix(20)) })
         .scrollIntoViewIfNeeded();
