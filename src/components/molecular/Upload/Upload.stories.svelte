@@ -45,7 +45,7 @@
   name="Upload"
   args={{
     label: "Upload",
-    accept: ".jpg,.png,.webp",
+    accept: ".jpg,.png,.webp,.avif",
     title: "Upload some file",
     errMessage: undefined
   }}

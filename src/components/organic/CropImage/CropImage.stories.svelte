@@ -25,8 +25,8 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import { writable } from "svelte/store";
-  import portrait from "../../story-helpers/images/Caillebote_1876_Young_man_ at_his_window.jpg";
-  import landscape from "../../story-helpers/images/Ruisdael_1653_Two_watermills_an_an_open_sluice.jpg";
+  import portrait from "../../../../utils/images/Caillebote_1876_Young_man_ at_his_window.webp";
+  import landscape from "../../../../utils/images/Ruisdael_1653_Two_watermills_an_an_open_sluice.webp";
   const assertArgs = (args: unknown) => args as Props;
   let dataUrl = writable<string | null>(null);
 </script>

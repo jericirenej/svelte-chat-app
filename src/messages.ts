@@ -30,6 +30,8 @@ export const SIGNUP_MESSAGES = {
   failure: "Registration failed on the server. Please try again.",
   duplicateFailure: "Username or email combination already taken.",
   badRequestFailure: "Please fill out the signup form as indicated to sign up.",
+  addAvatar: "Avatar (optional)",
+  addAvatarTitle: `Upload and crop an image that will serve as your avatar. Note that the final cropped image must not exceed ${AVATAR_SIZE_LIMIT_ERR}.`,
   supplyDetailsTitle:
     "Please supply a username, email, and password. Supplied avatars must not exceed size limit."
 };
@@ -118,9 +120,7 @@ export const IMAGE_CROP = {
   cancel: "Cancel",
   confirm: "Confirm",
   pristine: "Can't reset, since no changes have been made to the original crop.",
-  addAvatar: "Avatar (optional)",
   modify: "Modify",
   remove: "Clear",
-  tooLarge: (limit: string) => `Cropped image exceeds size ${limit}.`,
-  addAvatarTitle: `Upload and crop an image that will serve as your avatar. Note that the final cropped image must not exceed ${AVATAR_SIZE_LIMIT_ERR}.`
+  tooLarge: (limit: string) => `Cropped image exceeds size ${limit}.`
 };

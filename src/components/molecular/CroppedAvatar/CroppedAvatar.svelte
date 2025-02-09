@@ -22,7 +22,7 @@
   };
 </script>
 
-<div class="relative flex w-fit">
+<div class="cropped-avatar relative flex w-fit">
   <div class="absolute -right-6 top-0 flex flex-col gap-2">
     <button
       type="button"
@@ -33,12 +33,12 @@
     {#key key}
       {#await isCropOverSize() then isOverSize}
         {#if isOverSize}
-          <button
-            type="button"
+          <p
             title={IMAGE_CROP.tooLarge(sizeLimitLabel)}
             class="flex h-7 items-center rounded-md bg-red-700 pl-9 pr-2 text-sm font-semibold leading-[0] text-white"
-            >!</button
           >
+            !
+          </p>
         {/if}
       {/await}
     {/key}

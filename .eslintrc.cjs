@@ -69,7 +69,8 @@ module.exports = {
         "@typescript-eslint/no-extraneous-class": "off",
         "@typescript-eslint/consistent-type-exports": "error",
         "@typescript-eslint/consistent-type-imports": "error",
-        "@typescript-eslint/no-unnecessary-type-parameters": "off"
+        "@typescript-eslint/no-unnecessary-type-parameters": "off",
+        "@typescript-eslint/no-deprecated": "warn"
       }
     },
     {

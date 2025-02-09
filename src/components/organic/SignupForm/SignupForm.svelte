@@ -7,7 +7,7 @@
   import type { Writable } from "svelte/store";
   import { zodClient } from "sveltekit-superforms/adapters";
   import { superForm } from "sveltekit-superforms/client";
-  import { LOGIN_ROUTE } from "../../../constants";
+  import { AVATAR_SIZE_LIMIT, LOGIN_ROUTE } from "../../../constants";
   import { SIGNUP_MESSAGES as MSG, SIGNUP_MESSAGES } from "../../../messages";
   import type { Maybe } from "../../../types";
   import Input from "../../atomic/Input/Input.svelte";
@@ -128,7 +128,7 @@
               bind:value={$form.surname}
             />
           </div>
-          <AddAvatar />
+          <AddAvatar sizeLimit={AVATAR_SIZE_LIMIT} />
         </div>
       </svelte:fragment>
       <svelte:fragment slot="controls">

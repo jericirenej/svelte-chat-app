@@ -1,11 +1,10 @@
-import { expect, type Page, type TestInfo } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { LOGIN_ROUTE, ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
-import { test } from "./fixtures";
+import { test, type UserData } from "./fixtures";
 
-import { typedJsonClone } from "../db/postgres/tools/utils";
+import { AddAvatarE2E } from "../src/components/organic/AddAvatar/AddAvatar.e2e";
 import { PASSWORD_MIN, USERNAME_MIN } from "../src/constants";
-import { typedObjectKeys } from "./utils";
 
 const {
   title,
@@ -23,43 +22,6 @@ const {
   duplicateFailure
 } = SIGNUP_MESSAGES;
 
-const exampleUser = (info: TestInfo, browserName: string) => {
-  const username = `signup_${browserName}_${info.parallelIndex}`,
-    password = `${username}-password`,
-    email = `${username}@nowhere.never`,
-    name = "User",
-    surname = "Surname";
-  return {
-    username: { value: username, placeholder: usernamePlaceholder },
-    email: { value: email, placeholder: emailPlaceholder },
-    password: { value: password, placeholder: passwordPlaceholder },
-    passwordVerify: { value: password, placeholder: passwordVerifyPlaceholder },
-    name: { value: name, placeholder: namePlaceholder },
-    surname: { value: surname, placeholder: surnamePlaceholder }
-  };
-};
-
-const fillSignupForm = async (
-  page: Page,
-  arg: Partial<ReturnType<typeof exampleUser>>,
-  submit = false
-) => {
-  // eslint-disable-next-line playwright/no-networkidle
-  await page.waitForLoadState("networkidle");
-  for (const key of typedObjectKeys(arg)) {
-    const prop = arg[key];
-    if (!prop) continue;
-    const input = page.getByPlaceholder(prop.placeholder, { exact: true });
-    await input.fill(prop.value);
-    await input.press("Tab");
-  }
-  if (submit) {
-    const btn = page.getByRole("button", { name: "submit" });
-    await btn.focus();
-    await btn.click();
-    await page.waitForLoadState("domcontentloaded");
-  }
-};
 test.beforeEach(async ({ page, clearDB }) => {
   await clearDB();
   await page.goto(SIGNUP_ROUTE);
@@ -88,6 +50,7 @@ test("Has appropriate elements", async ({ page }) => {
   ]) {
     await expect(page.getByPlaceholder(placeholder, { exact: true })).toBeVisible();
   }
+  await expect(new AddAvatarE2E(page).uploadButton).toBeVisible();
 
   const submitButton = page.getByRole("button", { name: "submit" });
   await expect(submitButton).toBeVisible();
@@ -104,10 +67,8 @@ test("Navigates to login", async ({ page }) => {
   await expect(page.getByRole("heading", { name: LOGIN_MESSAGES.title })).toBeVisible();
 });
 
-test("Registers new user and redirect", async ({ page, browserName }) => {
-  const user = exampleUser(test.info(), browserName);
-
-  await fillSignupForm(page, user, false);
+test("Registers new user and redirects", async ({ page, exampleUser, fillSignupForm }) => {
+  await fillSignupForm(exampleUser, false);
   const submitButton = page.getByRole("button", { name: "submit" });
   await submitButton.focus();
   await expect(submitButton).toBeEnabled();
@@ -119,103 +80,102 @@ test("Registers new user and redirect", async ({ page, browserName }) => {
 
 test("Rejects registration if a username or email already exists", async ({
   page,
-  browserName
+  browserName,
+  exampleUser,
+  fillSignupForm
 }) => {
   const index = test.info().parallelIndex;
-  const user = exampleUser(test.info(), browserName);
   const alternateUsername = `signup_x_${browserName}_${index + 1}`,
     alternateEmail = `${alternateUsername}@nowhere.never`;
-  const anotherUser = typedJsonClone(user);
+  const anotherUser = structuredClone(exampleUser);
   anotherUser.username.value = alternateUsername;
   anotherUser.email.value = alternateEmail;
-  await fillSignupForm(page, user, true);
+  await fillSignupForm(exampleUser, true);
 
   await page.getByRole("button", { name: "Logout" }).click();
   await page.waitForURL(LOGIN_ROUTE);
   await page.goto(SIGNUP_ROUTE);
   await page.waitForURL(SIGNUP_ROUTE);
 
-  await fillSignupForm(page, user, true);
+  await fillSignupForm(exampleUser, true);
   await expect(page.getByText(duplicateFailure)).toBeVisible();
 
   for (const [key, value] of [
     ["username", alternateUsername],
     ["email", alternateEmail]
-  ] as [keyof typeof user, string][]) {
-    const attemptedUser = typedJsonClone(user);
+  ] as const) {
+    const attemptedUser = structuredClone(exampleUser);
     attemptedUser[key].value = value;
 
-    await fillSignupForm(page, attemptedUser, true);
+    await fillSignupForm(attemptedUser, true);
     await expect(page.getByText(duplicateFailure)).toBeVisible();
   }
 
-  await fillSignupForm(page, anotherUser, true);
+  await fillSignupForm(anotherUser, true);
   await expect(page.getByText(success)).toBeVisible();
 });
 test("Rejects registration if password verification does not match", async ({
   page,
-  browserName
+  exampleUser,
+  fillSignupForm
 }) => {
-  const user = exampleUser(test.info(), browserName);
-  user.passwordVerify.value = "invalid";
-  await fillSignupForm(page, user, false);
+  exampleUser.passwordVerify.value = "invalid";
+  await fillSignupForm(exampleUser, false);
   await expect(page.getByRole("button", { name: "submit" })).toBeDisabled();
-  user.passwordVerify.value = user.password.value;
-  await fillSignupForm(page, user, false);
+  exampleUser.passwordVerify.value = exampleUser.password.value;
+  await fillSignupForm(exampleUser, false);
   await expect(page.getByRole("button", { name: "submit" })).toBeEnabled();
 });
-test("Allows registration with blank optional fields", async ({ page, browserName }) => {
-  const user = exampleUser(test.info(), browserName) as unknown as Partial<
-    ReturnType<typeof exampleUser>
-  >;
+test("Allows registration with blank optional fields", async ({
+  page,
+  exampleUser: user,
+  fillSignupForm
+}) => {
+  const exampleUser = user as unknown as Partial<UserData>;
+  delete exampleUser.surname;
+  delete exampleUser.name;
 
-  delete user.surname;
-  delete user.name;
-
-  await fillSignupForm(page, user, false);
+  await fillSignupForm(exampleUser, false);
   const button = page.getByRole("button", { name: "submit" });
   await expect(button).toBeEnabled();
   await button.click();
   await expect(page).toHaveURL(ROOT_ROUTE);
-  const username = user.username?.value;
 });
-test("Disallows submit if fields are too long", async ({ page, browserName }) => {
-  const user = exampleUser(test.info(), browserName);
+test("Disallows submit if fields are too long", async ({ page, exampleUser, fillSignupForm }) => {
   const overLimit = new Array(101).fill("a").join("");
-  await fillSignupForm(page, user, false);
+  await fillSignupForm(exampleUser, false);
   const button = page.getByRole("button", { name: "submit" });
   await expect(button).toBeEnabled();
 
   for (const target of ["username", "password", "name", "surname"] as const) {
-    const locator = page.getByPlaceholder(user[target].placeholder, { exact: true });
+    const locator = page.getByPlaceholder(exampleUser[target].placeholder, { exact: true });
     await locator.fill(overLimit);
     if (target === "password") {
-      await page.getByPlaceholder(user.passwordVerify.placeholder).fill(overLimit);
+      await page.getByPlaceholder(exampleUser.passwordVerify.placeholder).fill(overLimit);
     }
     await expect(button).toBeDisabled();
-    await locator.fill(user[target].value);
+    await locator.fill(exampleUser[target].value);
     if (target === "password") {
-      await page.getByPlaceholder(user.passwordVerify.placeholder).fill(user.passwordVerify.value);
+      await page
+        .getByPlaceholder(exampleUser.passwordVerify.placeholder)
+        .fill(exampleUser.passwordVerify.value);
     }
     await expect(button).toBeEnabled();
   }
 });
-test("Disallows submit if username is too short", async ({ page, browserName }) => {
-  const user = exampleUser(test.info(), browserName);
+test("Disallows submit if username is too short", async ({ page, exampleUser, fillSignupForm }) => {
   const value = new Array(USERNAME_MIN - 1).fill("a").join("");
-
-  await fillSignupForm(page, user, false);
+  await fillSignupForm(exampleUser, false);
   const button = page.getByRole("button", { name: "submit" });
-  await page.getByPlaceholder(user.username.placeholder).fill(value);
+  await page.getByPlaceholder(exampleUser.username.placeholder).fill(value);
   await expect(button).toBeDisabled();
-  await page.getByPlaceholder(user.username.placeholder, { exact: true }).fill(value + "a");
+  await page.getByPlaceholder(exampleUser.username.placeholder, { exact: true }).fill(value + "a");
 
   await expect(button).toBeEnabled();
 });
-test("Disallows submit if password is too short", async ({ page, browserName }) => {
-  const user = exampleUser(test.info(), browserName);
+test("Disallows submit if password is too short", async ({ page, exampleUser, fillSignupForm }) => {
   const value = new Array(PASSWORD_MIN - 1).fill("a").join("");
-  await fillSignupForm(page, user, false);
+  await fillSignupForm(exampleUser, false);
   const fillPassword = async (val: string) => {
     for (const placeholder of [passwordPlaceholder, passwordVerifyPlaceholder]) {
       await page.getByPlaceholder(placeholder, { exact: true }).fill(val);

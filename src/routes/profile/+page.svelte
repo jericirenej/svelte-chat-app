@@ -46,7 +46,7 @@
         <p class="font-bold">{user.username}</p>
         {#if user.avatar}
           <img
-            class="relative bottom-1 inline-block aspect-square h-10 object-contain"
+            class="profile-image relative bottom-1 inline-block aspect-square h-10 object-contain"
             src={user.avatar}
             alt="{user.username} avatar"
             style:border-radius={AVATAR.borderRadius}

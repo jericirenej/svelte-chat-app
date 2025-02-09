@@ -4,14 +4,16 @@
 </script>
 
 <script lang="ts">
-  import { AVATAR_SIZE_LIMIT, AVATAR_SIZE_LIMIT_ERR } from "../../../constants";
-  import { IMAGE_CROP } from "../../../messages";
+  import { AVATAR_SIZE_LIMIT_ERR } from "../../../constants";
+  import { SIGNUP_MESSAGES } from "../../../messages";
   import type { Maybe } from "../../../types";
   import CroppedAvatar from "../../molecular/CroppedAvatar/CroppedAvatar.svelte";
   import Overlay from "../../molecular/Overlay/Overlay.svelte";
   import Upload from "../../molecular/Upload/Upload.svelte";
   import CropImage from "../CropImage/CropImage.svelte";
   import { uploadHandler } from "./handlers";
+
+  export let sizeLimit: number;
 
   enum State {
     upload = "UPLOAD",
@@ -101,16 +103,16 @@
     <Upload
       bind:isError={errBlock.isError}
       errMessage={errBlock.errMessage}
-      title={IMAGE_CROP.addAvatarTitle}
-      label={IMAGE_CROP.addAvatar}
-      accept=".jpg,.png,.webp"
+      title={SIGNUP_MESSAGES.addAvatarTitle}
+      label={SIGNUP_MESSAGES.addAvatar}
+      accept=".jpg,.png,.webp,.avif"
       on:change={handleUploadChange}
     />
   </div>
 {/if}
 {#if state === State.crop}
   <Overlay on:close={clear}>
-    <div style:width={cropDimension}>
+    <div class="avatar-crop" style:width={cropDimension}>
       <CropImage cancelCallback={clear} src={imageUrl} {extract} />
     </div>
   </Overlay>
@@ -123,7 +125,7 @@
       state = State.crop;
     }}
     {updateBlob}
-    sizeLimit={AVATAR_SIZE_LIMIT}
+    {sizeLimit}
     sizeLimitLabel={AVATAR_SIZE_LIMIT_ERR}
   />
 {/if}

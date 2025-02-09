@@ -7,12 +7,14 @@
 
   export const meta: Meta<Props> = {
     title: "Organic/AddAvatar",
-    component: AddAvatarComponent
+    component: AddAvatarComponent,
+    argTypes: { sizeLimit: { control: "number" } }
   };
 </script>
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
+  import { AVATAR_SIZE_LIMIT } from "../../../constants";
   const assertArgs = (args: unknown) => args as Props;
 </script>
 
@@ -21,4 +23,4 @@
   <AddAvatarComponent {...props} />
 </Template>
 
-<Story name="AddAvatar" />
+<Story name="AddAvatar" args={{ sizeLimit: AVATAR_SIZE_LIMIT }} />

@@ -21,7 +21,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "migrator": "tsx db/postgres/tools/migrator-cli.ts",
-    "node-server": "node --env-file=.env --import=tsx prodServer.ts"
+    "node-server": "node --env-file=.env --import=tsx prodServer.ts",
+    "clear-redis": "tsx db/redis/clear-redis.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

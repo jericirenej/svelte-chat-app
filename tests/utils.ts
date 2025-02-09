@@ -1,7 +1,8 @@
 import { TestingDatabases } from "@db/postgres/tools/testing.database.service.js";
 import { redisService } from "@db/redis";
-import { type BrowserContext, type Locator, type TestInfo } from "@playwright/test";
+import { type BrowserContext, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { USERS_WITH_ID, type AvailableUsers } from "@utils/users.js";
+import { resolve } from "path";
 import { SESSION_COOKIE } from "../src/constants.js";
 
 export const userHashMap = USERS_WITH_ID.reduce(
@@ -24,6 +25,31 @@ export const clickAndFillLocator = async (locator: Locator, val: string): Promis
   await locator.click({ delay: 50 });
   await locator.fill(val);
   await locator.press("Tab");
+};
+export const IMAGE_PATHS = {
+  landscape: resolve(
+    import.meta.dirname,
+    "../utils/images/Ruisdael_1653_Two_watermills_an_an_open_sluice.webp"
+  ),
+  portrait: resolve(
+    import.meta.dirname,
+    "../utils/images/Caillebote_1876_Young_man_ at_his_window.webp"
+  )
+};
+export type ImageTypes = keyof typeof IMAGE_PATHS;
+export const uploadFile = async ({
+  path,
+  action,
+  page
+}: {
+  path: ImageTypes;
+  action: () => Promise<unknown>;
+  page: Page;
+}) => {
+  const filePromise = page.waitForEvent("filechooser");
+  await action();
+  const fileChooser = await filePromise;
+  await fileChooser.setFiles(IMAGE_PATHS[path]);
 };
 
 export const typedObjectKeys = <T extends Record<string, unknown>>(arg: T): (keyof T)[] =>

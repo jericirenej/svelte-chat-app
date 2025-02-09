@@ -36,7 +36,6 @@ export const actions = {
     form.data.avatar = undefined;
     const username = originalUsername.toLowerCase();
     const isUserNameTaken = await dbService.usernameExists(username);
-
     const isEmailTaken = await dbService.emailExists(email);
     if (isUserNameTaken || isEmailTaken) {
       return fail(409, { form });

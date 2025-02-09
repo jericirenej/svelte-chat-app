@@ -25,7 +25,7 @@
 
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
-  import landscape from "../../story-helpers/images/Ruisdael_1653_Two_watermills_an_an_open_sluice-SQUARE.webp";
+  import landscape from "../../../../utils/images/Ruisdael_1653_Two_watermills_an_an_open_sluice-SQUARE.webp";
   const assertArgs = (args: unknown) => args as Omit<Props, "src">;
 </script>
 
