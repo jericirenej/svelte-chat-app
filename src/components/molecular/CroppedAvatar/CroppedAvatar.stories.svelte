@@ -17,7 +17,8 @@
     },
     args: {
       deleteCb: fn(() => "delete"),
-      modifyCb: fn(() => "modify")
+      modifyCb: fn(() => "modify"),
+      updateBlob: fn(() => "updateBlob")
     }
   };
 </script>

@@ -33,7 +33,9 @@ module.exports = {
       rules: {
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
         "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
-        "unused-imports/no-unused-imports": "error"
+        "unused-imports/no-unused-imports": "error",
+        "@typescript-eslint/no-unused-vars": 0,
+        "@typescript-eslint/no-deprecated": "warn"
       }
     },
     {

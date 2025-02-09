@@ -41,7 +41,6 @@
       if ($form.avatar) {
         formData.append("avatar", $form.avatar);
       }
-      console.log({ formData, form: $form });
       customRequest(postCall);
     },
     validators: zodClient(signupSchema),

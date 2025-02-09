@@ -45,6 +45,11 @@ describe("BlobStorageService", () => {
     await service.uploadFile({ object, type, name: testFile });
     await expect(service.objectExists(testFile)).resolves.toBeTruthy();
   });
+  it("Uploads file (blob)", async () => {
+    const blob = new Blob([object]);
+    await service.uploadFile({ object: blob, type, name: testFile });
+    await expect(service.objectExists(testFile)).resolves.toBeTruthy();
+  });
   it("Uploads file (path)", async () => {
     await service.uploadFile({ object: filePath, type, name: testFile });
     await expect(service.objectExists(testFile)).resolves.toBeTruthy();

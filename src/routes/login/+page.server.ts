@@ -7,7 +7,6 @@ import { zod } from "sveltekit-superforms/adapters";
 import { loginSchema } from "../../lib/client/login-signup.validators.js";
 import { VERIFICATION_FAILURE, verifyUser } from "../../lib/server/password-utils.js";
 import type { Actions, PageServerLoad } from "./$types";
-
 export const load: PageServerLoad = async () => {
   const form = await superValidate(zod(loginSchema));
   return { form };

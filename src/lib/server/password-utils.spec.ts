@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 import * as crypto from "crypto";
 
 vi.mock("node:crypto", async () => {

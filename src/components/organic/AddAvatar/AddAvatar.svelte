@@ -1,5 +1,9 @@
-<script lang="ts">
+<script context="module" lang="ts">
   import { writable } from "svelte/store";
+  export const avatarBlob = writable<Maybe<Blob>>(null);
+</script>
+
+<script lang="ts">
   import { AVATAR_SIZE_LIMIT, AVATAR_SIZE_LIMIT_ERR } from "../../../constants";
   import { IMAGE_CROP } from "../../../messages";
   import type { Maybe } from "../../../types";
@@ -19,6 +23,9 @@
   let innerWidth: number;
   let innerHeight: number;
 
+  let imageUrl: Maybe<string> = null;
+  let croppedUrl: Maybe<string> = null;
+
   const setWidth = (imgRef: Maybe<HTMLImageElement>, innerHeight: number, innerWidth: number) => {
     const percent = 0.8;
     if (!imgRef) return "auto";
@@ -30,8 +37,6 @@
     }
     return `${maxWidth}px`;
   };
-  const imageUrl = writable<string | null>(null);
-  const croppedUrl = writable<string | null>(null);
 
   let state = State.upload;
   let errBlock: Record<`is${string}`, boolean> & Record<`${string}Message`, Maybe<string>> = {
@@ -48,7 +53,7 @@
       errBlock.errMessage = result.err;
       return;
     }
-    imageUrl.set(result.data);
+    imageUrl = result.data;
     // Clear value so uploading an identical file after cancel will still trigger change
     target.value = "";
     state = State.crop;
@@ -58,35 +63,40 @@
 
   const clear = () => {
     if (state === State.end) {
-      imageUrl.set(null);
-      croppedUrl.set(null);
+      imageUrl = null;
+      croppedUrl = null;
+      updateBlob(null);
       state = State.upload;
       return;
     }
-    if (!$croppedUrl) {
-      imageUrl.set(null);
+    if (!croppedUrl) {
+      imageUrl = null;
       state = State.upload;
       return;
     }
     state = State.end;
+  };
+
+  const updateBlob = (blob: Maybe<Blob>) => {
+    avatarBlob.set(blob);
   };
   const extract = (val: Maybe<string>) => {
     if (!val) {
       clear();
       return;
     }
-    $croppedUrl = val;
+    croppedUrl = val;
     state = State.end;
   };
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />
 
-{#if $imageUrl}
+{#if imageUrl}
   <!-- svelte-ignore a11y-missing-attribute -->
-  <img bind:this={imageRef} src={$imageUrl} class="hidden" />
+  <img bind:this={imageRef} src={imageUrl} class="hidden" />
 {/if}
-{#if state !== State.end && !$croppedUrl}
+{#if state !== State.end && !croppedUrl}
   <div>
     <Upload
       bind:isError={errBlock.isError}
@@ -101,17 +111,18 @@
 {#if state === State.crop}
   <Overlay on:close={clear}>
     <div style:width={cropDimension}>
-      <CropImage cancelCallback={clear} src={$imageUrl} {extract} />
+      <CropImage cancelCallback={clear} src={imageUrl} {extract} />
     </div>
   </Overlay>
 {/if}
-{#if state !== State.upload && $croppedUrl}
+{#if state !== State.upload && croppedUrl}
   <CroppedAvatar
-    src={$croppedUrl}
+    src={croppedUrl}
     deleteCb={clear}
     modifyCb={() => {
       state = State.crop;
     }}
+    {updateBlob}
     sizeLimit={AVATAR_SIZE_LIMIT}
     sizeLimitLabel={AVATAR_SIZE_LIMIT_ERR}
   />

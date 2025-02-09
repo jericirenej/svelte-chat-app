@@ -53,7 +53,7 @@ export class BlobStorageService {
     type,
     name
   }: {
-    object: Buffer | FilePath;
+    object: Buffer | Blob | FilePath;
     type: string;
     name: string;
   }) {
@@ -98,8 +98,9 @@ export class BlobStorageService {
     await this.removeBucket();
   }
 
-  protected async toBuffer(val: Buffer | FilePath): Promise<Buffer> {
+  protected async toBuffer(val: Buffer | Blob | FilePath): Promise<Buffer> {
     if (val instanceof Buffer) return val;
+    if (val instanceof Blob) return Buffer.from(await val.arrayBuffer());
     return await readFile(val);
   }
   protected async streamToBuffer(stream: Readable): Promise<Buffer> {

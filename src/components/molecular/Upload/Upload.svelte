@@ -10,9 +10,10 @@
   let fileInput: HTMLInputElement;
 </script>
 
-<div class="relative mb-3 w-fit">
+<div class="relative w-fit">
   <button
-    class="aspect-square w-[80px] border-2 border-violet-600 text-xs text-neutral-800 transition-colors hover:bg-violet-100"
+    class="aspect-square w-[100px] border-2 border-neutral-600 text-xs text-neutral-800 transition-colors hover:bg-neutral-100"
+    type="button"
     style:border-radius={AVATAR.borderRadius}
     {title}
     on:click={() => {

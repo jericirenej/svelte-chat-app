@@ -31,3 +31,5 @@ export const USERNAME_MIN = 5,
   STRING_MAX = 100,
   AVATAR_SIZE_LIMIT = 5.12 * 1e5,
   AVATAR_SIZE_LIMIT_ERR = "512KiB";
+
+export const AVATAR_SIZE = 200;

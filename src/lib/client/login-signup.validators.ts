@@ -8,6 +8,7 @@ import {
   STRING_MAX,
   USERNAME_MIN
 } from "../../constants";
+import type { Infer, SuperValidated } from "sveltekit-superforms";
 
 const errorMessages = {
   username: "Please supply a username",
@@ -25,6 +26,9 @@ export const loginSchema = z.object({
   username: username(),
   password: password()
 });
+
+export type LoginSchema = typeof loginSchema;
+export type LoginFormData = SuperValidated<Infer<LoginSchema>>;
 
 export const signupSchema = z
   .object({
@@ -48,6 +52,9 @@ export const signupSchema = z
     message: errorMessages.verify,
     path: ["verifyPassword"]
   });
+
+export type SignupSchema = typeof signupSchema;
+export type SignupFormData = SuperValidated<Infer<SignupSchema>>;
 
 if (import.meta.vitest) {
   const { describe, it, expect, vi } = import.meta.vitest;

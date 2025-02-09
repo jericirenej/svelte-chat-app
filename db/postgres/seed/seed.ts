@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import { add } from "date-fns";
-import { BLOB_ROUTE } from "../../../src/constants";
 
 import { type Insertable, type Kysely, type Selectable, sql } from "kysely";
+import { avatarBucketPath, avatarClientUrl } from "../../../src/lib/client/avatar-url";
 import { createLogger, format, transports } from "winston";
 import { type AvatarTypeKeys } from "../../../utils/avatarKeys";
 import { avatarTypes } from "../../../utils/avatarSrc";
@@ -255,20 +255,18 @@ export class Seeder extends SeederTemplateBuilder {
   private async saveUser({ user, auth, admin }: UserTemplate): Promise<void> {
     try {
       await this.db.transaction().execute(async (trx) => {
-        let avatarUrl: string | undefined = undefined;
         if (user.avatar) {
           const filePath = avatarTypes[user.avatar];
-          avatarUrl = `user/${user.username}/avatar.webp`;
           await this.blobService.createBucket();
           await this.blobService.uploadFile({
             object: filePath,
-            name: avatarUrl,
+            name: avatarBucketPath(user.username),
             type: "image/webp"
           });
         }
         await trx
           .insertInto("user")
-          .values({ ...user, avatar: avatarUrl ? `${BLOB_ROUTE}/${avatarUrl}` : undefined })
+          .values({ ...user, avatar: user.avatar ? avatarClientUrl(user.username) : undefined })
           .returningAll()
           .execute();
         await trx.insertInto("auth").values(auth).returningAll().execute();

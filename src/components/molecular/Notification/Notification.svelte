@@ -34,7 +34,7 @@
     }
   });
   onDestroy(() => {
-    timeout && clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
   });
 </script>
 

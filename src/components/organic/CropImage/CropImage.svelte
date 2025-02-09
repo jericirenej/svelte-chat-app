@@ -44,8 +44,7 @@
     /** Wrapper element's dimensions might be resized several times
      * on initial render. In order for resize adjustments to work,
      * the element needs to be stable. It is considered stable
-     * when its offsetWidth has not changed in a 30ms interval.
-     */
+     * when its offsetWidth has not changed in a 30ms interval. */
     interval(30)
       .pipe(
         map(() => offsetWidth),

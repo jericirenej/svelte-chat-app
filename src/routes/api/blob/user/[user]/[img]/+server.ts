@@ -1,7 +1,5 @@
-import { BlobStorageService } from "@db/index";
+import { blobService } from "../../../../../../hooks.server";
 import type { RequestHandler } from "./$types";
-
-const blobService = new BlobStorageService();
 
 export const GET: RequestHandler = async ({ params }) => {
   const { user, img } = params;
