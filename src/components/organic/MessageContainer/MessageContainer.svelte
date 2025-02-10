@@ -76,7 +76,11 @@
 
   const onMessageAdd = (msgLength: number) => {
     alertMessage =
-      !previousLoaded && !!userScroll && msgLength > msgCount && isContentInvisible(div);
+      !previousLoaded &&
+      !!userScroll &&
+      msgCount !== 0 &&
+      msgLength > msgCount &&
+      isContentInvisible(div);
     msgCount = msgLength;
   };
 

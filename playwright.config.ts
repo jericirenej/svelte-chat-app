@@ -11,12 +11,7 @@ const config: PlaywrightTestConfig = {
   retries: 1,
   fullyParallel: true,
   timeout: 1e4,
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"], channel: "chromium" } }
-    /* { name: "edge", use: { ...devices["Desktop Edge"] } } */
-    /* { name: "firefox", use: { ...devices["Desktop Firefox"] } } */
-    /* { name: "safari", use: { ...devices["Desktop Safari"] } } */
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], channel: "chromium" } }],
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.05 } },
   testMatch: /(.+\.)?spec\.ts/,
 

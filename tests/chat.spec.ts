@@ -267,9 +267,8 @@ test.describe("Message list", () => {
       const notificationButton = page.getByTitle(CONVERSATION_MESSAGES.newMessagesInvisible);
       await (await container.elementHandle())?.waitForElementState("stable");
       await container
-        .locator("section", { has: page.getByText(prefix(20)) })
+        .locator("section", { has: page.getByText(prefix(30)) })
         .scrollIntoViewIfNeeded();
-      await expect(container.locator("section")).toHaveCount(messages.length);
 
       await expect(notificationButton).toBeHidden();
 

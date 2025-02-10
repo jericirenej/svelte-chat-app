@@ -31,7 +31,6 @@ test.afterEach(async ({ clearDB }) => {
 
 test("Allows direct navigation", async ({ page, browserName }) => {
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
-  await page.screenshot({ path: `./tests/screenshots/signup-${browserName}.png` });
 });
 test("Has appropriate elements", async ({ page }) => {
   await expect(page).toHaveTitle(pageTitle);
