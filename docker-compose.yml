@@ -9,18 +9,6 @@ services:
       - '5432:5432'
     restart: always
     container_name: "postgres"
-  pgadmin:
-    image: dpage/pgadmin4
-    depends_on:
-      - postgres
-    ports:
-      - "8080:80"
-    env_file: .env
-    container_name: "pgadmin"
-    volumes:
-      - pgadmin-vol:/var/lib/pgadmin
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
   redis:
     image: redis:7.2.0-alpine
     restart: always
@@ -31,16 +19,17 @@ services:
     container_name: "redis-server"
     volumes:
       - redis-data:/data
-  redis-insight:
-    image: redislabs/redisinsight
+  minio:
+    image: minio/minio:RELEASE.2025-02-03T21-03-04Z
     restart: always
-    depends_on:
-      - redis
+    command: server /data --console-address :9001
     ports:
-      - '8001:8001'
+      - '9001:9001'
+      - '9000:9000'
+    env_file: .env
+    container_name: "minio"
     volumes:
-      - insight-vol:/db
-    container_name: "redis-insight"
+      - minio-data:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
   playwright:
@@ -54,6 +43,5 @@ services:
 
 volumes:
   postgres-vol:
-  pgadmin-vol:
   redis-data:
-  insight-vol:
+  minio-data:

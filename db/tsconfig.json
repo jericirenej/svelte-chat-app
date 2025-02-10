@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ESNext"],
     "target": "ESNext",
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["vitest/importMeta"]
   },
-  "include": ["./postgres/**/*.ts", "./redis/**/*.ts", "helpers/**/*.ts"]
+  "include": ["./postgres/**/*.ts", "./redis/**/*.ts", "helpers/**/*.ts", "blob/**/*.ts"]
 }

@@ -19,3 +19,4 @@ dist
 db/environment.example.ts
 prodServer.ts
 vitest-setup.*
+tests/ecosystem*

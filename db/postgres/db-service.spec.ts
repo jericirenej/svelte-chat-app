@@ -2,25 +2,27 @@ import { randomUUID } from "crypto";
 
 import { faker } from "@faker-js/faker";
 import { add } from "date-fns";
-import { Kysely } from "kysely";
+import type { Kysely } from "kysely";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseService } from "./db-service.js";
 import type { DB } from "./db-types.js";
 import { TestingDatabases } from "./tools/testing.database.service.js";
 import { randomPick, uniqueUUID } from "./tools/utils.js";
-import {
+import type {
   ChatUserDto,
   CompleteUserDto,
   CreateMessageDto,
   GetChatDto,
   MessageDto,
-  ParticipantDto,
-  type AuthDto,
-  type CreateChatDto,
-  type CreateUserDto,
-  type SingleUserSearch,
-  type UpdateAuthDto,
-  type UpdateUserDto
+  ParticipantDto
+} from "./types.js";
+import type {
+  AuthDto,
+  CreateChatDto,
+  CreateUserDto,
+  SingleUserSearch,
+  UpdateAuthDto,
+  UpdateUserDto
 } from "./types.js";
 
 const keyGuard = <T extends Record<string, unknown>>(key: unknown, obj: T): key is keyof T =>

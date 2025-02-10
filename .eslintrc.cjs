@@ -6,6 +6,7 @@ module.exports = {
     "plugin:storybook/recommended",
     "plugin:@typescript-eslint/strict-type-checked",
     "plugin:svelte/recommended",
+    "plugin:markdown/recommended-legacy",
     "prettier"
   ],
   parser: "@typescript-eslint/parser",
@@ -32,7 +33,9 @@ module.exports = {
       rules: {
         "@typescript-eslint/prefer-reduce-type-parameter": 0,
         "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
-        "unused-imports/no-unused-imports": "error"
+        "unused-imports/no-unused-imports": "error",
+        "@typescript-eslint/no-unused-vars": 0,
+        "@typescript-eslint/no-deprecated": "warn"
       }
     },
     {
@@ -55,7 +58,7 @@ module.exports = {
       }
     },
     {
-      files: ["*.ts"],
+      files: ["*.ts", "*.js"],
       rules: {
         "@typescript-eslint/no-throw-literal": 0,
         "@typescript-eslint/only-throw-error": 0,
@@ -65,7 +68,9 @@ module.exports = {
         "unused-imports/no-unused-imports": "error",
         "@typescript-eslint/no-extraneous-class": "off",
         "@typescript-eslint/consistent-type-exports": "error",
-        "@typescript-eslint/consistent-type-imports": "error"
+        "@typescript-eslint/consistent-type-imports": "error",
+        "@typescript-eslint/no-unnecessary-type-parameters": "off",
+        "@typescript-eslint/no-deprecated": "warn"
       }
     },
     {

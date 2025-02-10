@@ -12,6 +12,7 @@ import {
 } from "./constants.js";
 import { setupSocketServer } from "$lib/server/socket.server.js";
 import type { ExtendedGlobal } from "$lib/socket.types.js";
+import { BlobStorageService } from "@db/index.js";
 
 let socketServerInitialized = false;
 const extendedGlobal = globalThis as ExtendedGlobal;
@@ -39,6 +40,8 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
   if (hasUserChanged(user, received)) locals.user = received;
   return;
 };
+
+export const blobService = new BlobStorageService();
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 export const handle: Handle = async ({ event, resolve }) => {

@@ -110,7 +110,12 @@ export const handleLoginResult = (event: FormEventType): number | undefined => {
 
   return result.status;
 };
+const generalPostCall = async (input: Parameters<SubmitFunction>[0]) => {
+  return fetch(input.action, { method: "POST", body: input.formData });
+};
+export const signupCall = generalPostCall;
 
+export const loginCall = generalPostCall;
 export const createChatCall = async (input: Parameters<SubmitFunction>[0]) => {
   const csrf = getCSRFLocal();
   if (!csrf) return new Response();

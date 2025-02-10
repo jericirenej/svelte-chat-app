@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
   import type { Meta } from "@storybook/svelte";
   import { fn } from "@storybook/test";
+  import { assignAvatar } from "../../story-helpers/avatars";
 
   import type { ComponentProps } from "svelte";
   import type { ParticipantData, RemoveIndexSignature, SingleChatData } from "../../../types";
@@ -43,7 +44,6 @@
   import type { MessageDto } from "@db/postgres";
   import { USERS_WITH_ID } from "@utils/users";
   import { derived, writable, type Readable, type Writable } from "svelte/store";
-  import { assignAvatar } from "../../../../utils/avatarSrc";
   import ChatStoryWrapper from "../../story-helpers/ChatStoryWrapper.svelte";
   import {
     baseMessages,

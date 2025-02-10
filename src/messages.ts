@@ -1,4 +1,4 @@
-import { REDIRECT_AFTER_EXPIRE_DELAY } from "./constants";
+import { AVATAR_SIZE_LIMIT_ERR, REDIRECT_AFTER_EXPIRE_DELAY } from "./constants";
 import { capitalize } from "./helpers";
 
 export const APP_NAME = "Chat App";
@@ -30,7 +30,10 @@ export const SIGNUP_MESSAGES = {
   failure: "Registration failed on the server. Please try again.",
   duplicateFailure: "Username or email combination already taken.",
   badRequestFailure: "Please fill out the signup form as indicated to sign up.",
-  supplyDetailsTitle: "Please supply a username, email, and password."
+  addAvatar: "Avatar (optional)",
+  addAvatarTitle: `Upload and crop an image that will serve as your avatar. Note that the final cropped image must not exceed ${AVATAR_SIZE_LIMIT_ERR}.`,
+  supplyDetailsTitle:
+    "Please supply a username, email, and password. Supplied avatars must not exceed size limit."
 };
 
 export const PROFILE_MESSAGES = {
@@ -106,3 +109,18 @@ export const LENGTH_ERR_MESSAGES = {
 export const PREVIEW_LIST_TITLE = "Chats";
 export const PREVIEW_LIST_EMPTY = "No active chats. Go and talk to someone!";
 export const PREVIEW_LIST_NO_MESSAGES = "No messages yet...";
+
+export const UPLOAD_ERROR = "Upload file error. Please try again.";
+export const CLOSE = "Close";
+
+export const IMAGE_CROP = {
+  alt: "Upload profile image",
+  error: "Failed to load image",
+  reset: "Reset",
+  cancel: "Cancel",
+  confirm: "Confirm",
+  pristine: "Can't reset, since no changes have been made to the original crop.",
+  modify: "Modify",
+  remove: "Clear",
+  tooLarge: (limit: string) => `Cropped image exceeds size ${limit}.`
+};

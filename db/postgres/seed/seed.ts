@@ -2,12 +2,17 @@ import chalk from "chalk";
 import { add } from "date-fns";
 
 import { type Insertable, type Kysely, type Selectable, sql } from "kysely";
+import { avatarBucketPath, avatarClientUrl } from "../../../src/lib/client/avatar-url";
 import { createLogger, format, transports } from "winston";
+import { type AvatarTypeKeys } from "../../../utils/avatarKeys";
+import { avatarTypes } from "../../../utils/avatarSrc";
 import { genPassword } from "../../../utils/generate-password.js";
 import { baseDate, createEmail, createUserId, v5 } from "../../../utils/users.js";
+import { BlobStorageService } from "../../blob/blob.storage.service.js";
 import type { Admin, Auth, Chat, DB, Message, Participant, User } from "../db-types.js";
-import type { XOR } from "../types.js";
 import { randomPick } from "../tools/utils.js";
+import type { XOR } from "../types.js";
+import environment from "../../environment";
 
 const { timestamp, printf, align } = format;
 
@@ -26,13 +31,17 @@ export const evenUserPick = <T>(num: number, user1: T, user2: T): T =>
   isEven(num) ? user1 : user2;
 export const randomUserPick = <T>(...users: T[]) => randomPick(users);
 
-export type CreateUserArg = Partial<Pick<User, "id" | "avatar" | "surname" | "name">> & {
+export type CreateUserArg = Partial<Pick<User, "id" | "surname" | "name">> & {
+  avatar?: AvatarTypeKeys | undefined;
   username: string;
   createdAt?: Date | string;
   role?: "user" | "admin" | "superadmin";
 };
 type UserTemplate = {
-  user: Insertable<Omit<User, "id">> & { id: string };
+  user: Insertable<Omit<User, "id" | "avatar">> & {
+    id: string;
+    avatar?: Exclude<AvatarTypeKeys, "empty">;
+  };
   auth: Insertable<Auth>;
   admin: Insertable<Admin> | null;
 };
@@ -74,11 +83,12 @@ export class SeederTemplateBuilder {
     const password = `${user.username}-password`,
       id = this.createUserId(user.username),
       createdAt = user.createdAt ?? this.baseDate;
+
     return {
       user: {
         id,
         email: createEmail(user.username),
-        avatar: user.avatar ?? null,
+        avatar: user.avatar && user.avatar !== "empty" ? user.avatar : undefined,
         name: forceNull(user.name),
         surname: forceNull(user.surname),
         username: user.username,
@@ -171,24 +181,33 @@ export class SeederTemplateBuilder {
   }
 }
 
+export type SeederConstructorParams = {
+  db: Kysely<DB>;
+  blobService?: BlobStorageService;
+  shouldLog?: boolean;
+};
+
 export class Seeder extends SeederTemplateBuilder {
   private logger = createLogger({
     level: "info",
     transports: [new transports.Console()],
     format: logForm
   });
-
-  constructor(
-    private db: Kysely<DB>,
-    private shouldLog = false
-  ) {
+  protected db: Kysely<DB>;
+  protected blobService: BlobStorageService;
+  protected shouldLog: boolean;
+  constructor(params: SeederConstructorParams) {
     super();
+    this.db = params.db;
+    this.blobService = params.blobService ?? new BlobStorageService(environment.MINIO_BUCKET);
+    this.shouldLog = params.shouldLog ?? false;
   }
 
   async clearDb() {
     await this.db.transaction().execute(async (trx) => {
       await sql`DELETE FROM public.user;`.execute(trx);
       await sql`DELETE FROM public.chat;`.execute(trx);
+      await this.blobService.clearBucket();
     });
   }
 
@@ -236,7 +255,20 @@ export class Seeder extends SeederTemplateBuilder {
   private async saveUser({ user, auth, admin }: UserTemplate): Promise<void> {
     try {
       await this.db.transaction().execute(async (trx) => {
-        await trx.insertInto("user").values(user).returningAll().execute();
+        if (user.avatar) {
+          const filePath = avatarTypes[user.avatar];
+          await this.blobService.createBucket();
+          await this.blobService.uploadFile({
+            object: filePath,
+            name: avatarBucketPath(user.username),
+            type: "image/webp"
+          });
+        }
+        await trx
+          .insertInto("user")
+          .values({ ...user, avatar: user.avatar ? avatarClientUrl(user.username) : undefined })
+          .returningAll()
+          .execute();
         await trx.insertInto("auth").values(auth).returningAll().execute();
         if (admin) {
           await trx.insertInto("admin").values(admin).returningAll().execute();

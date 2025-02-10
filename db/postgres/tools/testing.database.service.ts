@@ -1,5 +1,6 @@
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from "kysely";
 import pg from "pg";
+import { BlobStorageService } from "../../blob/blob.storage.service.js";
 import env from "../../environment.js";
 import { DatabaseService } from "../db-service.js";
 import type { DB } from "../db-types.js";
@@ -26,11 +27,9 @@ export type SeedSchema<T extends string = string> = {
 };
 
 export class TestingDatabases {
-  private readonly migrationsPath = MIGRATIONS_PATH;
-  private readonly typePath = TYPE_PATH;
-
   postgres: Kysely<unknown>;
   DBs: Map<string, Kysely<DB>> = new Map();
+  blobServices: Map<string, BlobStorageService> = new Map();
 
   constructor(
     private config: PostgresConnection = postgresConnection,
@@ -42,6 +41,7 @@ export class TestingDatabases {
   async createTestDB(dbName: string): Promise<Kysely<DB>> {
     const db = this.createKyselyClient<DB>(dbName);
     this.DBs.set(dbName, db);
+    this.blobServices.set(dbName, new BlobStorageService(dbName));
     await this.createDB(dbName);
     await this.runMigrateAction(dbName, "migrateToLatest");
     return db;
@@ -51,20 +51,30 @@ export class TestingDatabases {
     return this.DBs.get(dbName) ?? this.createKyselyClient(dbName);
   }
 
+  getBlobService(dbName: string) {
+    return this.blobServices.get(dbName) ?? new BlobStorageService(dbName);
+  }
+
+  getDbAndBlob(dbName: string) {
+    return { db: this.getDB(dbName), blobService: this.getBlobService(dbName) };
+  }
+
   async clearDB(dbName: string): Promise<void> {
-    const db = this.getDB(dbName);
+    const { db, blobService } = this.getDbAndBlob(dbName);
     await db.deleteFrom("user").execute();
     await db.deleteFrom("chat").execute();
+    await blobService.clearBucket();
   }
 
   async clearDbDispose(dbName: string): Promise<void> {
     await using kyselyDB = this.createKyselyClientDispose<DB>(dbName);
     await kyselyDB.db.deleteFrom("user").execute();
     await kyselyDB.db.deleteFrom("chat").execute();
+    await this.getBlobService(dbName).clearBucket();
   }
   async seedDbDispose(dbName: string, schema?: SeedSchema): Promise<void> {
     await using kyselyDb = this.createKyselyClientDispose<DB>(dbName);
-    await this.seed(kyselyDb.db, schema);
+    await this.seed(kyselyDb.db, this.getBlobService(dbName), schema);
   }
 
   async dbService(dbName: string): Promise<DatabaseService> {
@@ -77,7 +87,7 @@ export class TestingDatabases {
   }
 
   async seedDB(dbName: string): Promise<void> {
-    await this.seed(this.getDB(dbName));
+    await this.seed(this.getDB(dbName), this.getBlobService(dbName));
   }
 
   private createKyselyClient<T>(dbName: string): Kysely<T> {
@@ -105,12 +115,12 @@ export class TestingDatabases {
 
   /** Executes default seed if no schema provided.
    * Otherwise, performs seed with provided schema */
-  protected async seed(db: Kysely<DB>, schema?: SeedSchema) {
+  protected async seed(db: Kysely<DB>, blobService: BlobStorageService, schema?: SeedSchema) {
     if (!schema) {
-      await defaultSeed(db, this.log);
+      await defaultSeed({ db, blobService, shouldLog: this.log });
       return;
     }
-    const seeder = new Seeder(db, this.log);
+    const seeder = new Seeder({ db, blobService, shouldLog: this.log });
     await seeder.clearDb();
     await seeder.createUsers(schema.users?.length ? schema.users : users);
     if (schema.chats?.length) {
@@ -122,9 +132,12 @@ export class TestingDatabases {
     await this.forceDrop(name);
 
     await sql`CREATE DATABASE ${sql.ref(name)}`.execute(this.postgres);
+    await this.getBlobService(name).createBucket();
   }
+
   private async forceDrop(name: string): Promise<void> {
     await sql`DROP DATABASE IF EXISTS ${sql.ref(name)} WITH (FORCE)`.execute(this.postgres);
+    await this.getBlobService(name).trashBucket();
   }
 
   private async runMigrateAction(
@@ -142,6 +155,7 @@ export class TestingDatabases {
     for (const [name, db] of [...this.DBs.entries()]) {
       await db.destroy();
       if (!removeDBs) return;
+      await this.getBlobService(name).trashBucket();
       await this.forceDrop(name);
     }
     await this.postgres.destroy();

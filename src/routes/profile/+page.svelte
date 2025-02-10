@@ -7,6 +7,7 @@
   import { capitalize } from "../../helpers";
   import type { PageData } from "./$types.js";
   import { browser } from "$app/environment";
+  import { AVATAR } from "../../constants.js";
   export let data: PageData;
 
   const user = data.user as CompleteUserDto;
@@ -42,14 +43,15 @@
     <div class="flex items-center gap-6 self-start">
       <h1 class="mb-5 text-[2rem] font-light uppercase leading-7 text-sky-800">Profile</h1>
       <div class="relative -top-2.5 flex w-fit items-center gap-2 text-lg">
+        <p class="font-bold">{user.username}</p>
         {#if user.avatar}
           <img
-            class="inline-block aspect-square h-5 rounded-full object-contain"
+            class="profile-image relative bottom-1 inline-block aspect-square h-10 object-contain"
             src={user.avatar}
             alt="{user.username} avatar"
+            style:border-radius={AVATAR.borderRadius}
           />
         {/if}
-        <p class="font-bold">{user.username}</p>
       </div>
     </div>
     <dl class="grid grid-cols-[120px,_1fr] text-sm">

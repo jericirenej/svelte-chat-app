@@ -8,7 +8,7 @@ import { genPassword } from "../utils/generate-password.js";
 import { test as fixtures, type CustomFixtures } from "./fixtures";
 import { userHashMap } from "./utils.js";
 
-const user: AvailableUsers = "logician";
+const user: AvailableUsers = "incomplete_guy";
 type LoginAndNavigateArgs = Parameters<CustomFixtures["login"]>;
 const target = userHashMap[user];
 const test = fixtures.extend<{

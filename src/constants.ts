@@ -3,7 +3,8 @@ export const ROOT_ROUTE = "/",
   SIGNUP_ROUTE = "/signup",
   PROFILE_ROUTE = "/profile",
   CHAT_ROUTE = "/chat",
-  CREATE_CHAT_ROUTE = "/create";
+  CREATE_CHAT_ROUTE = "/create",
+  BLOB_ROUTE = "/api/blob";
 /** This s a list of **exact** routes on which no authentication is required.
  * All other routes should perform a check for `sessionId` cookie and and `X-CRSF` header. */
 export const UNPROTECTED_ROUTES = [LOGIN_ROUTE, SIGNUP_ROUTE];
@@ -24,3 +25,11 @@ export const LOCAL_SESSION_CSRF_KEY = "csrfToken";
 export const LOCAL_EXPIRE_REDIRECT = "redirectAfterExpire";
 export const LOCAL_KEYS = [LOCAL_SESSION_CSRF_KEY, LOCAL_EXPIRE_REDIRECT];
 export const MESSAGE_TAKE = 20;
+export const AVATAR = { borderRadius: "25%", aspectRatio: 1 };
+export const USERNAME_MIN = 5,
+  PASSWORD_MIN = 8,
+  STRING_MAX = 100,
+  AVATAR_SIZE_LIMIT = 5.12 * 1e5,
+  AVATAR_SIZE_LIMIT_ERR = "512KiB";
+
+export const AVATAR_SIZE = 200;

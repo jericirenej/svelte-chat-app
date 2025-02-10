@@ -4,7 +4,7 @@
   import AvatarComponent from "./Avatar.svelte";
 
   type CustomProps = RemoveIndexSignature<ComponentProps<AvatarComponent>> & {
-    avatarType: keyof typeof avatarTypes;
+    avatarType: AvatarTypeKeys;
   };
 
   export const meta: Meta<CustomProps> = {
@@ -22,7 +22,8 @@
 <script lang="ts">
   import { Story, Template } from "@storybook/addon-svelte-csf";
   import type { RemoveIndexSignature } from "../../../types";
-  import { avatarTypes } from "../../../../utils/avatarSrc";
+  import { avatars } from "../../story-helpers/avatars";
+  import type { AvatarTypeKeys } from "@utils/avatarKeys";
 
   const assertArgs = (args: unknown) => {
     return args as CustomProps;
@@ -31,7 +32,7 @@
 
 <Template let:args>
   {@const { name, size, avatarType } = assertArgs(args)}
-  <AvatarComponent {name} {size} src={avatarTypes[avatarType]} />
+  <AvatarComponent {name} {size} src={avatars[avatarType]} />
 </Template>
 
 <Story name="Avatar" args={{ name: "Mr. Robot", avatarType: "transparentBg", size: 75 }} />

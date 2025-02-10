@@ -1,7 +1,11 @@
-import { Kysely } from "kysely";
 import { BASE_USERS as users } from "../../../utils/users.js";
-import type { DB } from "../db-types";
-import { type ChatSchema, evenUserPick, randomUserPick, Seeder } from "./seed";
+import {
+  type ChatSchema,
+  evenUserPick,
+  randomUserPick,
+  Seeder,
+  type SeederConstructorParams
+} from "./seed";
 import MESSAGES from "./seed.messages.js";
 
 export type UserNames = (typeof users)[number]["username"];
@@ -37,9 +41,8 @@ chats.push({
 
 export { chats, users };
 
-export const seed = async (db: Kysely<DB>, log = false) => {
-  const seeder = new Seeder(db, log);
-
+export const seed = async (params: SeederConstructorParams) => {
+  const seeder = new Seeder(params);
   await seeder.clearDb();
   await seeder.createUsers(users);
   await seeder.createChats(chats);

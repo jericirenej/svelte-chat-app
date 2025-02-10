@@ -1,5 +1,4 @@
 import { v5 as uuid5 } from "uuid";
-import { avatarTypes } from "./avatarSrc";
 
 const BASE_UUID = "feec01c4-3e1a-4cde-9160-f114461d700e";
 
@@ -14,51 +13,51 @@ export const BASE_USERS = [
     username: "babbage" as const,
     name: "Charles",
     surname: "Babbage",
-    avatar: avatarTypes.empty
+    avatar: "empty" as const
   },
   {
     username: "lovelace" as const,
     name: "Ada",
     surname: "Lovelace",
     role: "superadmin" as const,
-    avatar: avatarTypes.transparentBg
+    avatar: "transparentBg" as const
   },
   {
     username: "liskov" as const,
     name: "Barbara",
     surname: "Liskov",
-    avatar: avatarTypes.full
+    avatar: "full" as const
   },
   {
     username: "chu_lonzo" as const,
     name: "Alonzo",
     surname: "Church",
-    avatar: avatarTypes.empty
+    avatar: "empty" as const
   },
   {
     username: "the_turing" as const,
     name: "Alan",
     surname: "Turing",
     role: "admin" as const,
-    avatar: avatarTypes.full
+    avatar: "full" as const
   },
   {
     username: "russel_guy" as const,
     name: "Bertrand",
     surname: "Russel",
-    avatar: avatarTypes.full
+    avatar: "full" as const
   },
   {
     username: "incomplete_guy" as const,
     name: "Kurt",
     surname: "Gödel",
-    avatar: avatarTypes.transparentBg
+    avatar: "transparentBg" as const
   },
   {
     username: "logician" as const,
     name: "George",
     surname: "Bool",
-    avatar: avatarTypes.empty
+    avatar: "empty" as const
   }
 ];
 

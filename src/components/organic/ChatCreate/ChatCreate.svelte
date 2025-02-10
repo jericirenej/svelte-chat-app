@@ -36,7 +36,6 @@
     dataType: "json",
     onSubmit: ({ customRequest }) => {
       isLoading = true;
-      console.log("CALLING");
       customRequest(postCall);
     },
     validators: zodClient(createChatSchema),

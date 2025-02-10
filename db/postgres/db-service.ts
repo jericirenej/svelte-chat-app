@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import { Kysely, sql } from "kysely";
+import { type Kysely, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { db } from "./client.js";
 import type { DB, User } from "./db-types.js";

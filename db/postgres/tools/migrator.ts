@@ -1,15 +1,11 @@
 import { promises as fs } from "fs";
 import { copyFile } from "fs/promises";
-import {
-  Migrator,
-  NO_MIGRATIONS,
-  type Migration,
-  type MigrationProvider,
-  type MigrationResultSet
-} from "kysely";
+import { NO_MIGRATIONS } from "kysely";
+import type { Migrator, Migration, MigrationProvider, MigrationResultSet } from "kysely";
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { asyncExec, resolveUrlPath } from "./utils.js";
+import env from "../../environment.js";
 
 export class ESMFileMigrationProvider implements MigrationProvider {
   constructor(private url: URL) {}
@@ -85,7 +81,7 @@ export class MigrationHelper {
 
   async updateSchema(): Promise<void> {
     const { stderr, stdout } = await asyncExec(
-      `npx kysely-codegen --camel-case --dialect postgres --out-file=${this.typePath}`
+      `npx kysely-codegen --camel-case --dialect postgres --out-file=${this.typePath} --url="${this.dbURL}"`
     );
     if (stderr) {
       console.error(stderr);
@@ -109,6 +105,9 @@ export class MigrationHelper {
       console.error("failed to migrate");
       console.error(error);
     }
+  }
+  protected get dbURL(): string {
+    return `postgres://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${env.POSTGRES_PORT}/${env.POSTGRES_DB}`;
   }
 
   async handleMigration(args: string[]): Promise<void> {
