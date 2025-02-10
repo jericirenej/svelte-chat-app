@@ -60,8 +60,6 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "happy-dom": "^14.7.1",
     "kysely-codegen": "^0.15.0",
-    "msw": "^2.2.14",
-    "msw-storybook-addon": "^2.0.4",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "prettier-plugin-svelte": "^3.2.3",
@@ -100,10 +98,5 @@
     "winston": "^3.13.0",
     "zod": "^3.23.4",
     "zod-to-json-schema": "^3.23.3"
-  },
-  "msw": {
-    "workerDirectory": [
-      "utils/msw"
-    ]
   }
 }
