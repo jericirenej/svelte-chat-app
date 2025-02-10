@@ -5,7 +5,6 @@ node_modules
 /package
 .env
 !.env.example
-environment.ts
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 test-results
