@@ -65,7 +65,7 @@ describe("MigrationHelper", () => {
     expect(migrator).toBeTruthy();
   });
   it("Update schema should call kysely-codegen with appropriate arguments", async () => {
-    const codeGenExec = `npx kysely-codegen --camel-case --dialect postgres --out-file=${typePath}`;
+    const codeGenExec = `npx kysely-codegen --camel-case --dialect postgres --out-file=${typePath} --url="${migrator["dbURL"]}"`;
     await migrator.updateSchema();
     expect(spyOnAsyncExec).toHaveBeenLastCalledWith(codeGenExec);
     spyOnAsyncExec.mockRestore();
