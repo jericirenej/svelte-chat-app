@@ -8,7 +8,6 @@
   export let usersTyping: UsersTyping | undefined = undefined;
   export let routeId: string | null;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export let onDelete: (_id: string) => unknown;
   export let onActive: (_id: string) => unknown;
   let active: string | null = null;

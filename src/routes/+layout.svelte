@@ -15,7 +15,6 @@
   import { handleLogoutCall } from "$lib/client/session-handlers";
   import { onMount } from "svelte";
   import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
-  /* import Sidebar from "../components/templates/Sidebar/Sidebar.svelte"; */
   import { CHAT_ROUTE, CREATE_CHAT_ROUTE } from "../constants";
   import type { LayoutData } from "./$types";
   import { fade } from "svelte/transition";

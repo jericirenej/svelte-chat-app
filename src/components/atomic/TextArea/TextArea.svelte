@@ -15,7 +15,8 @@
   };
 
   const handleInput = (ev: Event) => {
-    onInput && onInput(ev);
+    if (!onInput) return;
+    onInput(ev);
   };
 
   $: handleHeight(value);
@@ -30,7 +31,8 @@
   on:input={handleInput}
   on:keydown={(ev) => {
     if (ev.ctrlKey && ev.key === "Enter") {
-      submitEvent && submitEvent();
+      if (!submitEvent) return;
+      submitEvent();
     }
   }}
   rows="1"

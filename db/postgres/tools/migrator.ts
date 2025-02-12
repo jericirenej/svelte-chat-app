@@ -36,7 +36,7 @@ export type CompleteOptions = MigrationOptions | "create";
 export class MigrationHelper {
   readonly createOption = "create";
   readonly migrationOptions: MigrationOptions[] = ["up", "down", "migrate", "to", "reset", "clear"];
-  readonly optionsWithArgs = "to" as const;
+  readonly optionsWithArgs = "to";
   readonly skipTypeUpdateOption = "no-codegen";
   readonly noOptionsError = `Invalid options supplied! Expected one of the following: ${[
     ...this.migrationOptions,

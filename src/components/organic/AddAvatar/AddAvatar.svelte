@@ -41,7 +41,7 @@
   };
 
   let state = State.upload;
-  let errBlock: Record<`is${string}`, boolean> & Record<`${string}Message`, Maybe<string>> = {
+  const errBlock: Record<`is${string}`, boolean> & Record<`${string}Message`, Maybe<string>> = {
     isUploadError: false,
     errMessage: undefined
   };

@@ -20,7 +20,6 @@ export const jsonReviver = (key: string, value: unknown) => {
   return value;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export const typedJsonParse = <T>(
   stringified: string,
   reviver: Parameters<typeof JSON.parse>[1]

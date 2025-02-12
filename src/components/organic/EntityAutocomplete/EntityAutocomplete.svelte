@@ -12,6 +12,7 @@
   export let pickUser: (entity: Entity) => unknown;
 
   let entities: Entity[] = [];
+  // eslint-disable-next-line prefer-const
   let search: string = "";
   let showList = true;
   let ref: HTMLDivElement;

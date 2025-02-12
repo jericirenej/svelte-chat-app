@@ -11,7 +11,7 @@
     height: 100%;
     inset: 0;
     overflow: hidden;
-    z-index:-1
+    z-index: -1;
   }
   .isLoading {
     z-index: 1;

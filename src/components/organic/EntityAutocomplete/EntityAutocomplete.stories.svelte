@@ -21,7 +21,6 @@
     },
     args: {
       containerWidth: 30,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       pickUser: (_entity: Entity) => {},
       label: ENTITY_LIST.searchLabel,
       searchUsers

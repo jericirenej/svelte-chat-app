@@ -42,7 +42,6 @@
       previewRef.scrollTop + previewRef.clientHeight !== previewRef.scrollHeight;
   }, 30);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handlePreviewChange = (_length: number | Nullish) => {
     handleScroll();
   };

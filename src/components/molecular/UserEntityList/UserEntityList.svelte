@@ -5,7 +5,6 @@
   import DeleteButton from "../../atomic/DeleteButton/DeleteButton.svelte";
   import UserEntity from "../UserEntity/UserEntity.svelte";
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export let handleSelect: (entity: Entity) => unknown = (_entity) => {};
   export let removeAction: ((id: string) => unknown) | undefined = undefined;
   export let entities: Entity[];

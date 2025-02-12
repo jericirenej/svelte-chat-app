@@ -4,7 +4,6 @@ import type { LayoutChatData, ParticipantData } from "../types.js";
 import type { LayoutServerLoad } from "./$types.js";
 import { LAYOUT_INVALIDATE } from "$lib/client/chat-handlers.js";
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
 export const load: LayoutServerLoad = async ({ locals, depends }) => {
   const user = locals.user;
   if (!user) return;
