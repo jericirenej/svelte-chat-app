@@ -41,10 +41,11 @@ describe("Message", () => {
       render(Message, args);
       await waitFor(() => {
         const authorText = screen.queryByText(author);
-
-        hasAuthor
-          ? expect(authorText).toBeInTheDocument()
-          : expect(authorText).not.toBeInTheDocument();
+        if (hasAuthor) {
+          expect(authorText).toBeInTheDocument();
+        } else {
+          expect(authorText).not.toBeInTheDocument();
+        }
       });
     }
   });

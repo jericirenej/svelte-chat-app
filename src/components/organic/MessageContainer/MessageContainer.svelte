@@ -30,7 +30,6 @@
 
   let timeout: ReturnType<typeof setTimeout>;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const resetSmoothScroll = (_chatId: string) => {
     clearTimeout(timeout);
     smoothScroll = false;

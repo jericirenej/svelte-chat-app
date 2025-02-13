@@ -43,7 +43,6 @@ const updateLocalsUser = (locals: App.Locals, received: CompleteUserDto | null):
 
 export const blobService = new BlobStorageService();
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
 export const handle: Handle = async ({ event, resolve }) => {
   initializeSocketServer();
   if (!event.locals.socketServer) {

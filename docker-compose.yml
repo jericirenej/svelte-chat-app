@@ -6,7 +6,7 @@ services:
     volumes:
       - postgres-vol:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "5432:5432"
     restart: always
     container_name: "postgres"
   redis:
@@ -14,7 +14,7 @@ services:
     restart: always
     command: /bin/sh -c "exec redis-server --requirepass $$REDIS_HOST_PASSWORD"
     ports:
-      - '6379:6379'
+      - "6379:6379"
     env_file: .env
     container_name: "redis-server"
     volumes:
@@ -24,8 +24,8 @@ services:
     restart: always
     command: server /data --console-address :9001
     ports:
-      - '9001:9001'
-      - '9000:9000'
+      - "9001:9001"
+      - "9000:9000"
     env_file: .env
     container_name: "minio"
     volumes:
@@ -38,7 +38,7 @@ services:
     container_name: "playwright-e2e"
     init: true
     ipc: host
-    command: [ "/bin/sh", -c, "cd /home/pwuser && npx -y playwright@1.49.0 run-server --port 5000" ]
+    command: ["/bin/sh", -c, "cd /home/pwuser && npx -y playwright@1.49.0 run-server --port 5000"]
     network_mode: host
 
 volumes:

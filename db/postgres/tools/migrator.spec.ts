@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { copyFile } from "fs/promises";
-import { Kysely, MigrationInfo, MigrationResultSet, Migrator, NoMigrations } from "kysely";
-import { SpyInstance, afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Kysely, MigrationInfo, MigrationResultSet, Migrator, NoMigrations } from "kysely";
+import type { MockInstance } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MigrationHelper } from "./migrator.js";
 import * as utils from "./utils.js";
 
 vi.mock("fs/promises", () => ({
-  copyFile: vi.fn().mockImplementation((...args: unknown[]) => Promise.resolve())
+  copyFile: vi.fn().mockImplementation((..._args: unknown[]) => Promise.resolve())
 }));
 
 class MockMigrator {
@@ -21,8 +21,7 @@ class MockMigrator {
   migrateDown(): Promise<MigrationResultSet> {
     return Promise.resolve(this.resultSet);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  migrateTo(targetMigrationName: string | NoMigrations): Promise<MigrationResultSet> {
+  migrateTo(_targetMigrationName: string | NoMigrations): Promise<MigrationResultSet> {
     return Promise.resolve(this.resultSet);
   }
   getMigrations(): Promise<readonly MigrationInfo[]> {
@@ -32,9 +31,9 @@ class MockMigrator {
 
 describe("MigrationHelper", () => {
   let migrator: MigrationHelper,
-    spyOnLog: SpyInstance,
-    spyOnWarn: SpyInstance,
-    spyOnAsyncExec: SpyInstance;
+    spyOnLog: MockInstance,
+    spyOnWarn: MockInstance,
+    spyOnAsyncExec: MockInstance;
   const mockMigrator = new MockMigrator() as unknown as Migrator,
     typePath = "path/to/type.ts",
     db = { destroy: () => Promise.resolve() } as Kysely<unknown>,
@@ -49,8 +48,7 @@ describe("MigrationHelper", () => {
     migrator = new MigrationHelper(mockMigrator, typePath);
     spyOnAsyncExec = vi
       .spyOn(utils, "asyncExec")
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .mockImplementation((message: string) => Promise.resolve({ stderr: null, stdout: null }));
+      .mockImplementation((_message: string) => Promise.resolve({ stderr: null, stdout: null }));
     [spyOnLog, spyOnWarn] = (["log", "warn"] as const).map((m) =>
       vi.spyOn(console, m).mockImplementation((...arg: unknown[]) => {})
     );
@@ -67,7 +65,7 @@ describe("MigrationHelper", () => {
     expect(migrator).toBeTruthy();
   });
   it("Update schema should call kysely-codegen with appropriate arguments", async () => {
-    const codeGenExec = `npx kysely-codegen --camel-case --dialect postgres --out-file=${typePath}`;
+    const codeGenExec = `npx kysely-codegen --camel-case --dialect postgres --out-file=${typePath} --url="${migrator["dbURL"]}"`;
     await migrator.updateSchema();
     expect(spyOnAsyncExec).toHaveBeenLastCalledWith(codeGenExec);
     spyOnAsyncExec.mockRestore();
@@ -95,7 +93,7 @@ describe("MigrationHelper", () => {
     }
   });
   it("Migration args should result in appropriate migrations method calls", async () => {
-    const spies = new Map<keyof Migrator, SpyInstance>([
+    const spies = new Map<keyof Migrator, MockInstance>([
       ["getMigrations", vi.spyOn(mockMigrator, "getMigrations")],
       ["migrateDown", vi.spyOn(mockMigrator, "migrateDown")],
       ["migrateUp", vi.spyOn(mockMigrator, "migrateUp")],
