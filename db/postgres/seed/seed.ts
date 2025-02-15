@@ -21,7 +21,7 @@ const logForm = format.combine(
   align(),
   printf(
     ({ level, message, timestamp }) =>
-      `${chalk.bold.green(`[SEED ${level}]`)} ${timestamp} ${chalk.yellow(message)}`
+      `${chalk.bold.green(`[SEED ${level}]`)} ${typeof timestamp === "string" ? timestamp : ""} ${chalk.yellow(message)}`
   )
 );
 

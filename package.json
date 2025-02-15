@@ -57,7 +57,7 @@
     "eslint-plugin-markdown": "5.1.0",
     "eslint-plugin-playwright": "2.1.0",
     "eslint-plugin-storybook": "0.11.2",
-    "eslint-plugin-svelte": "2.46.0",
+    "eslint-plugin-svelte": "2.46.1",
     "globals": "15.15.0",
     "happy-dom": "17.1.0",
     "kysely-codegen": "0.15.0",
@@ -79,7 +79,7 @@
     "uuid": "9.0.1",
     "vite": "5.4.14",
     "vitest": "2.1.2",
-    "winston": "3.13.0",
+    "winston": "3.17.0",
     "zx": "8.3.2"
   },
   "dependencies": {
