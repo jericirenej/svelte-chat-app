@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "../atomic/Button/Button.svelte";
+  import Button from "../atoms/Button/Button.svelte";
   import type { ContainerProps } from "./messageHelpers";
   export let container: ContainerProps;
   export let handleAdd: () => unknown;

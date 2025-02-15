@@ -7,7 +7,7 @@
     chatPreviewList,
     chatUnreadList,
     simulateUsersTyping
-  } from "../../organic/ChatPreviewList/story-helpers";
+  } from "../../organisms/ChatPreviewList/story-helpers";
   import SidebarComponent from "./Sidebar.svelte";
 
   import type { RemoveIndexSignature } from "../../../types";

@@ -3,7 +3,7 @@ import { ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
 import { APP_NAME, LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages.js";
 import { test, type UserData } from "./fixtures";
 
-import { AddAvatarE2E } from "../src/components/organic/AddAvatar/AddAvatar.e2e";
+import { AddAvatarE2E } from "../src/components/organisms/AddAvatar/AddAvatar.e2e";
 import { PASSWORD_MIN, USERNAME_MIN } from "../src/constants";
 
 const {

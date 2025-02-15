@@ -11,7 +11,7 @@
   import { debounce } from "$lib/utils";
   import { onDestroy, onMount } from "svelte";
   import { type Unsubscriber } from "svelte/store";
-  import ChatContainer from "../../../components/organic/ChatContainer/ChatContainer.svelte";
+  import ChatContainer from "../../../components/organisms/ChatContainer/ChatContainer.svelte";
   import type { PageData } from "./$types";
   import { fade } from "svelte/transition";
 

@@ -13,11 +13,11 @@
     PREVIEW_LIST_TITLE
   } from "../../../messages";
   import type { Nullish, UnreadChatMessages, UsersTyping } from "../../../types";
-  import AddChat from "../../atomic/Add/AddChat.svelte";
-  import NavIcons from "../../molecular/NavIcons/NavIcons.svelte";
-  import ChatPreviewList from "../../organic/ChatPreviewList/ChatPreviewList.svelte";
-  import type { ChatPreviewProp } from "../../organic/ChatPreviewList/types";
-  import Dialog from "../../organic/Dialog/Dialog.svelte";
+  import AddChat from "../../atoms/Add/AddChat.svelte";
+  import NavIcons from "../../molecules/NavIcons/NavIcons.svelte";
+  import ChatPreviewList from "../../organisms/ChatPreviewList/ChatPreviewList.svelte";
+  import type { ChatPreviewProp } from "../../organisms/ChatPreviewList/types";
+  import Dialog from "../../organisms/Dialog/Dialog.svelte";
 
   export let chatPreviewList: ChatPreviewProp[] | null;
   export let chatUnreadList: UnreadChatMessages;

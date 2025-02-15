@@ -1,5 +1,5 @@
 import type { MessagesDto, UserDto } from "@db/postgres";
-import type { ChatPreviewProp } from "./components/organic/ChatPreviewList/types";
+import type { ChatPreviewProp } from "./components/organisms/ChatPreviewList/types";
 
 export type PbkdfSettings = {
   iterations: number;

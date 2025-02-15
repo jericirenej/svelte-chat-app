@@ -1,7 +1,7 @@
 <script lang="ts">
   import { setPreviewAndUnreadOnLoad } from "$lib/client/chat-handlers";
   import { onMount } from "svelte";
-  import RootHeading from "../components/atomic/RootHeading/RootHeading.svelte";
+  import RootHeading from "../components/atoms/RootHeading/RootHeading.svelte";
   import type { PageData } from "./$types.js";
   import { fade } from "svelte/transition";
 

@@ -5,7 +5,7 @@
   import type { CreateChatResponseData } from "$lib/client/createChat.types";
   import { createChatCall } from "$lib/client/session-handlers";
   import type { SubmitFunction } from "@sveltejs/kit";
-  import ChatCreate from "../../components/organic/ChatCreate/ChatCreate.svelte";
+  import ChatCreate from "../../components/organisms/ChatCreate/ChatCreate.svelte";
   import { CREATE_CHAT } from "../../messages";
   import type { Entity } from "../../types";
   import type { PageData } from "./$types.js";
