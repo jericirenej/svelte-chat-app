@@ -3,7 +3,7 @@
   import CrossFadeTextComponent from "./CrossFadeText.svelte";
 
   export const meta: Meta<CrossFadeTextComponent> = {
-    title: "Atomic/CrossFadeText",
+    title: "Atoms/CrossFadeText",
     component: CrossFadeTextComponent,
     argTypes: {
       text: { table: { disable: true } }

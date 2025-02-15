@@ -6,7 +6,7 @@
   type ExpandedProps = StoryProps & { containerWidth: number };
 
   export const meta: Meta<ExpandedProps> = {
-    title: "Atomic/Input",
+    title: "Atoms/Input",
     component: InputComponent,
     argTypes: {
       name: { control: "text" },

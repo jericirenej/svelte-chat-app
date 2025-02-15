@@ -14,7 +14,7 @@
   };
 
   export const meta: Meta<CustomProps> = {
-    title: "Molecular/UserEntity",
+    title: "Molecules/UserEntity",
     component: UserEntityComponent,
     argTypes: {
       entity: { control: "object", table: { disable: true } },

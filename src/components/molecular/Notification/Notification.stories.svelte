@@ -3,7 +3,7 @@
   import NotificationComponent from "./Notification.svelte";
 
   export const meta: Meta<NotificationComponent> = {
-    title: "Molecular/Notification",
+    title: "Molecules/Notification",
     component: NotificationComponent,
     argTypes: {
       type: { control: "radio", options: ["default", "secondary", "failure"] },

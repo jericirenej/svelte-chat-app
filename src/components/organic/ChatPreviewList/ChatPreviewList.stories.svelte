@@ -18,7 +18,7 @@
   };
 
   export const meta: Meta<Props> = {
-    title: "Organic/ChatPreviewList",
+    title: "Organisms/ChatPreviewList",
     component: ChatPreviewListComponent,
     argTypes: {
       chatPreviewList: { table: { disable: true } },

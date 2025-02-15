@@ -5,7 +5,7 @@
   import DialogComponent from "./Dialog.svelte";
   import type { ComponentProps } from "svelte";
   export const meta: Meta<ComponentProps<DialogComponent>> = {
-    title: "Organic/Dialog",
+    title: "Organisms/Dialog",
     component: DialogComponent,
     argTypes: {
       open: { control: "boolean", table: { disable: true } },

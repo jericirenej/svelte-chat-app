@@ -6,7 +6,7 @@
   type Props = RemoveIndexSignature<ComponentProps<AddAvatarComponent>>;
 
   export const meta: Meta<Props> = {
-    title: "Organic/AddAvatar",
+    title: "Organisms/AddAvatar",
     component: AddAvatarComponent,
     argTypes: { sizeLimit: { control: "number" } }
   };

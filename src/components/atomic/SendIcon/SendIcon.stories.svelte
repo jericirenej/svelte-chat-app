@@ -6,7 +6,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Atomic/SendIcon",
+    title: "Atoms/SendIcon",
     component: SendIconComponent,
     argTypes: {
       disabled: { control: "boolean" },

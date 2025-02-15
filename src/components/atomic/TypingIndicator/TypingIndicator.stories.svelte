@@ -4,7 +4,7 @@
   import TypingIndicatorComponent from "./TypingIndicator.svelte";
 
   export const meta: Meta<ComponentProps<TypingIndicatorComponent>> = {
-    title: "Atomic/TypingIndicator",
+    title: "Atoms/TypingIndicator",
     component: TypingIndicatorComponent,
     argTypes: {
       usersTyping: {

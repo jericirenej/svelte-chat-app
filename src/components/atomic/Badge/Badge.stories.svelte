@@ -3,7 +3,7 @@
   import BadgeComponent from "./Badge.svelte";
 
   export const meta: Meta<BadgeComponent> = {
-    title: "Atomic/Badge",
+    title: "Atoms/Badge",
     component: BadgeComponent,
     argTypes: {
       label: { control: "text" },

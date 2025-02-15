@@ -8,7 +8,7 @@
   };
 
   export const meta: Meta<CustomProps> = {
-    title: "Atomic/Avatar",
+    title: "Atoms/Avatar",
     component: AvatarComponent,
     argTypes: {
       name: { control: "text" },

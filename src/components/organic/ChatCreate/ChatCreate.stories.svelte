@@ -10,7 +10,7 @@
     containerWidth: number;
   };
   export const meta: Meta<CustomProps> = {
-    title: "Organic/ChatCreate",
+    title: "Organisms/ChatCreate",
     component: ChatCreateComponent,
     argTypes: {
       containerWidth: {

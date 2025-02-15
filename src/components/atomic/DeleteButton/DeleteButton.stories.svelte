@@ -5,7 +5,7 @@
     click: (ev: Event) => unknown;
   };
   export const meta: Meta<Props> = {
-    title: "Atomic/DeleteButton",
+    title: "Atoms/DeleteButton",
     component: DeleteButtonComponent,
     argTypes: {
       label: { control: "text" },

@@ -3,7 +3,7 @@
   import FormFooterComponent from "./FormFooter.svelte";
 
   export const meta: Meta<FormFooterComponent> = {
-    title: "Molecular/FormFooter",
+    title: "Molecules/FormFooter",
     component: FormFooterComponent,
     argTypes: {
       link: { control: "text" },

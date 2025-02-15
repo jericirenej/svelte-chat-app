@@ -8,7 +8,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Atomic/TextArea",
+    title: "Atoms/TextArea",
     component: TextAreaComponent,
     argTypes: {
       value: { table: { disable: true } },

@@ -8,7 +8,7 @@
     containerWidth: number;
   };
   export const meta: Meta<CustomProps> = {
-    title: "Organic/EntityAutocomplete",
+    title: "Organisms/EntityAutocomplete",
     component: EntityAutocompleteComponent,
     argTypes: {
       containerWidth: {

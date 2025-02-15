@@ -6,7 +6,7 @@
   type Props = CreateProps<CroppedAvatarComponent>;
 
   export const meta: Meta<Props> = {
-    title: "Molecular/CroppedAvatar",
+    title: "Molecules/CroppedAvatar",
     component: CroppedAvatarComponent,
     argTypes: {
       sizeLimit: { control: "number" },

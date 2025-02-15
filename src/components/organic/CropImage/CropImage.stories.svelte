@@ -11,7 +11,7 @@
   };
 
   export const meta: Meta<Props> = {
-    title: "Organic/CropImage",
+    title: "Organisms/CropImage",
     component: CropImageComponent,
     argTypes: {
       src: { control: "text", table: { disable: true } },

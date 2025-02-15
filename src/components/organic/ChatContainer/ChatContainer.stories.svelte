@@ -18,7 +18,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Organic/ChatContainer",
+    title: "Organisms/ChatContainer",
     component: ChatContainerComponent,
     argTypes: {
       containerWidth: { control: { type: "range", min: 10, max: 100, step: 5 } },

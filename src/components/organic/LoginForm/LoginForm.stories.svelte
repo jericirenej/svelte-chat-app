@@ -7,7 +7,7 @@
   };
 
   export const meta: Meta<Props> = {
-    title: "Organic/Login",
+    title: "Organisms/Login",
     component: LoginFormComponent,
     argTypes: {
       formData: { table: { disabled: true } },

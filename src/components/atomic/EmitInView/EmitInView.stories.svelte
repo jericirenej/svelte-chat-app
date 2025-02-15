@@ -7,7 +7,7 @@
   type Props = RemoveIndexSignature<ComponentProps<EmitInViewComponent>>;
 
   export const meta: Meta<Props> = {
-    title: "Atomic/EmitInView",
+    title: "Atoms/EmitInView",
     component: EmitInViewComponent,
     args: {
       inViewHandler: fn()

@@ -6,7 +6,7 @@
   type CompleteArgs = StoryProps & { containerWidth: number };
 
   export const meta: Meta<CompleteArgs> = {
-    title: "Molecular/SubmitButton",
+    title: "Molecules/SubmitButton",
     component: SubmitButtonComponent,
     argTypes: {
       isLoading: { control: "boolean" },

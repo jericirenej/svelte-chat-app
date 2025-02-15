@@ -6,7 +6,7 @@
   import { fn } from "@storybook/test";
 
   export const meta: Meta<SearchComponent> = {
-    title: "Molecular/Search",
+    title: "Molecules/Search",
     component: SearchComponent,
     argTypes: {
       label: { control: "text" },

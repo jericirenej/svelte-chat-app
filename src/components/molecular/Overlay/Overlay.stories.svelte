@@ -5,7 +5,7 @@
   import OverlayComponent from "./Overlay.svelte";
   type Props = RemoveIndexSignature<ComponentProps<OverlayComponent>>;
   export const meta: Meta<Props> = {
-    title: "Molecular/Overlay",
+    title: "Molecules/Overlay",
     component: OverlayComponent,
     argTypes: { showClose: { control: "boolean" } }
   };

@@ -6,7 +6,7 @@
   type Props = RemoveIndexSignature<ComponentProps<UploadComponent>>;
 
   export const meta: Meta<UploadComponent> = {
-    title: "Molecular/Upload",
+    title: "Molecules/Upload",
     component: UploadComponent,
     argTypes: {
       label: { control: "text" },

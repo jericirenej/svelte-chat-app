@@ -11,7 +11,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Organic/MessageContainer",
+    title: "Organisms/MessageContainer",
     component: MessageContainerComponent,
     argTypes: {
       messages: { table: { disable: true } },

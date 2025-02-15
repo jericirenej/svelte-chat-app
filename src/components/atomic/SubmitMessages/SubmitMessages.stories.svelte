@@ -8,7 +8,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Atomic/SubmitMessages",
+    title: "Atoms/SubmitMessages",
     component: SubmitMessagesComponent,
     argTypes: {
       alignment: { control: "inline-radio", options: ["center", "left"] },

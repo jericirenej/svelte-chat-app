@@ -6,7 +6,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Atomic/AddChat",
+    title: "Atoms/AddChat",
     component: AddChatComponent,
     argTypes: {
       disabled: { control: "boolean" },

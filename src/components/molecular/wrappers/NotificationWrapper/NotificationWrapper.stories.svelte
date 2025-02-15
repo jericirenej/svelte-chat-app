@@ -3,7 +3,7 @@
   import NotificationWrapperComponent from "./NotificationWrapper.svelte";
 
   export const meta: Meta<NotificationWrapperComponent> = {
-    title: "Molecular/NotificationWrapper",
+    title: "Molecules/NotificationWrapper",
     component: NotificationWrapperComponent,
     argTypes: {
       notifications: { table: { disable: true } },

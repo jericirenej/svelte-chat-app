@@ -11,7 +11,7 @@
   };
 
   export const meta: Meta<Props> = {
-    title: "Molecular/ChatPreview",
+    title: "Molecules/ChatPreview",
     component: ChatPreviewComponent,
     argTypes: {
       chatLabel: { control: "text" },

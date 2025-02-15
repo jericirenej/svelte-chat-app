@@ -6,7 +6,7 @@
   >;
 
   export const meta: Meta<ExtendedProps> = {
-    title: "Molecular/Message",
+    title: "Molecules/Message",
     component: MessageComponent,
     argTypes: {
       message: { control: "text" },

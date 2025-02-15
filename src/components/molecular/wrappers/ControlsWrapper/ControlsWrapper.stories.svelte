@@ -7,7 +7,7 @@
   type StoryProps = RemoveIndexSignature<ComponentProps<ControlsWrapperComponent>>;
 
   export const meta: Meta<StoryProps> = {
-    title: "Molecular/ControlsWrapper",
+    title: "Molecules/ControlsWrapper",
     component: ControlsWrapperComponent,
     argTypes: {
       controlOnTop: { control: "boolean" }

@@ -5,7 +5,7 @@
     ComponentProps<FormHeaderComponent> & { containerWidth: number }
   >;
   export const meta: Meta<ExtendedProps> = {
-    title: "Molecular/FormHeader",
+    title: "Molecules/FormHeader",
     component: FormHeaderComponent,
     argTypes: {
       formTitle: { control: "text" },

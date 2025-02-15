@@ -3,7 +3,7 @@
   import ButtonComponent from "./Button.svelte";
   type StoryProps = RemoveIndexSignature<ComponentProps<ButtonComponent>>;
   export const meta: Meta<StoryProps> = {
-    title: "Atomic/Button",
+    title: "Atoms/Button",
     component: ButtonComponent,
     argTypes: {
       disabled: { control: "boolean" },

@@ -3,7 +3,7 @@
   import RootHeadingComponent from "./RootHeading.svelte";
 
   export const meta: Meta<RootHeadingComponent> = {
-    title: "Atomic/RootHeading",
+    title: "Atoms/RootHeading",
     component: RootHeadingComponent,
     argTypes: {
       heading: { control: "text" },

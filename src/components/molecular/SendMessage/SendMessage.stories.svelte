@@ -5,7 +5,7 @@
     ComponentProps<SendMessageComponent> & { containerWidth: number; sendSuccess: boolean }
   >;
   export const meta: Meta<ExtendedProps> = {
-    title: "Molecular/SendMessage",
+    title: "Molecules/SendMessage",
     component: SendMessageComponent,
     argTypes: {
       sendMessage: { table: { disable: true } },
