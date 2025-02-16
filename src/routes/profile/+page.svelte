@@ -1,8 +1,8 @@
 <script lang="ts">
   import { handleDeleteAccountCall } from "$lib/client/session-handlers.js";
   import type { CompleteUserDto } from "../../../db/index.js";
-  import Button from "../../components/atomic/Button/Button.svelte";
-  import Dialog from "../../components/organic/Dialog/Dialog.svelte";
+  import Button from "../../components/atoms/Button/Button.svelte";
+  import Dialog from "../../components/organisms/Dialog/Dialog.svelte";
   import { PROFILE_MESSAGES } from "../../messages.js";
   import { capitalize } from "../../helpers";
   import type { PageData } from "./$types.js";

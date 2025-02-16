@@ -1,5 +1,6 @@
 import type { UserDto } from "../../../db/postgres";
 import { CONVERSATION_MESSAGES } from "../../messages";
+import type { Maybe } from "../../types";
 
 export const getNameOrUsername = ({
   name,
@@ -15,10 +16,10 @@ export const participantMap = (
 };
 
 export const getParticipant = (
-  chatParticipants: Map<string, string>,
+  chatParticipants: Map<string, { name: string; avatar: Maybe<string> }>,
   targetUserId: string,
   loggedUserId: string
 ) =>
   targetUserId === loggedUserId
     ? CONVERSATION_MESSAGES.ownMessageAuthor
-    : chatParticipants.get(targetUserId) ?? CONVERSATION_MESSAGES.missingAuthor;
+    : chatParticipants.get(targetUserId)?.name ?? CONVERSATION_MESSAGES.missingAuthor;

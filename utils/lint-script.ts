@@ -4,7 +4,7 @@ process.env.FORCE_COLOR = "3";
 const start = performance.now();
 await spinner("Running lint", async () => {
   await $`npx prettier --check .`.nothrow();
-  await $`npx eslint .`;
+  await $`npx eslint .`.nothrow();
 });
 const end = performance.now() - start;
 

@@ -8,7 +8,7 @@ import { LOGIN_MESSAGES, SIGNUP_MESSAGES } from "../src/messages";
 import { dbName, e2eDatabases, sleep, typedObjectKeys, uploadFile, type ImageTypes } from "./utils";
 import type { BlobStorageService } from "@db/index";
 import type { Maybe } from "../src/types";
-import { AddAvatarE2E } from "../src/components/organic/AddAvatar/AddAvatar.e2e";
+import { AddAvatarE2E } from "../src/components/organisms/AddAvatar/AddAvatar.e2e";
 
 const exampleUser = (info: TestInfo, browserName: string) => {
   const username = `signup_${browserName}_${info.parallelIndex}`,

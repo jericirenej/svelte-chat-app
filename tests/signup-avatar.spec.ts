@@ -1,6 +1,6 @@
 import { avatarBucketPath, avatarClientUrl } from "$lib/client/avatar-url";
 import { expect } from "@playwright/test";
-import { AddAvatarE2E } from "../src/components/organic/AddAvatar/AddAvatar.e2e";
+import { AddAvatarE2E } from "../src/components/organisms/AddAvatar/AddAvatar.e2e";
 import { PROFILE_ROUTE, ROOT_ROUTE, SIGNUP_ROUTE } from "../src/constants";
 import { test } from "./fixtures";
 test.beforeEach(async ({ page, clearDB }) => {

@@ -95,7 +95,8 @@ export const ENTITY_LIST = {
 
 export const CREATE_CHAT = {
   pageTitle: `${APP_NAME} - New chat`,
-  title: "Create new chat",
+  navTitle: "Create new chat",
+  navLabel: "New chat",
   chatLabel: "Label (Optional)",
   submitText: "Create chat",
   supplyDetailsTitle: "Pick at least one chat participant. Add optional chat label."

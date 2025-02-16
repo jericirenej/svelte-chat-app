@@ -14,7 +14,7 @@
   import { removeChat, setPreviewAndUnreadOnLoad } from "$lib/client/chat-handlers";
   import { handleLogoutCall } from "$lib/client/session-handlers";
   import { onMount } from "svelte";
-  import NotificationWrapper from "../components/molecular/wrappers/NotificationWrapper/NotificationWrapper.svelte";
+  import NotificationWrapper from "../components/molecules/wrappers/NotificationWrapper/NotificationWrapper.svelte";
   import { CHAT_ROUTE, CREATE_CHAT_ROUTE } from "../constants";
   import type { LayoutData } from "./$types";
   import { fade } from "svelte/transition";

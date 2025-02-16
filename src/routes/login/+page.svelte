@@ -2,7 +2,7 @@
   import { invalidateAll } from "$app/navigation";
   import { loginCall } from "$lib/client/session-handlers";
   import { onMount } from "svelte";
-  import LoginForm from "../../components/organic/LoginForm/LoginForm.svelte";
+  import LoginForm from "../../components/organisms/LoginForm/LoginForm.svelte";
   import { LOGIN_MESSAGES } from "../../messages";
   import type { PageData } from "./$types.js";
 
