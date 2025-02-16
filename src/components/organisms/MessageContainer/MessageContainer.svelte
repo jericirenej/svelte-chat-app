@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
   export type MessageLoadPrevious = () => unknown;
+  export type MessageParticipantData = Map<string, { name: string; avatar: Maybe<string> }>;
 </script>
 
 <script lang="ts">
@@ -12,11 +13,12 @@
   import { CONVERSATION_MESSAGES } from "../../../messages";
   import EmitInView from "../../atoms/EmitInView/EmitInView.svelte";
   import MessageList from "../../molecules/MessageList/MessageList.svelte";
+  import type { Maybe } from "../../../types";
   export let loggedUserId: string;
   export let chatId: string;
   export let messages: MessageDto[];
   export let total: number;
-  export let participants: Map<string, string>;
+  export let participants: Map<string, { name: string; avatar: Maybe<string> }>;
   export let loadPrevious: MessageLoadPrevious;
 
   const SCROLL_BUFFER = 50;

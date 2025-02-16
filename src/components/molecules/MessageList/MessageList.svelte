@@ -4,10 +4,11 @@
   import { fly } from "svelte/transition";
   import type { MessageDto } from "../../../../db/postgres";
   import Message from "../Message/Message.svelte";
+  import type { Maybe } from "../../../types";
 
   export let loggedUserId: string;
   export let messages: MessageDto[];
-  export let participants: Map<string, string>;
+  export let participants: Map<string, { name: string; avatar: Maybe<string> }>;
   export let transitionsEnabled: boolean = true;
 </script>
 
@@ -22,7 +23,12 @@
       }}
       class={`max-w-[75%] ${self ? "ml-auto" : "mr-auto"}`}
     >
-      <Message author={getParticipant(participants, userId, loggedUserId)} {createdAt} {message} />
+      <Message
+        author={getParticipant(participants, userId, loggedUserId)}
+        {createdAt}
+        {message}
+        avatar={participants.get(userId)?.avatar}
+      />
     </li>
   {/each}
 </ul>

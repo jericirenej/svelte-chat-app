@@ -23,7 +23,9 @@
     value = "";
   };
 
-  $: participants = new Map(data.participants.map((p) => [p.id, participantName(p)]));
+  $: participants = new Map(
+    data.participants.map((p) => [p.id, { name: participantName(p), avatar: p.avatar }])
+  );
 </script>
 
 <div class="chat-container flex h-full w-full flex-col justify-between gap-4 overflow-y-auto">
