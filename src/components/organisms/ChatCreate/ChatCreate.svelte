@@ -31,6 +31,7 @@
     entities.update((entities) => entities.filter(({ id }) => id !== userId));
   };
   let createDisabled = true;
+  let isVisible = true;
 
   const { enhance, validateForm, form, errors, constraints } = superForm(formData, {
     dataType: "json",
@@ -42,6 +43,7 @@
     customValidity: true,
     onResult: async (event) => {
       isLoading = false;
+      isVisible = false;
       if (event.result.type === "success") {
         await handleSuccess(event.result.data as CreateChatResponseData);
       }
@@ -66,44 +68,46 @@
   });
 </script>
 
-<FormWrapper>
-  <form slot="form" method="POST" use:enhance class="flex flex-col gap-2">
-    <ControlsWrapper controlOnTop={true}>
-      <svelte:fragment slot="inputs">
-        <Input
-          type="text"
-          label={CREATE_CHAT.chatLabel}
-          placeholder={CREATE_CHAT.chatLabel}
-          name="chatLabel"
-          errors={$errors.chatLabel}
-          constraints={$constraints.chatLabel}
-          input={submitDisabledToggle}
-          bind:value={$form.chatLabel}
-        />
-
-        <EntityAutocomplete {pickUser} {searchUsers} errors={$errors.participants?._errors} />
-        <div id="participant-list">
-          <UserEntityList
-            entities={$entities}
-            removeAction={removeUser}
-            animationDuration={200}
-            staggeredAnimation={false}
+{#if isVisible}
+  <FormWrapper>
+    <form slot="form" method="POST" use:enhance class="flex flex-col gap-2">
+      <ControlsWrapper controlOnTop={true}>
+        <svelte:fragment slot="inputs">
+          <Input
+            type="text"
+            label={CREATE_CHAT.chatLabel}
+            placeholder={CREATE_CHAT.chatLabel}
+            name="chatLabel"
+            errors={$errors.chatLabel}
+            constraints={$constraints.chatLabel}
+            input={submitDisabledToggle}
+            bind:value={$form.chatLabel}
           />
-        </div>
-      </svelte:fragment>
-      <svelte:fragment slot="controls">
-        <SubmitButton
-          {isLoading}
-          disabled={createDisabled}
-          title={createDisabled ? CREATE_CHAT.supplyDetailsTitle : ""}
-          text="Create chat"
-          config={{ display: "block", variant: "outline", size: "md" }}
-          >{CREATE_CHAT.submitText}</SubmitButton
-        >
-      </svelte:fragment>
-    </ControlsWrapper>
-  </form>
-</FormWrapper>
+
+          <EntityAutocomplete {pickUser} {searchUsers} errors={$errors.participants?._errors} />
+          <div id="participant-list">
+            <UserEntityList
+              entities={$entities}
+              removeAction={removeUser}
+              animationDuration={200}
+              staggeredAnimation={false}
+            />
+          </div>
+        </svelte:fragment>
+        <svelte:fragment slot="controls">
+          <SubmitButton
+            {isLoading}
+            disabled={createDisabled}
+            title={createDisabled ? CREATE_CHAT.supplyDetailsTitle : ""}
+            text="Create chat"
+            config={{ display: "block", variant: "outline", size: "md" }}
+            >{CREATE_CHAT.submitText}</SubmitButton
+          >
+        </svelte:fragment>
+      </ControlsWrapper>
+    </form>
+  </FormWrapper>
+{/if}
 
 <style lang="css">
   #participant-list:global(#participant-list li) {
