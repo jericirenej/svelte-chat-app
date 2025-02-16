@@ -59,7 +59,12 @@
 >
   <div class="my-5 ml-3 mr-4 flex shrink-0 justify-between text-neutral-200">
     <h2 class="select-none text-right text-xl uppercase">{PREVIEW_LIST_TITLE}</h2>
-    <AddChat disabled={false} on:click={handleChatCreate} title={CREATE_CHAT.title} />
+    <AddChat
+      disabled={false}
+      on:click={handleChatCreate}
+      title={CREATE_CHAT.navTitle}
+      label={CREATE_CHAT.navLabel}
+    />
   </div>
   {#if chatPreviewList !== null}
     {#if chatPreviewList.length}

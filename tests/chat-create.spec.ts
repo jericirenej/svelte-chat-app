@@ -7,7 +7,7 @@ import { test } from "./fixtures";
 test("Clicking on add icon navigates to chat create", async ({ page, login, logout, seedDB }) => {
   await seedDB({ chats: [] });
   await login("lovelace");
-  const createChat = page.getByTitle(CREATE_CHAT.title);
+  const createChat = page.getByTitle(CREATE_CHAT.navTitle);
   await expect(createChat).toBeVisible();
   await createChat.click();
   await expect(page).toHaveURL(CREATE_CHAT_ROUTE);
