@@ -293,7 +293,6 @@ export class ImageCrop {
       );
     });
     return blob;
-    /* return canvas.toDataURL(); */
   }
 
   protected remainingImageAxisSpace(size: number, dimension: "width" | "height"): number {

@@ -23,7 +23,6 @@ const removeDuplicatedSocketIfExists = async (
   const sessionSocket = await redisService.getSocketSession(sessionId);
   if (!sessionSocket) return;
   const sockets = await socketServer.fetchSockets();
-  /* console.log("Disconnecting socket from orphaned session"); */
   sockets.find(({ id }) => id === sessionSocket)?.disconnect(true);
   await redisService.deleteSocketSession(sessionId);
 };
@@ -37,7 +36,6 @@ export const disconnectTargetSocket = async (socketServer: SocketServer, socketI
 export const setupSocketServer = (socketServer: SocketServer): void => {
   socketServer.on("connect", async (socket) => {
     let sessionTimeoutWarning: NodeJS.Timeout;
-    /* console.log(`Socket ${socket.id} connection attempted`); */
 
     const { headers } = socket.request;
 
@@ -77,7 +75,6 @@ export const setupSocketServer = (socketServer: SocketServer): void => {
     socket.on("disconnect", () => {
       clearTimeout(sessionTimeoutWarning);
       socket.to([...socket.rooms]).emit("participantOnline", user.username, false);
-      /* console.log(`Socket ${socket.id} disconnected`); */
       socket.disconnect(true);
     });
     socket.on("messagePush", (message) => {
